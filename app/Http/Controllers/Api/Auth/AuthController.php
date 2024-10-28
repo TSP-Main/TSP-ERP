@@ -240,7 +240,7 @@ class AuthController extends BaseController
             $user = Auth::user();
 
             if (isset($data['password'])) {
-                $data['password'] = bcrypt($data['password']);
+                $data['password'] = bcrypt($data['password']); //password in needed
             }
 
             $user->update($data);
