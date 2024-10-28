@@ -17,9 +17,9 @@ class EmployeeController extends BaseController
     {
         DB::beginTransaction();
         try {
-            // if (auth()->user()->cannot('create-employee')) {
-            //     return $this->sendError('Unauthorized access', 403);
-            // }
+            if (auth()->user()->cannot('create-employee')) {
+                return $this->sendError('Unauthorized access', 403);
+            }
             $companyCode = $request->company_code;
             $employee = User::create([
                 'name' => $request->name,
