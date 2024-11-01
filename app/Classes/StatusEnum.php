@@ -27,4 +27,9 @@ class StatusEnum
     public const EMPLOYEE = "employee";
     public const MANAGER = "manger";
 
- }
+    public const DATE_FORMAT = 'Y-m-d';
+    public const TIME_FORMAT = 'H:i';
+
+    public const SCHEDULE_ACTIVE = 1;
+    public const SCHEDULE_INACTIVE = 0;
+}

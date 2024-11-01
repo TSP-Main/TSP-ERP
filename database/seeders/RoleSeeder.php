@@ -2,8 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -28,11 +26,27 @@ class RoleSeeder extends Seeder
             // Super Admin Permissions
             'home',
             'dashboard',
+
+            //company
             'delete-company',
             'approve-company',
+
+            //manager
             'approve-manager',
+
+            //employee
             'approve-employee',
+            'show-employees',
             'create-employee',
+
+            //schedule
+            'create-schedule',
+            'update-schedule',
+            'delete-schedule',
+            'assign-schedule',
+
+            //attendance
+            'add-attendance',
         ];
 
         // Create all permissions
@@ -44,14 +58,30 @@ class RoleSeeder extends Seeder
         // $superAdmin->syncPermissions(Permission::all());
         $superAdmin->givePermissionTo(Permission::all());
 
-        // Assign specific permissions to other roles except super_admin
+        // Assign specific permissions to comapny
         $companyPermission = [
             'approve-manager',
             'approve-employee',
             'create-employee',
+            'create-schedule',
+            'update-schedule',
+            'delete-schedule',
+            'show-employees',
+            'assign-schedule',
         ];
         $company->givePermissionTo($companyPermission);
-        $manager->syncPermissions([]);
+
+        // Assign specific permissions to manger
+        $manager->syncPermissions([
+            'approve-employee',
+            'create-schedule',
+            'update-schedule',
+            'show-employees',
+            'assign-schedule',
+            'add-attendance',
+        ]);
+
+        // Assign specific permissions to employee
         $employee->syncPermissions([]);
     }
 }

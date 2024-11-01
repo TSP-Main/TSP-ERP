@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use App\Models\Company\CompanyModel;
+use App\Models\Employee\Employee;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -21,7 +22,7 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-    protected $guard_name = 'api';
+    // protected $guard_name = 'api';
     protected $fillable = [
         'name',
         'email',
@@ -60,5 +61,10 @@ class User extends Authenticatable
     public function otp()
     {
         return $this->hasOne(Otp::class);
+    }
+
+    public function employee()
+    {
+        return $this->hasOne(Employee::class);
     }
 }
