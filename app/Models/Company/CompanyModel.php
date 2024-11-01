@@ -3,6 +3,7 @@
 namespace App\Models\Company;
 
 use App\Models\Company\CardModel;
+use App\Models\Employee\Employee;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,5 +23,10 @@ class CompanyModel extends Model
     public function card()
     {
         return $this->hasMany(CardModel::class);
+    }
+
+    public function employees()
+    {
+        return $this->hasMany(Employee::class, 'company_code', 'code');
     }
 }

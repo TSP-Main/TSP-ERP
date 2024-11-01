@@ -16,6 +16,7 @@ use App\Jobs\Company\CompanyApprovedEmailJob;
 use App\Jobs\Company\EmployeeApproveEmailJob;
 use App\Models\Company\CardModel;
 use App\Models\Company\CompanyModel;
+use App\Models\Employee\Employee;
 use App\Models\Otp;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -34,13 +35,13 @@ class AuthController extends BaseController
     {
         try {
             DB::beginTransaction();
-            if ($request->role === 'company') {
+            if ($request->role === StatusEnum::COMPANY) {
                 $user = User::create([
                     'name' => $request->company_name,
                     'email' => $request->email,
                     'password' => ''
                 ]);
-                $user->assignRole('company');
+                $user->assignRole(StatusEnum::COMPANY);
                 // Generate unique company code
                 $companyCode = 'CPM-' . strtoupper(uniqid());
                 $slug = generateCompanySlug($request->company_name); // Use the helper function to generate a unique slug
@@ -67,7 +68,7 @@ class AuthController extends BaseController
                 ]);
                 DB::commit();
                 return $this->sendResponse(['company_code' => $companyCode], 'User register successfully');
-            } elseif ($request->role === 'employee') {
+            } elseif ($request->role === StatusEnum::EMPLOYEE) {
                 $company = CompanyModel::where('code', $request->company_code)->firstOrFail();
                 // Register employee user
                 $user = User::create([
@@ -75,7 +76,11 @@ class AuthController extends BaseController
                     'email' => $request->email,
                     'password' => Hash::make($request->password),
                 ]);
-                $user->assignRole('employee');
+                $user->assignRole(StatusEnum::EMPLOYEE);
+                Employee::create([
+                    'user_id' => $user->id,
+                    'company_code' => $company->code,
+                ]);
                 DB::commit();
                 return $this->sendResponse(['user' => $user], 'User register successfully');
             }
@@ -89,12 +94,11 @@ class AuthController extends BaseController
     public function login(LoginRequest $request): JsonResponse
     {
         try {
-            // Authenticate user
-            if (!Auth::attempt($request->only(['email', 'password']))) {
+            $user = User::where('email', $request->email)->first();
+            // Check if user exists and verify password
+            if (!$user || !Hash::check($request->password, $user->password)) {
                 return $this->sendError(['credentials' => ['Invalid credentials.']], 401);
             }
-
-            $user = Auth::user();
 
             // Check for active tokens
             // if ($user->tokens()->where('revoked', false)->exists()) {

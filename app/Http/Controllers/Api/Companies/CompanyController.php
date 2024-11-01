@@ -1,13 +1,17 @@
 <?php
 
-namespace App\Http\Controllers\Companies;
+namespace App\Http\Controllers\Api\Companies;
 
 use App\Classes\StatusEnum;
 use App\Http\Controllers\Api\BaseController;
+use App\Http\Requests\Company\CompanyEmployeesRequest;
 use App\Http\Requests\Company\ShowCompanyRequest;
 use App\Jobs\Company\CompanyApprovedEmailJob;
+use App\Models\Company\CompanyModel;
+use App\Models\Employee\Employee;
 use App\Models\User;
 use Exception;
+use GuzzleHttp\Psr7\Request;
 use Illuminate\Support\Facades\DB;
 
 class CompanyController extends BaseController
@@ -67,5 +71,4 @@ class CompanyController extends BaseController
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
-
 }

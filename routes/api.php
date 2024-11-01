@@ -1,11 +1,10 @@
 <?php
 
 use App\Http\Controllers\Api\Auth\AuthController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Laravel\Passport\Passport;
-use App\Http\Controllers\Companies\CompanyController;
-use App\Http\Controllers\Employee\EmployeeController;
+use App\Http\Controllers\Api\Companies\CompanyController;
+use App\Http\Controllers\Api\Employee\EmployeeController;
+use App\Http\Controllers\Api\Schedule\ScheduleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,11 +50,18 @@ Route::middleware('auth:api')->group(function () {
     Route::get('get-companies', [CompanyController::class, 'index']);
     Route::get('show-companies', [CompanyController::class, 'show']);
     Route::delete('delete-company/{user}', [CompanyController::class, 'destroy']);
-});
 
-/*
+    /*
  * employee
  */
-Route::middleware('auth:api')->group(function () {
     Route::post('add-employee', [EmployeeController::class, 'create']);
+    Route::get('all-employees/{companyCode}', [EmployeeController::class, 'allEmployees']);
+    Route::get('show-employee/{user}', [EmployeeController::class, 'show']);
+
+    /*
+ * schedule
+ */
+    Route::post('create-schedule', [ScheduleController::class, 'create']);
+    Route::post('assign-schedule', [ScheduleController::class, 'assignSchedule']);
+    Route::post('attendance', [ScheduleController::class, 'attendance']);
 });
