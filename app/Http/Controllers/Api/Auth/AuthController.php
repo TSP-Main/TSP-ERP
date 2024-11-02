@@ -67,7 +67,7 @@ class AuthController extends BaseController
                     'plan' => $request->plan,
                 ]);
                 DB::commit();
-                return $this->sendResponse(['company_code' => $companyCode], 'User register successfully');
+                return $this->sendResponse(['company' => $company], 'User register successfully');
             } elseif ($request->role === StatusEnum::EMPLOYEE) {
                 $company = CompanyModel::where('code', $request->company_code)->firstOrFail();
                 // Register employee user

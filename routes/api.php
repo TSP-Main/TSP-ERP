@@ -43,25 +43,28 @@ Route::middleware('auth:api')->group(function () {
 // Route::get('email/verify/{id}', [VerificationController::class, 'verify'])->name('verification.verify'); // Make sure to keep this as your route name
 // Route::get('email/resend', [VerificationController::class, 'resend'])->name('verification.resend');
 
-/*
- * Company
- */
 Route::middleware('auth:api')->group(function () {
-    Route::get('get-companies', [CompanyController::class, 'index']);
-    Route::get('show-companies', [CompanyController::class, 'show']);
-    Route::delete('delete-company/{user}', [CompanyController::class, 'destroy']);
 
-    /*
- * employee
- */
-    Route::post('add-employee', [EmployeeController::class, 'create']);
-    Route::get('all-employees/{companyCode}', [EmployeeController::class, 'allEmployees']);
-    Route::get('show-employee/{user}', [EmployeeController::class, 'show']);
+    // Company routes
+    Route::prefix('company')->group(function () {
+        Route::get('get-companies', [CompanyController::class, 'index']);
+        Route::get('show-companies', [CompanyController::class, 'show']);
+        Route::delete('delete-company/{user}', [CompanyController::class, 'destroy']);
+    });
 
-    /*
- * schedule
- */
-    Route::post('create-schedule', [ScheduleController::class, 'create']);
-    Route::post('assign-schedule', [ScheduleController::class, 'assignSchedule']);
-    Route::post('attendance', [ScheduleController::class, 'attendance']);
+    // Employee routes
+    Route::prefix('employee')->group(function () {
+        Route::post('add-employee', [EmployeeController::class, 'create']);
+        Route::get('all-employees/{companyCode}', [EmployeeController::class, 'allEmployees']);
+        Route::get('show-employee/{user}', [EmployeeController::class, 'show']);
+    });
+
+    // Schedule routes
+    Route::prefix('schedule')->group(function () {
+        Route::post('create-schedule', [ScheduleController::class, 'create']);
+        Route::post('assign-schedule', [ScheduleController::class, 'assignSchedule']);
+        // Route::post('attendance', [ScheduleController::class, 'attendance']);
+        Route::post('check-in/{employee}', [ScheduleController::class, 'checkIn']);
+        Route::post('check-out/{employee}', [ScheduleController::class, 'checkOut']);
+    });
 });

@@ -24,7 +24,10 @@ class AssignSchedueRequest extends FormRequest
         return [
             'employee_id' => 'required|exists:employees,id',
             'schedule_id' => 'required|exists:schedules,id',
-            'date' => 'required|date|date_format:Y-m-d|after_or_equal:today',
+            // 'date' => 'required|date|date_format:Y-m-d|after_or_equal:today',
+            'start_date' => 'required|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
         ];
     }
 }
+            
