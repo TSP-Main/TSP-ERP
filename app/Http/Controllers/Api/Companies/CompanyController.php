@@ -28,7 +28,7 @@ class CompanyController extends BaseController
                 ->with('company')
                 ->get();
 
-            return $this->sendResponse(['companies' => $companies], 'Companies fetched successfully');
+            return $this->sendResponse($companies, 'Companies fetched successfully');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }

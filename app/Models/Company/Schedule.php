@@ -13,7 +13,6 @@ class Schedule extends Model
     protected $guarded = ['id'];
 
 
-
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -22,5 +21,10 @@ class Schedule extends Model
     public function company()
     {
         return $this->belongsTo(CompanyModel::class);
+    }
+
+    public function employeeSchedules()
+    {
+        return $this->hasMany(EmployeeSchedule::class);
     }
 }

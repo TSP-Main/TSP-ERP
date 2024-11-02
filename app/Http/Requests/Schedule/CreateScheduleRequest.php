@@ -21,31 +21,37 @@ class CreateScheduleRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
-{
-    return [
-        // 'user_id' => 'required|exists:users,id',
-        'company_id' => 'required|exists:companies,id',
-        'start_date' => 'required|date_format:Y-m-d',
-        'end_date' => 'nullable|date_format:Y-m-d|after_or_equal:start_date',
-        'start_time' => 'required|date_format:H:i',
-        'end_time' => [
-            'required',
-            'date_format:H:i',
-            function ($attribute, $value, $fail) {
-                $startDateTime = Carbon::parse($this->start_date . ' ' . $this->start_time);
-                $endDateTime = Carbon::parse(($this->end_date ?? $this->start_date) . ' ' . $value);
+    {
+        return [
+            // 'user_id' => 'required|exists:users,id',
+            // 'company_id' => 'required|exists:companies,id',
+            // 'start_date' => 'required|date_format:Y-m-d',
+            // 'end_date' => 'nullable|date_format:Y-m-d|after_or_equal:start_date',
+            // 'start_time' => 'required|date_format:H:i',
+            // 'end_time' => [
+            //     'required',
+            //     'date_format:H:i',
+            //     function ($attribute, $value, $fail) {
+            //         $startDateTime = Carbon::parse($this->start_date . ' ' . $this->start_time);
+            //         $endDateTime = Carbon::parse(($this->end_date ?? $this->start_date) . ' ' . $value);
 
-                if ($endDateTime->lessThanOrEqualTo($startDateTime)) {
-                    $endDateTime->addDay(); // Handle overnight shifts
-                }
+            //         if ($endDateTime->lessThanOrEqualTo($startDateTime)) {
+            //             $endDateTime->addDay(); // Handle overnight shifts
+            //         }
 
-                if ($endDateTime->diffInDays($startDateTime) > 1) {
-                    $fail('The schedule cannot span more than one day.');
-                }
-            },
-        ],
-    ];
-}
+            //         if ($endDateTime->diffInDays($startDateTime) > 1) {
+            //             $fail('The schedule cannot span more than one day.');
+            //         }
+            //     },
+            // ],
+
+            'company_id' => 'required|exists:companies,id',
+            'name' => 'nullable|string|max:255',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i',
+            'week_day' => 'nullable|string', // E.g., 'Monday' or 'Weekend'
+        ];
+    }
 
 
     public function messages(): array
