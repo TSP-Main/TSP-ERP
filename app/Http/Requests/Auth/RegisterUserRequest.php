@@ -39,7 +39,13 @@ class RegisterUserRequest extends FormRequest
                 'card_owner_name' => ['required', 'string', 'max:255'],
                 'expiry_date' => ['required', 'regex:/^(0[1-9]|1[0-2])\/([0-9]{2})$/'], // MM/YY format
                 'cvv' => ['required', 'digits_between:3,4'],
-                'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048']
+                'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+                'password' => [
+                    'required',
+                    'string',
+                    'min:8',
+                    'confirmed', // Check password confirmation
+                ],
             ]);
         } // Employee-specific validation
         elseif ($this->role === 'employee') {

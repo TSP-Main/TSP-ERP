@@ -21,9 +21,9 @@ class CompanyModel extends Model
     }
 
     public function card()
-    {
-        return $this->hasMany(CardModel::class);
-    }
+{
+    return $this->hasOne(CardModel::class, 'company_id', 'id');
+}
 
     public function employees()
     {

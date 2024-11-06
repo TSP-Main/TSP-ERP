@@ -39,7 +39,7 @@ class AuthController extends BaseController
                 $user = User::create([
                     'name' => $request->company_name,
                     'email' => $request->email,
-                    'password' => ''
+                    'password' => Hash::make($request->password),
                 ]);
                 $user->assignRole(StatusEnum::COMPANY);
                 // Generate unique company code
@@ -49,7 +49,7 @@ class AuthController extends BaseController
                 if ($request->hasFile('logo')) {
                     $logoPath = $request->file('logo')->store('logos', 'public'); // Store in the 'logos' directory
                 }
-                $company = CompanyModel::create([
+                $company = $user->company()->create([
                     'user_id' => $user->id,
                     'name' => $request->company_name,
                     'slug' => $slug,
@@ -57,7 +57,7 @@ class AuthController extends BaseController
                     'logo' => $logoPath
                 ]);
                 // Store card details
-                CardModel::create([
+                $company->card()->create([
                     'company_id' => $company->id,
                     'card_number' => $request->card_number,
                     'card_owner_name' => $request->card_owner_name,
@@ -67,7 +67,9 @@ class AuthController extends BaseController
                     'plan' => $request->plan,
                 ]);
                 DB::commit();
-                return $this->sendResponse(['company' => $company], 'User register successfully');
+                // Reload user with related company and card details
+                $user->refresh()->load('company.card');
+                return $this->sendResponse($user, 'User register successfully');
             } elseif ($request->role === StatusEnum::EMPLOYEE) {
                 $company = CompanyModel::where('code', $request->company_code)->firstOrFail();
                 // Register employee user
@@ -105,6 +107,10 @@ class AuthController extends BaseController
             //     return $this->sendError(['error' => 'User already logged in.'], 403);
             // }
 
+            if ($user->hasRole(StatusEnum::COMPANY) && $user->is_active != StatusEnum::ACTIVE) {
+                return $this->sendError(['error' => 'Account is not active. Please contact support.'], 403);
+            }
+    
             // Create a new token
             $token = $user->createToken(User::AUTH_TOKEN)->accessToken;
 
@@ -133,9 +139,11 @@ class AuthController extends BaseController
     public function forgotPassword(ForgetPasswordRequest $request)
     {
         try {
-            Password::sendResetLink($request->all());
+            Password::sendResetLink(['email' => $request->email]);
+
             return $this->sendResponse([], 'Reset password link sent on your email id.');
         } catch (Exception $e) {
+            Log::error('Password reset error: ' . $e->getMessage());
             return $this->sendError('Something went wrong, error in processing email', 406, 406);
         }
     }
@@ -204,10 +212,10 @@ class AuthController extends BaseController
                     //     return $this->sendError('Unauthorized access', 403);
                     // }
 
-                    $otp = random_int(1000, 9999);
-                    $user->otp()->updateOrCreate(['user_id' => $user->id], ['code' => $otp]);
+                    // $otp = random_int(1000, 9999);
+                    // $user->otp()->updateOrCreate(['user_id' => $user->id]);
 
-                    CompanyApprovedEmailJob::dispatch($user->email, $companyCode, $otp);
+                    CompanyApprovedEmailJob::dispatch($user, $companyCode);
                     $user->update(['is_active' => StatusEnum::ACTIVE]);
                     break;
 
