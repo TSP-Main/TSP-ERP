@@ -13,6 +13,7 @@ use App\Models\User;
 use Exception;
 use GuzzleHttp\Psr7\Request;
 use Illuminate\Support\Facades\DB;
+use NunoMaduro\Collision\Adapters\Phpunit\State;
 
 class CompanyController extends BaseController
 {
@@ -23,7 +24,7 @@ class CompanyController extends BaseController
     {
         try {
             $companies = User::whereHas('roles', function ($query) {
-                $query->where('name', 'company');
+                $query->where('name', StatusEnum::COMPANY);
             })
                 ->with('company')
                 ->get();
@@ -48,7 +49,7 @@ class CompanyController extends BaseController
                 return $this->sendError('Company not found', 404);
             }
 
-            return $this->sendResponse(['company' => $company], 'Companies fetched successfully');
+            return $this->sendResponse($company, 'Companies fetched successfully');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
@@ -67,6 +68,47 @@ class CompanyController extends BaseController
             } else {
                 return $this->sendError('User is not a company', 404);
             }
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function notApprovedCompanies()
+    {
+        try {
+            if (auth()->user()->cannot('show-companies')) {
+                return $this->sendError('Unauthorized access', 403);
+            }
+            $companies = User::whereHas('roles', function ($query) {
+                $query->where('name', StatusEnum::COMPANY);
+            })
+                ->where('is_active', StatusEnum::INACTIVE)
+                ->with('company')
+                ->get();
+
+            if ($companies->isEmpty()) {
+                return $this->sendError('No inactive company not found', 404);
+            }
+
+            return $this->sendResponse($companies, 'Not approved companies fetched successfully');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function approvedCompanies()
+    {
+        try {
+            auth()->user()->cannot('show-companies');
+
+            $companies = User::whereHas('roles', function ($query) {
+                $query->where('name', StatusEnum::COMPANY);
+            })
+                ->where('is_active', StatusEnum::ACTIVE)
+                ->with('company')
+                ->get();
+
+            return $this->sendResponse($companies, 'Approved companies successfully fetched');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }

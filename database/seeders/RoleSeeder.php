@@ -30,6 +30,7 @@ class RoleSeeder extends Seeder
             //company
             'delete-company',
             'approve-company',
+            'show-companies',
 
             //manager
             'approve-manager',
