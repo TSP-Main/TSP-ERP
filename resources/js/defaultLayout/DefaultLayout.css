@@ -1,0 +1,21 @@
+.layoutContainer {
+    height: 100vh;
+    /* Full viewport height */
+}
+
+.layoutRow {
+    display: flex;
+    height: 100%;
+}
+
+.sidebarCol {
+    flex: 0 0 auto;
+    /* Prevent the sidebar from stretching */
+}
+
+.contentCol {
+    flex: 1;
+    /* Allow the content to take up the remaining space */
+    padding: 16px;
+    /* Add some padding if desired */
+}
