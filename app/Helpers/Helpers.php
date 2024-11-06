@@ -2,6 +2,8 @@
 
 use App\Models\Company\CompanyModel;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Generate a unique slug for a given company name.
@@ -22,4 +24,23 @@ function generateCompanySlug($companyName)
     }
 
     return $slug;
+}
+
+function getUserTimezone($ipAddress)
+{
+    try {
+        // geolocation service API key.
+        $token = env('IPINFO_SECRET');
+        $response = Http::get("https://ipinfo.io/{$ipAddress}?token={$token}");
+
+        if ($response->successful()) {
+            $data = $response->json();
+            return $data['timezone'] ?? 'UTC'; // Default to UTC if timezone is not found
+        }
+
+        return 'UTC'; // Fallback in case of error
+    } catch (Exception $e) {
+        Log::error("Failed to get timezone: " . $e->getMessage());
+        return 'UTC';
+    }
 }

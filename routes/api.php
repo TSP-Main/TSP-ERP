@@ -31,7 +31,7 @@ Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login'])->name('login');
 Route::post('forgot-password', [AuthController::class, 'forgotPassword'])->name('forgot-password');
 Route::match(['get', 'post'], 'reset-password', [AuthController::class, 'resetPassword'])->name('password.reset');
-Route::post('/create-password/{user}', [AuthController::class, 'createPassword']);
+Route::post('/create-password/{user}', [AuthController::class, 'createPassword'])->name('create.password/{user}');
 Route::middleware('auth:api')->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('verify-otp', [AuthController::class, 'verifyOtp']);
@@ -66,5 +66,6 @@ Route::middleware('auth:api')->group(function () {
         // Route::post('attendance', [ScheduleController::class, 'attendance']);
         Route::post('check-in/{employee}', [ScheduleController::class, 'checkIn']);
         Route::post('check-out/{employee}', [ScheduleController::class, 'checkOut']);
+        Route::get('/working-hours', [ScheduleController::class, 'getWorkingHours']);
     });
 });

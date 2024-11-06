@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Auth;
+namespace App\Http\Requests\Schedule;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ResetPasswordRequest extends FormRequest
+class GetWorkingHoursRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,9 +22,8 @@ class ResetPasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email:rfc,dns','exists:users'],
-            // 'password' => ['required', 'string', 'min:6', 'max:255','confirmed'],
-            'token' => ['required', 'string'],
+            'employee_id' => 'required|exists:employees,id',
+            'date' => 'required|date_format:Y-m-d'
         ];
     }
 }
