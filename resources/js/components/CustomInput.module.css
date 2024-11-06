@@ -1,0 +1,13 @@
+
+.customInput:hover {
+    border-color:rgba(17, 127, 154, 1);; /* Border color on hover */
+}
+
+.customInput:focus {
+    border-color: rgba(17, 127, 154, 1); /* Border color on focus */
+    /* box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2); Optional focus shadow */
+}
+
+.customInput:active {
+    border-color:rgba(17, 127, 154, 1); /* Border color on active */
+}
