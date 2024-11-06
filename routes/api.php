@@ -46,20 +46,23 @@ Route::middleware('auth:api')->group(function () {
 Route::middleware('auth:api')->group(function () {
 
     // Company routes
+    Route::get('companies', [CompanyController::class, 'index']);
     Route::prefix('company')->group(function () {
-        Route::get('get-companies', [CompanyController::class, 'index']);
         Route::get('show-companies', [CompanyController::class, 'show']);
         Route::delete('delete-company/{user}', [CompanyController::class, 'destroy']);
+        Route::get('in-active-companies', [CompanyController::class, 'notApprovedCompanies']);
+        Route::get('active-companies', [CompanyController::class, 'approvedCompanies']);
     });
 
     // Employee routes
+    Route::get('all-employees/{companyCode}', [EmployeeController::class, 'allCompanyEmployees']);
     Route::prefix('employee')->group(function () {
         Route::post('add-employee', [EmployeeController::class, 'create']);
-        Route::get('all-employees/{companyCode}', [EmployeeController::class, 'allEmployees']);
         Route::get('show-employee/{user}', [EmployeeController::class, 'show']);
     });
 
     // Schedule routes
+    Route::get('schedules', [ScheduleController::class, 'schedules']);
     Route::prefix('schedule')->group(function () {
         Route::post('create-schedule', [ScheduleController::class, 'create']);
         Route::post('assign-schedule', [ScheduleController::class, 'assignSchedule']);

@@ -44,19 +44,28 @@ class EmployeeController extends BaseController
         }
     }
 
-    public function allEmployees($companyCode)
+    public function allCompanyEmployees($companyCode)
     {
         try {
             if (auth()->user()->cannot('show-employees')) {
                 return $this->sendError('Unauthorized access', 403);
             }
-            $employees = CompanyModel::with('employees.user')->where('code', $companyCode)->firstOrFail();
 
-            return $this->sendResponse($employees, 'Employees displayed');
+            // Retrieve employees based on the company_code in the Employee model
+            $employees = User::whereHas('employee', function ($query) use ($companyCode) {
+                $query->where('company_code', $companyCode);
+            })->with('employee')->get();
+
+            if ($employees->isEmpty()) {
+                return $this->sendError('No employees found for this company code', 404);
+            }
+
+            return $this->sendResponse($employees, 'Employees displayed successfully');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
+
 
     public function show($user)
     {
