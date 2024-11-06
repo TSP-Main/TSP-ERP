@@ -2,139 +2,52 @@
 
 namespace App\Http\Controllers\Api\Schedule;
 
-use App\Classes\StatusEnum;
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Employee\AssignSchedueRequest;
-use App\Http\Requests\Employee\AttendanceRequest;
 use App\Http\Requests\Schedule\CreateScheduleRequest;
+use App\Http\Requests\Schedule\GetWorkingHoursRequest;
 use App\Models\Company\EmployeeSchedule;
 use App\Models\Company\Schedule;
 use App\Models\Employee\Attendance;
 use Carbon\Carbon;
 use Exception;
-use Illuminate\Support\Facades\DB;
 
 class ScheduleController extends BaseController
 {
-    // public function create(CreateScheduleRequest $request)
-    // {
-    //     DB::beginTransaction();
-    //     try {
-    //         // Check for user permissions
-    //         if (auth()->user()->cannot('create-schedule')) {
-    //             return $this->sendError('Unauthorized access', 403);
-    //         }
-
-    //         // Parse dates and times separately
-    //         $startDate = Carbon::parse($request->start_date);
-    //         $endDate = $request->end_date ? Carbon::parse($request->end_date) : $startDate;
-
-    //         $startTime = Carbon::parse($request->start_time);
-    //         $endTime = Carbon::parse($request->end_time);
-
-    //         // Ensure the end date is either the same or one day after the start date
-    //         if ($startDate->diffInDays($endDate) > 1) {
-    //             return $this->sendError(
-    //                 'The schedule cannot span more than one day.',
-    //                 400
-    //             );
-    //         }
-
-    //         // Adjust if end time is on the next day
-    //         if ($endDate->equalTo($startDate) && $endTime <= $startTime) {
-    //             $endDate = $endDate->addDay(); // Shift to the next day
-    //         }
-
-    //         // Calculate total working hours
-    //         $startDateTime = $startDate->setTimeFrom($startTime);
-    //         $endDateTime = $endDate->setTimeFrom($endTime);
-
-    //         $totalHours = $startDateTime->diffInMinutes($endDateTime) / 60;
-
-    //         // Create the schedule
-    //         $schedule = Schedule::create([
-    //             // 'user_id' => $request->user_id,
-    //             'company_id' => $request->company_id,
-    //             'start_date' => $startDate,
-    //             'end_date' => $endDate,
-    //             'start_time' => $startTime->format('H:i'),
-    //             'end_time' => $endTime->format('H:i'),
-    //             'total_hours' => $totalHours,
-    //             // 'schedule_active' => StatusEnum::SCHEDULE_INACTIVE,
-    //         ]);
-
-    //         DB::commit();
-    //         return $this->sendResponse($schedule, 'Schedule created successfully');
-    //     } catch (Exception $e) {
-    //         DB::rollBack();
-    //         return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
-    //     }
-    // }
-
-    // public function assignSchedule(AssignSchedueRequest $request)
-    // {
-    //     try {
-    //         if (auth()->user()->cannot('assign-schedule')) {
-    //             return $this->sendError('Unauthorized access', 403);
-    //         }
-    //         $schedule = Attendance::create([
-    //             'employee_id' => $request->employee_id,
-    //             'schedule_id' => $request->schedule_id,
-    //             'date' => $request->date,
-    //         ]);
-
-    //         return $this->sendResponse($schedule, 'Schedule assigned to employee');
-    //     } catch (Exception $e) {
-    //         return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
-    //     }
-    // }
-
-    // public function attendance(AttendanceRequest $request)
-    // {
-    //     try {
-    //         if (auth()->user()->cannot('add-attendance')) {
-    //             return $this->sendError('Unauthorized access', 403);
-    //         }
-    //         $schedule = Attendance::create([
-    //             'time_in' => $request->time_in,
-    //             'time_out' => $request->time_out,
-    //         ]);
-
-    //         return $this->sendResponse($schedule, 'Schedule assigned to employee');
-    //     } catch (Exception $e) {
-    //         return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
-    //     }
-    // }
-
-
     public function create(CreateScheduleRequest $request)
     {
-        try {
-            $schedule = Schedule::create([
-                'company_id' => $request->company_id,
-                'name' => $request->name,
-                'start_time' => $request->start_time,
-                'end_time' => $request->end_time,
-                'week_day' => $request->week_day,
-            ]);
+        $ipAddress = $request->ip();
+        $timezone = getUserTimezone($ipAddress);
 
-            return $this->sendResponse([$schedule], 'Schedule created successfully');
-        } catch (Exception $e) {
-            return $this->sendError($e->getMessage(), $e->getCode());
-        }
+        // Convert provided time into UTC based on the detected timezone
+        $startTime = Carbon::parse($request->start_time, $timezone);
+        $endTime = Carbon::parse($request->end_time, $timezone);
+
+        $schedule = Schedule::create([
+            'company_id' => $request->company_id,
+            'name' => $request->name,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'week_day' => $request->week_day,
+        ]);
+
+        return response()->json(['message' => 'Schedule created successfully', 'schedule' => $schedule]);
     }
 
     public function assignSchedule(AssignSchedueRequest $request)
     {
         try {
+            $ipAddress = $request->ip();
+            $timezone = getUserTimezone($ipAddress);
+
             $employeeSchedule = EmployeeSchedule::create([
                 'employee_id' => $request->employee_id,
                 'schedule_id' => $request->schedule_id,
-                'start_date' => $request->start_date,
-                'end_date' => $request->end_date,
+                'start_date' => Carbon::parse($request->start_date, $timezone),
+                'end_date' => Carbon::parse($request->end_date, $timezone),
             ]);
 
-            return $this->sendResponse([$employeeSchedule], 'Schedule assigned successfully');
+            return $this->sendResponse($employeeSchedule, 'Schedule assigned successfully');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode());
         }
@@ -143,7 +56,8 @@ class ScheduleController extends BaseController
     public function checkIn($employeeId)
     {
         try {
-            $today = Carbon::today();
+            $today = Carbon::today('UTC');
+
             $employeeSchedule = EmployeeSchedule::where('employee_id', $employeeId)
                 ->whereDate('start_date', '<=', $today)
                 ->where(function ($query) use ($today) {
@@ -157,20 +71,21 @@ class ScheduleController extends BaseController
                 return response()->json(['message' => 'No active schedule found for today'], 404);
             }
 
-            // Check if employee is already checked in for this schedule
+            // Check if employee already has an active check-in (not checked out)
             $existingAttendance = Attendance::where('employee_id', $employeeId)
                 ->whereDate('date', $today->toDateString())
+                ->whereNull('time_out')
                 ->first();
 
             if ($existingAttendance) {
-                return response()->json(['message' => 'Employee is already checked in'], 400);
+                return response()->json(['message' => 'Employee must check out before checking in again'], 400);
             }
 
             $attendance = Attendance::create([
                 'employee_id' => $employeeId,
                 'employee_schedule_id' => $employeeSchedule->id,
                 'date' => $today->toDateString(),
-                'time_in' => Carbon::now()->toTimeString(),
+                'time_in' => Carbon::now('UTC')->format('H:i:s'), //->toTimeString()
                 'status' => 'Present',
             ]);
 
@@ -184,44 +99,102 @@ class ScheduleController extends BaseController
     {
         try {
             $attendance = Attendance::where('employee_id', $employeeId)
-                ->whereDate('date', Carbon::today()->toDateString())
+                ->whereDate('date', Carbon::today('UTC')->toDateString())
+                ->whereNull('time_out')
                 ->first();
 
             if (!$attendance) {
-                return response()->json(['message' => 'Attendance record not found'], 404);
+                return response()->json(['message' => 'Attendance record not found or already checked out'], 404);
             }
 
-            // Update check-out time
-            $attendance->update(['time_out' => Carbon::now()->toTimeString()]);
+            // Mark checkout time in UTC
+            $attendance->update(['time_out' => Carbon::now('UTC')->format('H:i:s')]);
 
-            // Retrieve shift details from the schedule to detect cross-date
             $schedule = $attendance->employeeSchedule->schedule;
-            $shiftStart = Carbon::parse($schedule->shift_start);
-            $shiftEnd = Carbon::parse($schedule->shift_end);
+            $shiftStart = Carbon::parse($schedule->start_time)->setTimezone('UTC');
+            $shiftEnd = Carbon::parse($schedule->end_time)->setTimezone('UTC');
 
-            // If shift goes past midnight, add a day to the shift end for correct calculation
+            // Handle cross-date shifts
             if ($shiftEnd->lt($shiftStart)) {
                 $shiftEnd->addDay();
             }
 
-            // Calculate hours worked, considering possible cross-date shift
-            $checkIn = Carbon::parse($attendance->check_in_time);
-            $checkOut = Carbon::parse($attendance->check_out_time);
+            // Calculate total worked time
+            $checkIn = Carbon::parse($attendance->time_in)->setTimezone('UTC');
+            $checkOut = Carbon::parse($attendance->time_out)->setTimezone('UTC');
 
+            // Account for cross-date checkouts
             if ($checkOut->lt($checkIn)) {
                 $checkOut->addDay();
             }
 
-            $hoursWorked = $checkOut->diffInMinutes($checkIn) / 60; // Converts minutes to hours
-            $attendance->update(['hours_worked' => round($hoursWorked, 2)]);
+            $totalMinutesWorked = $checkOut->diffInMinutes($checkIn);
+
+            // Calculate hours and remaining minutes
+            $hours = floor($totalMinutesWorked / 60);
+            $minutes = $totalMinutesWorked % 60;
+
+            // Format working hours in the required format (e.g., 1.05 for 1 hour and 5 minutes)
+            $workingHours = $hours + ($minutes / 100);
+
+            $attendance->update(['working_hours' => $workingHours]);
 
             return response()->json([
                 'message' => 'Checked out successfully',
-                'hours_worked' => $attendance->hours_worked,
+                'working_hours' => $workingHours,
                 'attendance' => $attendance,
             ]);
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode());
+        }
+    }
+
+    public function getWorkingHours(GetWorkingHoursRequest $request)
+    {
+        try {
+            $date = $request->date ? Carbon::parse($request->date) : Carbon::today('UTC');
+
+            $attendances = Attendance::where('employee_id', $request->employee_id)
+                ->whereDate('date', $date->toDateString())
+                ->get();
+
+            if ($attendances->isEmpty()) {
+                return response()->json([
+                    'message' => 'No attendance records found for this date.',
+                    'total_working_hours' => 0
+                ], 404);
+            }
+
+            // Calculate total minutes worked
+            $totalMinutesWorked = 0;
+            foreach ($attendances as $attendance) {
+                if ($attendance->time_in && $attendance->time_out) {
+                    $checkIn = Carbon::parse($attendance->time_in);
+                    $checkOut = Carbon::parse($attendance->time_out);
+
+                    // Handle cross-date shifts
+                    if ($checkOut->lt($checkIn)) {
+                        $checkOut->addDay();
+                    }
+
+                    $totalMinutesWorked += $checkOut->diffInMinutes($checkIn);
+                }
+            }
+
+            // Convert total minutes into the required format (e.g., 1.05 for 1 hour and 5 minutes)
+            $hours = floor($totalMinutesWorked / 60);
+            $minutes = $totalMinutesWorked % 60;
+            $totalWorkingHours = $hours + ($minutes / 100);
+
+            return $this->sendResponse(
+                ['total_working_hours' => $totalWorkingHours],
+                'Total working hours calculated successfully'
+            );
+        } catch (Exception $e) {
+            return $this->sendError([
+                'message' => 'An error occurred while calculating working hours.',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }

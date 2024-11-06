@@ -10,6 +10,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 
 class CompanyApprovedEmailJob implements ShouldQueue
 {
@@ -18,12 +19,12 @@ class CompanyApprovedEmailJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    private $email, $companyCode, $otp;
-    public function __construct($email, $companyCode, $otp)
+    private $email, $companyCode;
+    public function __construct($user, $companyCode)
     {
-        $this->email = $email;
+        $this->email = $user->email;
         $this->companyCode = $companyCode;
-        $this->otp = $otp;
+        // $this->otp = $otp;
     }
 
     /**
@@ -32,9 +33,10 @@ class CompanyApprovedEmailJob implements ShouldQueue
     public function handle(): void
     {
         try {
+
             $data = [
                 'companyCode' => $this->companyCode,
-                'otp' => $this->otp,
+                // 'otp' => $this->otp,
                 'email' => $this->email,
             ];
 

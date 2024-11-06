@@ -29,6 +29,7 @@ class Kernel extends ConsoleKernel
         $commands = [
             'inactivate-expired-schedules' => 'daily',
             'activate-schedules' => 'daily',
+            'user-logout' => 'hourly'
         ];
 
         foreach ($commands as $command => $scheduleMethod) {
