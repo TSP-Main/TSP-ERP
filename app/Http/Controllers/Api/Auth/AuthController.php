@@ -295,18 +295,11 @@ class AuthController extends BaseController
         $user = auth()->user();
 
         $user->load(['employee', 'company']);
-        
+
         if ($user) {
-            return $this->sendResponse([
-                'success' => true,
-                'data' => $user,
-                'message' => 'User details retrieved successfully.',
-            ], 200);
+            return $this->sendResponse($user, 'User details retrieved successfully.');
         } else {
-            return $this->sendResponse([
-                'success' => false,
-                'message' => 'User is not authenticated.',
-            ], 401);
+            return $this->sendResponse('User is not authenticated.');
         }
     }
 }
