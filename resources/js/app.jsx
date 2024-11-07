@@ -1,9 +1,8 @@
-// import './bootstrap';
-import React from 'react';
-import ReactDOM from 'react-dom/client';
+<h1>sdfasfasdf</h1>
+import React from "react";
+import ReactDOM from "react-dom/client";
+import ExampleComponent from "./components/ExampleComponent";
 
-function App() {
-    return <h1>Hello, React with Laravel!</h1>;
-}
-
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+ReactDOM.createRoot(document.getElementById("app")).render(
+    <ExampleComponent />
+);
