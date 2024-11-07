@@ -4,16 +4,9 @@ namespace App\Http\Controllers\Api\Companies;
 
 use App\Classes\StatusEnum;
 use App\Http\Controllers\Api\BaseController;
-use App\Http\Requests\Company\CompanyEmployeesRequest;
 use App\Http\Requests\Company\ShowCompanyRequest;
-use App\Jobs\Company\CompanyApprovedEmailJob;
-use App\Models\Company\CompanyModel;
-use App\Models\Employee\Employee;
 use App\Models\User;
 use Exception;
-use GuzzleHttp\Psr7\Request;
-use Illuminate\Support\Facades\DB;
-use NunoMaduro\Collision\Adapters\Phpunit\State;
 
 class CompanyController extends BaseController
 {
@@ -23,11 +16,12 @@ class CompanyController extends BaseController
     public function index()
     {
         try {
+            $paginate = $request->pagination ?? 20;
             $companies = User::whereHas('roles', function ($query) {
                 $query->where('name', StatusEnum::COMPANY);
             })
                 ->with('company')
-                ->get();
+                ->paginate($paginate);
 
             return $this->sendResponse($companies, 'Companies fetched successfully');
         } catch (Exception $e) {
@@ -76,6 +70,7 @@ class CompanyController extends BaseController
     public function notApprovedCompanies()
     {
         try {
+            $paginate = $request->pagination ?? 20;
             if (auth()->user()->cannot('show-companies')) {
                 return $this->sendError('Unauthorized access', 403);
             }
@@ -84,10 +79,10 @@ class CompanyController extends BaseController
             })
                 ->where('is_active', StatusEnum::INACTIVE)
                 ->with('company')
-                ->get();
+                ->paginate($paginate);
 
             if ($companies->isEmpty()) {
-                return $this->sendError('No inactive company not found', 404);
+                return $this->sendResponse('message', 'No inactive company found');
             }
 
             return $this->sendResponse($companies, 'Not approved companies fetched successfully');
@@ -99,6 +94,7 @@ class CompanyController extends BaseController
     public function approvedCompanies()
     {
         try {
+            $paginate = $request->pagination ?? 20;
             auth()->user()->cannot('show-companies');
 
             $companies = User::whereHas('roles', function ($query) {
@@ -106,7 +102,11 @@ class CompanyController extends BaseController
             })
                 ->where('is_active', StatusEnum::ACTIVE)
                 ->with('company')
-                ->get();
+                ->paginate($paginate);
+
+            if ($companies->isEmpty()) {
+                return $this->sendResponse('message', 'No Active company found');
+            }
 
             return $this->sendResponse($companies, 'Approved companies successfully fetched');
         } catch (Exception $e) {
