@@ -294,7 +294,7 @@ class AuthController extends BaseController
     {
         $user = auth()->user();
 
-        $user->load(['employee', 'company']);
+        $user->load(['employee', 'company', 'roles']);
 
         if ($user) {
             return $this->sendResponse($user, 'User details retrieved successfully.');
