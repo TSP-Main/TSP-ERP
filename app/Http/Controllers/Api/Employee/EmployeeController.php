@@ -6,12 +6,11 @@ use App\Classes\StatusEnum;
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Employee\CreateEmployeeRequest;
 use App\Jobs\Employee\AddEmployeeInvitationJob;
-use App\Models\Company\CompanyModel;
-use App\Models\Employee\Attendance;
 use App\Models\Employee\Employee;
 use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Str;
 
 
@@ -44,9 +43,10 @@ class EmployeeController extends BaseController
         }
     }
 
-    public function allCompanyEmployees($companyCode)
+    public function allCompanyEmployees(Request $request, $companyCode)
     {
         try {
+            $paginate = $request->pagination ?? 20;
             if (auth()->user()->cannot('show-employees')) {
                 return $this->sendError('Unauthorized access', 403);
             }
@@ -54,10 +54,10 @@ class EmployeeController extends BaseController
             // Retrieve employees based on the company_code in the Employee model
             $employees = User::whereHas('employee', function ($query) use ($companyCode) {
                 $query->where('company_code', $companyCode);
-            })->with('employee')->get();
+            })->with(['employee', 'roles'])->paginate($paginate);
 
             if ($employees->isEmpty()) {
-                return $this->sendError('No employees found for this company code', 404);
+                return $this->sendResponse('No employees found for this company code');
             }
 
             return $this->sendResponse($employees, 'Employees displayed successfully');

@@ -35,10 +35,10 @@ class RegisterUserRequest extends FormRequest
                 'slug' => ['unique:companies,slug'], // Optional if user can provide a slug
                 'package' => ['required', 'string', 'in:basic,standard,premium'],
                 'plan' => ['required', 'string', 'in:monthly,yearly'],
-                'card_number' => ['required', 'regex:/^(\d{4}-?){3}\d{4}$/'], // 16-20 digit card number
-                'card_owner_name' => ['required', 'string', 'max:255'],
-                'expiry_date' => ['required', 'regex:/^(0[1-9]|1[0-2])\/([0-9]{2})$/'], // MM/YY format
-                'cvv' => ['required', 'digits_between:3,4'],
+                'card_number' => ['nullable', 'regex:/^(\d{4}-?){3}\d{4}$/'], // 16-20 digit card number
+                'card_owner_name' => ['nullable', 'string', 'max:255'],
+                'expiry_date' => ['nullable', 'regex:/^(0[1-9]|1[0-2])\/([0-9]{2})$/'], // MM/YY format
+                'cvv' => ['nullable', 'digits_between:3,4'],
                 'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
                 'password' => [
                     'required',

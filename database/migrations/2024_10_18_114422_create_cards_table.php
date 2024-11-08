@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('cards', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
-            $table->string('package')->comment('basic, standard, premium');
-            $table->string('plan')->comment('monthly, yearly');
-            $table->string('card_number');
-            $table->string('card_owner_name');
-            $table->string('expiry_date');
-            $table->string('cvv');
+            $table->string('package')->comment('basic, standard, premium')->nullable();
+            $table->string('plan')->comment('monthly, yearly')->nullable();
+            $table->string('card_number')->nullable();
+            $table->string('card_owner_name')->nullable();
+            $table->string('expiry_date')->nullable();
+            $table->string('cvv')->nullable();
             $table->timestamps();
         });
     }

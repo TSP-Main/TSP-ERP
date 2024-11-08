@@ -44,3 +44,14 @@ function getUserTimezone($ipAddress)
         return 'UTC';
     }
 }
+
+function getStripePriceId($package, $plan)
+{
+    $prices = [
+        'basic' => ['monthly' => 'price_XXX', 'yearly' => 'price_YYY'],
+        'standard' => ['monthly' => 'price_ZZZ', 'yearly' => 'price_AAA'],
+        'premium' => ['monthly' => 'price_BBB', 'yearly' => 'price_CCC'],
+    ];
+
+    return $prices[$package][$plan] ?? null;
+}
