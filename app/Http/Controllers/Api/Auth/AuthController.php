@@ -14,7 +14,6 @@ use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Http\Requests\Auth\VerifyOtpRequest;
 use App\Jobs\Company\CompanyApprovedEmailJob;
 use App\Jobs\Company\EmployeeApproveEmailJob;
-use App\Models\Company\CardModel;
 use App\Models\Company\CompanyModel;
 use App\Models\Employee\Employee;
 use App\Models\Otp;
@@ -57,12 +56,22 @@ class AuthController extends BaseController
                     'logo' => $logoPath
                 ]);
                 // Store card details
-                $company->card()->create([
-                    'company_id' => $company->id,
-                    'card_number' => $request->card_number,
-                    'card_owner_name' => $request->card_owner_name,
-                    'expiry_date' => $request->expiry_date,
-                    'cvv' => $request->cvv,
+                // $company->card()->create([
+                //     'company_id' => $company->id,
+                //     'card_number' => $request->card_number,
+                //     'card_owner_name' => $request->card_owner_name,
+                //     'expiry_date' => $request->expiry_date,
+                //     'cvv' => $request->cvv,
+                //     'package' => $request->package,
+                //     'plan' => $request->plan,
+                // ]);
+
+                // Save payment method ID to the user for future subscription use
+                $user->createOrGetStripeCustomer();
+                $user->updateDefaultPaymentMethod($request->payment_method_id);
+
+                // Store package and plan details for reference after admin approval
+                $company->update([
                     'package' => $request->package,
                     'plan' => $request->plan,
                 ]);
@@ -100,7 +109,7 @@ class AuthController extends BaseController
             $user = User::where('email', $request->email)->first();
             // Check if user exists and verify password
             if (!$user || !Hash::check($request->password, $user->password)) {
-                return $this->sendError(['credentials' => ['Invalid credentials.']], 401);
+                return $this->sendError('Invalid credentials');
             }
 
             // Check for active tokens
@@ -111,7 +120,7 @@ class AuthController extends BaseController
             if ($user->hasRole(StatusEnum::COMPANY) && $user->is_active != StatusEnum::ACTIVE) {
                 return $this->sendError(['error' => 'Account is not active. Please contact support.'], 403);
             }
-    
+
             // Create a new token
             $token = $user->createToken(User::AUTH_TOKEN)->accessToken;
 
@@ -213,8 +222,25 @@ class AuthController extends BaseController
                     //     return $this->sendError('Unauthorized access', 403);
                     // }
 
-                    // $otp = random_int(1000, 9999);
-                    // $user->otp()->updateOrCreate(['user_id' => $user->id]);
+                    if (!$user->hasStripeId()) {
+                        $user->createAsStripeCustomer();
+                    }
+
+                    // Retrieve package and plan from the user's company details
+                    $company = $user->company;
+                    $package = $company->package;
+                    $plan = $company->plan;
+
+                    // Get Stripe price ID based on the package and plan
+                    $priceId = getStripePriceId($package, $plan);
+
+                    if (!$priceId) {
+                        DB::rollBack();
+                        return $this->sendError('Invalid subscription plan or package', 400);
+                    }
+
+                    // Create a new subscription with the default payment method
+                    $user->newSubscription('default', $priceId)->create($user->defaultPaymentMethod()->id);
 
                     CompanyApprovedEmailJob::dispatch($user, $companyCode);
                     $user->update(['is_active' => StatusEnum::ACTIVE]);
@@ -262,6 +288,19 @@ class AuthController extends BaseController
         } catch (Exception $e) {
             DB::rollBack();
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function loggedInUserDetail()
+    {
+        $user = auth()->user();
+
+        $user->load(['employee', 'company']);
+
+        if ($user) {
+            return $this->sendResponse($user, 'User details retrieved successfully.');
+        } else {
+            return $this->sendResponse('User is not authenticated.');
         }
     }
 }
