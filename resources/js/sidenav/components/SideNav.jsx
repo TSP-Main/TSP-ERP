@@ -60,9 +60,9 @@ const SideNav = () => {
                             src={logo}
                             alt="Logo"
                             style={{
-                                paddingLeft: collapsed ? "20px" : "70px",
-                                paddingTop: collapsed ? "20px" : "20px",
-                                paddingBottom: "10px",
+                                // paddingLeft: collapsed ? "20px" : "70px",
+                                // paddingTop: collapsed ? "20px" : "20px",
+                                // paddingBottom: "10px",
                                 width: collapsed ? "70px" : "130px",
                             }}
                         />
@@ -88,11 +88,9 @@ const SideNav = () => {
                     visible={drawerVisible}
                     bodyStyle={{
                      backgroundColor: "#F5F5F58A",
-                        padding: 0,
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center", // Horizontally center the content
-                         paddingTop: "20px",
                         height: "100vh", // Full-height to center vertically
                     }}
                 >
@@ -124,7 +122,7 @@ const SideNav = () => {
             <Layout>
                 <Header
                     style={{
-                        padding: 0,
+                        // padding: 0,
                         background: "#fff",
                         position: "fixed",
                         left: isSmallScreen ? 0 : collapsed ? 90 : 210,
@@ -134,7 +132,7 @@ const SideNav = () => {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        padding: "0 16px",
+                        // padding: "0 16px",
                     }}
                 >
                     {isSmallScreen ? (
