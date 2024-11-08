@@ -54,10 +54,10 @@ class EmployeeController extends BaseController
             // Retrieve employees based on the company_code in the Employee model
             $employees = User::whereHas('employee', function ($query) use ($companyCode) {
                 $query->where('company_code', $companyCode);
-            })->with('employee')->paginate($paginate);
+            })->with(['employee', 'roles'])->paginate($paginate);
 
             if ($employees->isEmpty()) {
-                return $this->sendError('No employees found for this company code', 404);
+                return $this->sendResponse('No employees found for this company code');
             }
 
             return $this->sendResponse($employees, 'Employees displayed successfully');
