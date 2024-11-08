@@ -4,6 +4,8 @@ import "../styles/SideNav.css";
 import { Link } from "react-router-dom";
 import placeholder from "../../assests/placeholder-image.jpg";
 import { IoMdNotificationsOutline } from "react-icons/io";
+import { FiUsers } from "react-icons/fi";
+import { MdAirplanemodeActive } from "react-icons/md";
 import {
     SearchOutlined,
     MenuFoldOutlined,
@@ -11,9 +13,10 @@ import {
     MenuOutlined,
     UserOutlined,
 } from "@ant-design/icons";
+import { FaRegBuilding } from "react-icons/fa";
 import useResponsive from "../../hooks/useResponsive";
 import logo from "../../assests/tms_logo.png"; // Adjust the path if needed
-import Profile from "../../Profile/Profile";
+
 
 const { Header, Sider } = Layout;
 function getItem(label, key, icon, children) {
@@ -27,10 +30,20 @@ function getItem(label, key, icon, children) {
 
 const items = [
     getItem("Dashboard", "1", <UserOutlined />),
-    getItem("Company", "2", <IoMdNotificationsOutline />, [
-        getItem("Onboard", "3"),
-        getItem("New Request", "4"),
+    getItem("Company", "2", <FaRegBuilding />, [
+        getItem(
+            <Link to="/welcome/onboard">Onboard</Link>,
+            "3",
+            <MdAirplanemodeActive />
+        ),
+        getItem(
+            <Link to="/welcome/inactive">New Request</Link>,
+            "4",
+            <IoMdNotificationsOutline />
+        ),
     ]),
+    // getItem("Employee", "5", <FiUsers />, <Link to={"/welcome/employee"} />),
+    getItem(<Link to="/welcome/employee">Employee</Link>, "5", <FiUsers />),
 ];
 const SideNav = () => {
     const [loadingLogout, setLoadingLogout] = useState(false);
@@ -134,7 +147,8 @@ const SideNav = () => {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        padding: "0 16px",
+                        padding:'5px',
+                        // padding: "0 16px",
                     }}
                 >
                     {isSmallScreen ? (

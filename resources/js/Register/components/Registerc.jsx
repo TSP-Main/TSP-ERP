@@ -1,31 +1,34 @@
 import React, { useState } from "react";
 import CustomInput from "../../components/CustomInput";
-import { Button, Form, Flex, notification } from "antd";
+import { Button, Form, notification } from "antd";
 import WelcomePage from "../../components/WelcomePage";
 import "../styles/register.css";
-import { registerUser } from "../services/registerService";
+import { useDispatch, useSelector } from "react-redux";
+import { SignUp } from "../../auth/redux/loginReducer";
+
 const Register = () => {
+    const [form] = Form.useForm();
     const [role, setUserType] = useState(null);
-    const [loading,setLoading] = useState(false);
+
+    const dispatch = useDispatch();
+    const { error, loading } = useSelector((state) => state.auth);
+
     const onUserTypeChange = (value) => {
         setUserType(value);
     };
 
     const onFinish = async (values) => {
-        try {
-            setLoading(true);
-            await registerUser(values);
-        } catch (error) {
+        const response = await dispatch(SignUp(values));
+        console.log("response", response, error);
+        if (response.error) {
             notification.error({
                 message: "Error",
-                description: "Could not complete registration",
+                description: response.payload || "Registration failed",
             });
-        }finally{
-            setLoading(false);
+            return;
         }
     };
 
-    // const { register, handleSubmit,formState:{ errors} } = useForm();
     return (
         <div className="login-container">
             <WelcomePage
@@ -49,6 +52,7 @@ const Register = () => {
                 <Form
                     layout="vertical"
                     onFinish={onFinish}
+                    form={form}
                     style={{
                         margin: 0,
                         padding: 0,
@@ -72,10 +76,59 @@ const Register = () => {
                         rules={[
                             {
                                 required: true,
-                                message: "Please input your Email!",
+                                message: "Please input your Email!", // Message for required field
+                            },
+                            {
+                                pattern:
+                                    /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/, // Email pattern
+                                message: "Please enter a valid email address!", // Custom message for invalid email format
                             },
                         ]}
                     />
+
+                    {/* FlexBox Wrapper for Password Fields */}
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            gap: "4%",
+                        }}
+                    >
+                        <CustomInput
+                            name="password"
+                            placeholder="Password"
+                            type="password"
+                            rules={[
+                                {
+                                    required: true,
+                                    message: "Please enter the Password",
+                                },
+                            ]}
+                        />
+                        <CustomInput
+                            name="password_confirmation"
+                            placeholder="Confirm Password"
+                            type="password"
+                            rules={[
+                                {
+                                    required: true,
+                                    message: "Please confirm your Password",
+                                },
+                                {
+                                    validator: (_, value) => {
+                                        const password =
+                                            form.getFieldValue("password");
+                                        if (value && value !== password) {
+                                            return Promise.reject(
+                                                "The two passwords do not match!"
+                                            );
+                                        }
+                                        return Promise.resolve();
+                                    },
+                                },
+                            ]}
+                        />
+                    </div>
 
                     <CustomInput
                         name="role"
@@ -94,6 +147,7 @@ const Register = () => {
                         onChange={onUserTypeChange}
                     />
 
+                    {/* Conditional Fields for Company */}
                     {role === "company" && (
                         <div>
                             <CustomInput
@@ -104,16 +158,15 @@ const Register = () => {
                                     {
                                         required: true,
                                         message:
-                                            "Please input your company code!",
+                                            "Please input your company name!",
                                     },
                                 ]}
                             />
-
-                            <Flex
+                            <div
                                 style={{
                                     display: "flex",
                                     justifyContent: "space-between",
-                                    gap: "4%", // Adjust gap if needed for consistent spacing
+                                    gap: "4%",
                                 }}
                             >
                                 <CustomInput
@@ -150,8 +203,7 @@ const Register = () => {
                                         },
                                     ]}
                                 />
-                            </Flex>
-
+                            </div>
                             <CustomInput
                                 name="card_number"
                                 placeholder="Card Number"
@@ -174,9 +226,9 @@ const Register = () => {
                                     },
                                 ]}
                             />
-
-                            <Flex
+                            <div
                                 style={{
+                                    display: "flex",
                                     justifyContent: "space-between",
                                     gap: "4%",
                                 }}
@@ -202,75 +254,24 @@ const Register = () => {
                                         },
                                     ]}
                                 />
-                            </Flex>
-                            <Flex
-                                style={{
-                                    justifyContent: "space-between",
-                                    gap: "4%",
-                                }}
-                            >
-                                <CustomInput
-                                    name="password"
-                                    placeholder="Password"
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message:
-                                                "Please enter the Password",
-                                        },
-                                    ]}
-                                />
-                                <CustomInput
-                                    name="password_confirmation"
-                                    placeholder="Confirm Password"
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message: "Please enter the CVV",
-                                        },
-                                    ]}
-                                />
-                            </Flex>
+                            </div>
                         </div>
                     )}
 
+                    {/* Conditional Fields for Employee */}
                     {role === "employee" && (
-                        <>
-                            <CustomInput
-                                name="password"
-                                placeholder="Password"
-                                type="password"
-                                rules={[
-                                    {
-                                        required: true,
-                                        message: "Please enter a password",
-                                    },
-                                ]}
-                            />
-                            <CustomInput
-                                name="password_confirmation"
-                                placeholder="Confirm Password"
-                                type="password"
-                                rules={[
-                                    {
-                                        required: true,
-                                        message: "Please confirm your password",
-                                    },
-                                ]}
-                            />
-                            <CustomInput
-                                name="company_code"
-                                placeholder="Company Code"
-                                rules={[
-                                    {
-                                        required: true,
-                                        message:
-                                            "Please enter your company code",
-                                    },
-                                ]}
-                            />
-                        </>
+                        <CustomInput
+                            name="company_code"
+                            placeholder="Company Code"
+                            rules={[
+                                {
+                                    required: true,
+                                    message: "Please enter your company code",
+                                },
+                            ]}
+                        />
                     )}
+
                     <Form.Item>
                         <Button
                             type="primary"
@@ -284,7 +285,8 @@ const Register = () => {
                     </Form.Item>
                     <div className="login-footer">
                         <p>
-                            Already have an account? <a>Sign In</a>
+                            Already have an account?{" "}
+                            <a href="/login">Sign In</a>
                         </p>
                     </div>
                 </Form>
