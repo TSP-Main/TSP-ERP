@@ -17,7 +17,7 @@ const EmployeeModal = ({ isVisible, onSend, onCancel }) => {
 
     return (
         <Modal
-            title="Send Invite"
+            title="Add Employee"
             open={isVisible}
             onOk={handleFormSubmit}
             onCancel={() => {
