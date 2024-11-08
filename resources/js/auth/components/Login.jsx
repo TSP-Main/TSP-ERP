@@ -6,27 +6,25 @@ import WelcomePage from "../../components/WelcomePage";
 import "../styles/Login.css";
 import { useNavigate } from "react-router-dom";
 import UserContext from "../../context/userContext";
-
+import { useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
+import { login } from "../redux/loginReducer";
 
 const Login = () => {
-  const { user, setUser } = useContext(UserContext);
-
+    // const { user, setUser } = useContext(UserContext);
+    const dispatch = useDispatch();
+    const { error, loading } = useSelector((state) => state.auth);
     const navigate = useNavigate();
-    const [loading, setLoading]= useState(false);
     const handleLoginClick = async (values) => {
-        try {
-            setLoading(true);
-            await loginService.login(values);
-            setUser(values.email);
-        
-            navigate('/dashboard');
-        } catch (error) {
+        const response = await dispatch(login(values));
+
+        console.log("login error",response);
+        if (response.error) {
             notification.error({
                 message: "Error",
-                description: "Login failed. Please try again.",
+                description: response.payload || "Login failed",
             });
-        }finally{
-            setLoading(false);
+            return;
         }
     };
 
@@ -41,6 +39,7 @@ const Login = () => {
                         name="email"
                         placeholder="Email"
                         type="email"
+                        
                         rules={[
                             {
                                 required: true,
@@ -92,7 +91,6 @@ const Login = () => {
                         </p>
                     </div>
                 </Form>
-                
             </div>
 
             <WelcomePage

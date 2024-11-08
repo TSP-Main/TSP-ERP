@@ -102,6 +102,7 @@ class AuthController extends BaseController
         }
     }
 
+
     public function login(LoginRequest $request): JsonResponse
     {
         try {
