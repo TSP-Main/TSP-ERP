@@ -68,6 +68,7 @@ class AuthController extends BaseController
 
                 // Save payment method ID to the user for future subscription use
                 $user->createOrGetStripeCustomer();
+                // dd($user->stripe_id, $user->payment_method_id, $user->paymentMethod);
                 $user->updateDefaultPaymentMethod($request->payment_method_id);
 
                 // Store package and plan details for reference after admin approval
@@ -77,7 +78,7 @@ class AuthController extends BaseController
                 ]);
                 DB::commit();
                 // Reload user with related company and card details
-                $user->refresh()->load('company.card');
+                $user->refresh()->load('company');
                 return $this->sendResponse($user, 'User register successfully');
             } elseif ($request->role === StatusEnum::EMPLOYEE) {
                 $company = CompanyModel::where('code', $request->company_code)->firstOrFail();

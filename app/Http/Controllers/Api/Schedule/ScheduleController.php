@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Employee\AssignSchedueRequest;
 use App\Http\Requests\Schedule\CreateScheduleRequest;
 use App\Http\Requests\Schedule\GetWorkingHoursRequest;
+use App\Models\Company\CompanyModel;
 use App\Models\Company\EmployeeSchedule;
 use App\Models\Company\Schedule;
 use App\Models\Employee\Attendance;
@@ -195,6 +196,21 @@ class ScheduleController extends BaseController
                 'message' => 'An error occurred while calculating working hours.',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    public function getCompanySchedule($companyId)
+    {
+        try {
+            $schedule = Schedule::where('company_id', $companyId)->get();
+
+            if ($schedule->isEmpty()) {
+                return $this->sendResponse('Company not found');
+            }
+
+            return $this->sendResponse($schedule, 'All schedules successfully displayed');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
 }

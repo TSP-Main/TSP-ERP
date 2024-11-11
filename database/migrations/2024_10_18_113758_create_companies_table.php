@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->string('code')->unique();
             $table->string('logo')->nullable();
+            $table->string('package')->nullable();
+            $table->string('plan')->nullable();
             $table->timestamps();
         });
     }
