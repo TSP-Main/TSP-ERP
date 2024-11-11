@@ -64,8 +64,8 @@ Route::middleware('auth:api')->group(function () {
     });
 
     // Schedule routes
-    Route::get('schedules', [ScheduleController::class, 'schedules']);
     Route::prefix('schedule')->group(function () {
+        Route::get('/{id}', [ScheduleController::class, 'getCompanySchedule']);
         Route::post('create-schedule', [ScheduleController::class, 'create']);
         Route::post('assign-schedule', [ScheduleController::class, 'assignSchedule']);
         // Route::post('attendance', [ScheduleController::class, 'attendance']);
