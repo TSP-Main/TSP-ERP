@@ -68,6 +68,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/{id}', [ScheduleController::class, 'getCompanySchedule']);
         Route::post('create-schedule', [ScheduleController::class, 'create']);
         Route::post('assign-schedule', [ScheduleController::class, 'assignSchedule']);
+        Route::get('employee-schedule/{id}', [ScheduleController::class, 'getEmployeeAssignedSchedule']);
         // Route::post('attendance', [ScheduleController::class, 'attendance']);
         Route::post('check-in/{employee}', [ScheduleController::class, 'checkIn']);
         Route::post('check-out/{employee}', [ScheduleController::class, 'checkOut']);
