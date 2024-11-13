@@ -26,18 +26,41 @@ function generateCompanySlug($companyName)
     return $slug;
 }
 
+// function getUserTimezone($ipAddress)
+// {
+//     try {
+//         // geolocation service API key.
+//         $token = env('IPINFO_SECRET');
+//         $response = Http::get("https://ipinfo.io/{$ipAddress}?token={$token}");
+
+//         if ($response->successful()) {
+//             $data = $response->json();
+//             return $data['timezone'] ?? 'UTC'; // Default to UTC if timezone is not found
+//         }
+
+//         return 'UTC'; // Fallback in case of error
+//     } catch (Exception $e) {
+//         Log::error("Failed to get timezone: " . $e->getMessage());
+//         return 'UTC';
+//     }
+// }
+
 function getUserTimezone($ipAddress)
 {
     try {
-        // geolocation service API key.
+        // Geolocation service API key.
         $token = env('IPINFO_SECRET');
         $response = Http::get("https://ipinfo.io/{$ipAddress}?token={$token}");
 
+        Log::info("IP Address: " . $ipAddress);
+        Log::info("API Response: " . $response->body());
+
         if ($response->successful()) {
-            $data = $response->json();
-            return $data['timezone'] ?? 'UTC'; // Default to UTC if timezone is not found
+            $data = $response->object();
+            return $data->timezone ?? 'UTC';  // Default to UTC if timezone is not found
         }
 
+        Log::warning("Failed to get timezone for IP: {$ipAddress}, using UTC.");
         return 'UTC'; // Fallback in case of error
     } catch (Exception $e) {
         Log::error("Failed to get timezone: " . $e->getMessage());
@@ -45,12 +68,13 @@ function getUserTimezone($ipAddress)
     }
 }
 
+
 function getStripePriceId($package, $plan)
 {
     $prices = [
-        'basic' => ['monthly' => 'price_XXX', 'yearly' => 'price_YYY'],
-        'standard' => ['monthly' => 'price_ZZZ', 'yearly' => 'price_AAA'],
-        'premium' => ['monthly' => 'price_BBB', 'yearly' => 'price_CCC'],
+        'basic' => ['monthly' => 'price_1QJvoWRwCYjkbSmYSvf0oJjd', 'yearly' => 'price_1QJxPhRwCYjkbSmYyrTG68El'],
+        'standard' => ['monthly' => 'price_1QJxKcRwCYjkbSmYU3mDyUKI', 'yearly' => 'price_1QJxKcRwCYjkbSmYhuzkDU3D'],
+        'premium' => ['monthly' => 'price_1QJxMCRwCYjkbSmYGEn2dfkc', 'yearly' => 'price_1QJxOkRwCYjkbSmYjvvihtyO'],
     ];
 
     return $prices[$package][$plan] ?? null;

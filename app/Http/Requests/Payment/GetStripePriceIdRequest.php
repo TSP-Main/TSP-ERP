@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Employee;
+namespace App\Http\Requests\Payment;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class AssignSchedueRequest extends FormRequest
+class GetStripePriceIdRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,10 +22,8 @@ class AssignSchedueRequest extends FormRequest
     public function rules(): array
     {
         return [
-            '*.employee_id' => 'required|exists:employees,id',
-            '*.schedule_id' => 'required|exists:schedules,id',
-            '*.start_date' => 'required|date',
-            '*.end_date' => 'nullable|date|after_or_equal:*.start_date',
+            'package' => 'required|in:basic,standard,premium',
+            'plan' => 'required|in:monthly,yearly'
         ];
     }
 }

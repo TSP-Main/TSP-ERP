@@ -12,6 +12,7 @@ use App\Models\Company\Schedule;
 use App\Models\Employee\Attendance;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class ScheduleController extends BaseController
 {
@@ -41,14 +42,17 @@ class ScheduleController extends BaseController
             $ipAddress = $request->ip();
             $timezone = getUserTimezone($ipAddress);
 
-            $employeeSchedule = EmployeeSchedule::create([
-                'employee_id' => $request->employee_id,
-                'schedule_id' => $request->schedule_id,
-                'start_date' => Carbon::parse($request->start_date, $timezone),
-                'end_date' => Carbon::parse($request->end_date, $timezone),
-            ]);
+            $schedules = [];
+            foreach ($request->all() as $scheduleData) {
+                $schedules[] = EmployeeSchedule::create([
+                    'employee_id' => $scheduleData['employee_id'],
+                    'schedule_id' => $scheduleData['schedule_id'],
+                    'start_date' => Carbon::parse($scheduleData['start_date'])->timezone($timezone),
+                    'end_date' => Carbon::parse($scheduleData['end_date'])->timezone($timezone),
+                ]);
+            }
 
-            return $this->sendResponse($employeeSchedule, 'Schedule assigned successfully');
+            return $this->sendResponse($schedules, 'Schedules assigned successfully');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode());
         }
@@ -217,7 +221,7 @@ class ScheduleController extends BaseController
     public function getEmployeeAssignedSchedule($employeeId)
     {
         try {
-            $assignedSchedules = EmployeeSchedule::where('employee_id', $employeeId)->get();
+            $assignedSchedules = EmployeeSchedule::where('employee_id', $employeeId)->with('employee', 'schedule')->get();
 
             if ($assignedSchedules->isEmpty()) {
                 return $this->sendResponse('Schedule not found');
