@@ -213,4 +213,19 @@ class ScheduleController extends BaseController
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
+
+    public function getEmployeeAssignedSchedule($employeeId)
+    {
+        try {
+            $assignedSchedules = EmployeeSchedule::where('employee_id', $employeeId)->get();
+
+            if ($assignedSchedules->isEmpty()) {
+                return $this->sendResponse('Schedule not found');
+            }
+
+            return $this->sendResponse($assignedSchedules, 'Employee schedules successfully displayed');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
 }
