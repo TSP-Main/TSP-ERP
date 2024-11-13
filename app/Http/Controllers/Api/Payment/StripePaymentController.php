@@ -2,36 +2,82 @@
 
 namespace App\Http\Controllers\Api\Payment;
 
+use App\Http\Controllers\Api\BaseController;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Payment\GetStripePriceIdRequest;
 use Illuminate\Http\Request;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
 use Exception;
+use Stripe\Price;
 
-class StripePaymentController extends Controller
+class StripePaymentController extends BaseController
 
 {
-    public function createPaymentIntent(Request $request)
+    // public function createPaymentIntent(Request $request)
+    // {
+    //     try {
+    //         // Set Stripe secret key
+    //         Stripe::setApiKey(env('STRIPE_SECRET'));
+
+    //         //send price id to stripe and get amount of that price is and send that amount below
+
+    //         // Create a PaymentIntent with the specified amount and currency
+    //         $paymentIntent = PaymentIntent::create([
+    //             'amount' => $request->amount * 100, // Amount in cents
+    //             'currency' => 'usd',
+    //             // 'automatic_payment_methods' => ['enabled' => true],
+    //             'payment_method_types' => ['card'],
+    //         ]);
+
+    //         return response()->json([
+    //             'client_secret' => $paymentIntent->client_secret,
+    //             'message' => 'Payment intent created successfully'
+    //         ], 200);
+    //     } catch (Exception $e) {
+    //         return response()->json(['error' => $e->getMessage()], 500);
+    //     }
+    // }
+
+    public function createSubscriptionPaymentIntent(GetStripePriceIdRequest $request)
     {
         try {
+            // Retrieve package and plan from request
+            $package = $request->package;
+            $plan = $request->plan;
+
+            // Get Stripe price ID using helper function
+            $priceId = getStripePriceId($package, $plan);
+
+            // Check if the price ID exists
+            if (!$priceId) {
+                return $this->sendResponse('Invalid package or plan');
+            }
+
             // Set Stripe secret key
             Stripe::setApiKey(env('STRIPE_SECRET'));
 
-            // Create a PaymentIntent with the specified amount and currency
+            // Retrieve price details from Stripe using the price_id
+            $price = Price::retrieve($priceId);
+
+            // Validate the response to ensure price exists
+            if (!$price || !isset($price->unit_amount) || !isset($price->currency)) {
+                return $this->sendResponse('Invalid price ID or price not found.');
+            }
+
+            // Create a PaymentIntent with the price's amount and currency
             $paymentIntent = PaymentIntent::create([
-                'amount' => $request->amount * 100, // Amount in cents
-                'currency' => 'usd',
+                'amount' => $price->unit_amount, // Amount in cents from Stripe
+                'currency' => $price->currency,
                 'payment_method_types' => ['card'],
             ]);
 
-            return response()->json([
-                'client_secret' => $paymentIntent->client_secret,
-                'message' => 'Payment intent created successfully'
-            ], 200);
+            return $this->sendResponse(['client_secret' => $paymentIntent->client_secret], 'Payment intent created successfully', 200);
         } catch (Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
+
 
     public function handlePayment(Request $request)
     {

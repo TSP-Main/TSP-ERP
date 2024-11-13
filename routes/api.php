@@ -41,7 +41,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/user/details', [AuthController::class, 'loggedInUserDetail']);
 });
 
-
 // Route::get('email/verify/{id}', [VerificationController::class, 'verify'])->name('verification.verify'); // Make sure to keep this as your route name
 // Route::get('email/resend', [VerificationController::class, 'resend'])->name('verification.resend');
 
@@ -76,6 +75,7 @@ Route::middleware('auth:api')->group(function () {
     });
 
     // stripe payment
-    Route::post('/create-payment-intent', [StripePaymentController::class, 'createPaymentIntent']);
+    Route::post('/create-payment-intent', [StripePaymentController::class, 'createSubscriptionPaymentIntent']);
+    Route::get('/setup-intent', [AuthController::class, 'createSetupIntent']);
     Route::post('/handle-payment', [StripePaymentController::class, 'handlePayment']);
 });
