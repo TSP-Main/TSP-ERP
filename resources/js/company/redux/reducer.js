@@ -16,7 +16,7 @@ export const inactiveUsersData = createAsyncThunk(
             console.log("inside inactive api")
             const response = await axios.get(apiRoutes.company.inactive);
             console.log(response.data.data);
-            return response.data.data;
+            return response.data.data.data;
         } catch (error) {
             console.log("redux error: " + error)
             return rejectWithValue(
@@ -29,9 +29,11 @@ export const activeUsersData = createAsyncThunk(
     "user/activeUsersData",
     async (rejectWithValue) => {
         try {
+            
+            console.log("inside active api")
             const response = await axios.get(apiRoutes.company.onboard);
-            console.log(response.data.data);
-            return response.data.data;
+            console.log("onbbbbb",response.data.data);
+            return response.data.data.data;
         } catch (error) {
             return rejectWithValue(
                 error.response?.data?.message || "Failed to fetch data"
@@ -45,7 +47,7 @@ export const approveUserAction = createAsyncThunk(
         try {
             console.log("approving ....")
             const response = await axios.get(apiRoutes.company.approved(id));
-            return response.data; // Return data to update state if needed
+            return response.data.data; // Return data to update state if needed
         } catch (error) {
             return rejectWithValue(
                 error.response?.data?.message || "Failed to approve user"

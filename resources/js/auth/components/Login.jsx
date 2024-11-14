@@ -11,22 +11,27 @@ import { useSelector } from "react-redux";
 import { login } from "../redux/loginReducer";
 
 const Login = () => {
-    // const { user, setUser } = useContext(UserContext);
     const dispatch = useDispatch();
     const { error, loading } = useSelector((state) => state.auth);
     const navigate = useNavigate();
-    const handleLoginClick = async (values) => {
-        const response = await dispatch(login(values));
 
-        console.log("login error",response);
+    const handleLoginClick = async (values) => {
+        // Dispatch the login action
+        const response = await dispatch(login(values));
+         console.log("respomse",response)
         if (response.error) {
+            console.log("login component error", response.error);
+            console.log(error)
+            // If there is an error, show the notification
             notification.error({
                 message: "Error",
-                description: response.payload || "Login failed",
+                description: response.payload || error || "Login failed", // Use error from redux or default message
             });
-            return;
+        } else 
+          
+            navigate("/"); 
         }
-    };
+    
 
     return (
         <div className="login-container">

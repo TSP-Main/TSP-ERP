@@ -4,12 +4,21 @@ import { Button, Form, notification } from "antd";
 import WelcomePage from "../../components/WelcomePage";
 import "../styles/register.css";
 import { useDispatch, useSelector } from "react-redux";
-import { SignUp } from "../../auth/redux/loginReducer";
+import { getPrice, SignUp } from "../../auth/redux/loginReducer";
+import {
+    Elements,
+    CardElement,
+    useStripe,
+    useElements,
+} from "@stripe/react-stripe-js";
+import { stripePromise } from "../../stripe";
+import axios from "../../services/axiosService";
 
 const Register = () => {
     const [form] = Form.useForm();
     const [role, setUserType] = useState(null);
-
+    const stripe = useStripe();
+    const elements = useElements();
     const dispatch = useDispatch();
     const { error, loading } = useSelector((state) => state.auth);
 
@@ -17,17 +26,96 @@ const Register = () => {
         setUserType(value);
     };
 
-    const onFinish = async (values) => {
-        const response = await dispatch(SignUp(values));
-        console.log("response", response, error);
-        if (response.error) {
-            notification.error({
-                message: "Error",
-                description: response.payload || "Registration failed",
-            });
-            return;
-        }
-    };
+   const onFinish = async (values) => {
+       if (role === "company" && stripe && elements) {
+           try {
+               // Step 1: Get the price based on package and plan
+               const response = await dispatch(
+                   getPrice({ package: values.package, plan: values.plan })
+               );
+
+               const clientSecret = response.payload.data.client_secret;
+               console.log("Client Secret:", clientSecret);
+
+               // Step 2: Confirm card payment and get payment method ID
+               const result = await stripe.confirmCardPayment(clientSecret, {
+                   payment_method: {
+                       card: elements.getElement(CardElement),
+                       billing_details: {
+                           name: values.name, // Ensure the name matches the company name
+                       },
+                   },
+               });
+
+               if (result.error) {
+                   notification.error({
+                       message: "Payment Error",
+                       description: result.error.message,
+                   });
+                   return;
+               }
+
+               // Extract payment_method_id from the result
+               const paymentMethodId = result.paymentIntent.payment_method;
+
+               // Step 3: Proceed with registration if payment is successful
+               const registrationData = {
+                   role: values.role,
+                   name: values.name,
+                   email: values.email,
+                   password: values.password,
+                   password_confirmation: values.password_confirmation,
+                   company_name: values.company_name,
+                   package: values.package,
+                   plan: values.plan,
+                   payment_method_id: paymentMethodId,
+               };
+
+               const registrationResponse = await dispatch(
+                   SignUp(registrationData)
+               );
+
+               if (registrationResponse.error) {
+                   notification.error({
+                       message: "Registration Error",
+                       description:
+                           registrationResponse.payload ||
+                           "Registration failed",
+                   });
+                   return;
+               }
+
+               // Successful registration notification
+               notification.success({
+                   message: "Registration Successful",
+                   description: "You have successfully registered.",
+               });
+           } catch (error) {
+               notification.error({
+                   message: "Error",
+                   description:
+                       error.message || "Payment or registration failed",
+               });
+           }
+       } else {
+           // Normal registration for employees without payment
+           const response = await dispatch(SignUp(values));
+           if (response.error) {
+               notification.error({
+                   message: "Error",
+                   description: response.payload || "Registration failed",
+               });
+               return;
+           }
+
+           // Successful registration notification
+           notification.success({
+               message: "Registration Successful",
+               description: "You have successfully registered.",
+           });
+       }
+   };
+
 
     return (
         <div className="login-container">
@@ -76,17 +164,16 @@ const Register = () => {
                         rules={[
                             {
                                 required: true,
-                                message: "Please input your Email!", // Message for required field
+                                message: "Please input your Email!",
                             },
                             {
                                 pattern:
-                                    /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/, // Email pattern
-                                message: "Please enter a valid email address!", // Custom message for invalid email format
+                                    /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
+                                message: "Please enter a valid email address!",
                             },
                         ]}
                     />
 
-                    {/* FlexBox Wrapper for Password Fields */}
                     <div
                         style={{
                             display: "flex",
@@ -147,7 +234,6 @@ const Register = () => {
                         onChange={onUserTypeChange}
                     />
 
-                    {/* Conditional Fields for Company */}
                     {role === "company" && (
                         <div>
                             <CustomInput
@@ -204,61 +290,11 @@ const Register = () => {
                                     ]}
                                 />
                             </div>
-                            <CustomInput
-                                name="card_number"
-                                placeholder="Card Number"
-                                rules={[
-                                    {
-                                        required: true,
-                                        message:
-                                            "Please enter your card number",
-                                    },
-                                ]}
-                            />
-                            <CustomInput
-                                name="card_owner_name"
-                                placeholder="Owner Name"
-                                rules={[
-                                    {
-                                        required: true,
-                                        message:
-                                            "Please enter the owner's name",
-                                    },
-                                ]}
-                            />
-                            <div
-                                style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    gap: "4%",
-                                }}
-                            >
-                                <CustomInput
-                                    name="expiry_date"
-                                    placeholder="Expiry Date"
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message:
-                                                "Please enter the expiry date",
-                                        },
-                                    ]}
-                                />
-                                <CustomInput
-                                    name="cvv"
-                                    placeholder="CVV"
-                                    rules={[
-                                        {
-                                            required: true,
-                                            message: "Please enter the CVV",
-                                        },
-                                    ]}
-                                />
-                            </div>
+                            {/* Stripe Card Input */}
+                            <CardElement options={{ hidePostalCode: true }} />
                         </div>
                     )}
 
-                    {/* Conditional Fields for Employee */}
                     {role === "employee" && (
                         <CustomInput
                             name="company_code"
@@ -295,4 +331,8 @@ const Register = () => {
     );
 };
 
-export default Register;
+export default () => (
+    <Elements stripe={stripePromise}>
+        <Register />
+    </Elements>
+);

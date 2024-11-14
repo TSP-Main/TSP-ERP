@@ -11,7 +11,6 @@ const DefaultLayout = () => {
                 <Col className="sidebarCol">
                     <AppSideNav />
                 </Col>
-
                 <Col className="contentCol" style={{ paddingTop: "80px" }}>
                     <Outlet />
                 </Col>

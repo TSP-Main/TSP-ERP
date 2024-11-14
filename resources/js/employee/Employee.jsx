@@ -1,12 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Button from "../components/Button";
-import { columns } from "./services/employee";
 import { Table, notification } from "antd";
 import SendInviteModal from "./modal/EmployeeModal";
-
+import { useDispatch } from "react-redux";
+import { allEmployee, sendInvite } from "./redux/reducers";
+import { useSelector } from "react-redux";
+import Employe from "./services/employee";
 const Employee = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
-
+    const dispatch=useDispatch();
+   const {error,loading,employeedata} =useSelector((state)=>state.employee)
+      console.log("Employeev vffvfv", employeedata);
     // Show Modal
     const showModal = () => {
         setIsModalVisible(true);
@@ -16,16 +20,32 @@ const Employee = () => {
     const hideModal = () => {
         setIsModalVisible(false);
     };
-
     // Handle Form Submission
-    const handleSendInvite = (values) => {
-        console.log("Form Values:", values);
-        notification.success({
-            message: "Invite Sent",
-            description: `An invite has been sent to ${values.email}.`,
-        });
+    const handleSendInvite = async (values) => {
+        const response= await dispatch(sendInvite(values));
+        // console.log('bedbed',response)
+        // console.log('errnnf',response.payload)
+        if(response.error){
+            notification.error({
+                message: "Error",
+                description:response?.payload?.data?.message || 'Problem sending, Recheck and try again'
+            })
+        }
+        else{
+            notification.success({
+                message: "Success",
+                description:response?.payload?.data?.message || 'Invite sent successfully'
+            })
+        }
         hideModal(); // Close modal after submission
     };
+
+
+ useEffect(() => {
+     const code = sessionStorage.getItem("company_code");
+  
+     dispatch(allEmployee(code));
+ }, [dispatch]);
 
     return (
         <>
@@ -35,10 +55,11 @@ const Employee = () => {
                 onClick={showModal}
                 style={{ backgroundColor: "Black", color: "white" }}
             />
-            <Table columns={columns} pagination={{ pageSize: 10 }} />
+            <Employe/>
             <SendInviteModal
                 isVisible={isModalVisible}
                 onSend={handleSendInvite}
+                loading={loading}
                 onCancel={hideModal}
             />
         </>

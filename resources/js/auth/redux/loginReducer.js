@@ -10,13 +10,30 @@ const initialState = {
     registerdata: null,
 };
 
+
+// console.log("stripe promise",stripePromise)
+export const getPrice=createAsyncThunk(
+    'user/getPrice',
+    async(data,{rejectWithValue})=>{
+        try{
+          const response=await axios.post(apiRoutes.paymentIntent,data);
+          console.log(response.data)
+          return response.data;
+        }catch(error){
+             return rejectWithValue(
+                 error.response?.data?.errors || "Error"
+             );
+
+        }
+    }
+)
 export const login = createAsyncThunk(
     "user/login",
     async (authdata, { rejectWithValue }) => {
         try {
             const response = await axios.post(apiRoutes.login, authdata);
             console.log(response);
-            if (response.data.status === 200) {
+            if (response.status === 200) {
                 notification.success({
                     message: "Success",
                     description: response.data.message,
@@ -25,11 +42,16 @@ export const login = createAsyncThunk(
                     "access_token",
                     response.data.data.access_token
                 );
+
             }
-            return data;
+            return response;
         } catch (error) {
-            console.log("erroe redux", error);
-          return  rejectWithValue(error.response?.data?.message || "Invalid Credentials");
+            console.log("login redux", error);
+            console.log("hihi", error.response?.data?.errors);
+
+          return rejectWithValue(
+              error.response?.data?.errors || "Invalid Credentials"
+          );
         }
     }
 );
@@ -74,7 +96,7 @@ const authSlice = createSlice({
             })
             .addCase(login.rejected, (state, action) => {
                 state.loading = false;
-                state.error = true;
+                state.error = action?.error?.message;
             })
             .addCase(SignUp.pending, (state, action) => {
                 state.loading = true;

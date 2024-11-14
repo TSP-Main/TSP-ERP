@@ -1,9 +1,35 @@
+/* SideNav.css */
+.ant-col.sidebarCol{
+     background-color: #F5f5F5 !important;
+     border-right: 1px solid #00000033;
+}
+/* Persistent selected styling for light theme */
+.ant-menu-light .ant-menu-item-selected {
+    background-color: #a4b3c8 !important; /* Selected background color */
+    color: #fff !important; /* Selected text color */
+    font-weight: bold !important; /* Optional: Bold font */
+    border-radius: 8px; /* Optional: Rounded corners */
+}
+
+/* Hover effect */
+.ant-menu-light .ant-menu-item:hover {
+    background-color: #a4b3c8 !important; /* Hover color */
+    color: black !important;
+}
+
+/* Default color for non-selected items */
+.ant-menu-light .ant-menu-item {
+    color: black !important;
+    background-color: transparent;
+}
+
 
 /* SideNav.css */
 .container {
     display: flex;
     height: 100vh;
     overflow: hidden;
+    background-color:'#5F5F58A' ;
 }
 
 /* Header styling */

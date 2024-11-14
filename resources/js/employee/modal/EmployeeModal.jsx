@@ -1,9 +1,17 @@
+import { useEffect, useState } from "react";
 import React from "react";
-import { Modal, Form, Input, Select, notification,Flex } from "antd";
+import { Modal, Form, Input, Select, notification, Flex } from "antd";
 
 const EmployeeModal = ({ isVisible, onSend, onCancel }) => {
     const [form] = Form.useForm();
+    const [company_Code, setCompanyCode] = useState("");
 
+    useEffect(() => {
+        const company_code = sessionStorage.getItem("company_code");
+        setCompanyCode(company_code);
+        console.log(company_code);
+        form.setFieldsValue({ company_code: company_code });
+    }, []);
     // Handle Form Submission
     const handleFormSubmit = async () => {
         try {
@@ -41,7 +49,7 @@ const EmployeeModal = ({ isVisible, onSend, onCancel }) => {
             }}
             cancelText="Cancel"
         >
-            <Form form={form} layout="vertical">
+            <Form form={form} layout="vertical" onFinish={handleFormSubmit}>
                 <Flex gap={4}>
                     <Form.Item
                         style={{ width: "30%" }}
@@ -82,7 +90,7 @@ const EmployeeModal = ({ isVisible, onSend, onCancel }) => {
                         ]}
                     >
                         <Select placeholder="Select role">
-                            <Select.Option value="manager">
+                            <Select.Option value="manager" >
                                 Manager
                             </Select.Option>
                             <Select.Option value="employee">
@@ -93,16 +101,10 @@ const EmployeeModal = ({ isVisible, onSend, onCancel }) => {
                 </Flex>
                 <Flex gap={4}>
                     <Form.Item
-                        name="companyCode"
+                        name="company_code"
                         label="Company Code"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Please enter the company code",
-                            },
-                        ]}
                     >
-                        <Input placeholder="Enter company code" />
+                        <Input value={company_Code} placeholder={company_Code} disabled />
                     </Form.Item>
                 </Flex>
             </Form>

@@ -13,12 +13,14 @@ import OnBoard from "./company/OnBoard.jsx";
 import InActive from "./company/InActive.jsx";
 import Employee from "./employee/Employee.jsx";
 import PrivateRoute from "./PrivateRoute.jsx";
+import Shift from './shift/index.jsx'
 import "../css/app.css";
-
+import Dashboard from "./dashboard/Dashboard.jsx";
+import AssignShift from './assign_shift/index.jsx'
 // Main App Component
 function App() {
     const token = localStorage.getItem("access_token");
-
+    console.log(token)
     return (
         <Provider store={store}>
             <BrowserRouter>
@@ -29,12 +31,13 @@ function App() {
                         index
                         element={
                             token ? (
-                                <Navigate to="/welcome" replace />
+                                <Navigate to="/profile" replace />
                             ) : (
                                 <Navigate to="/login" replace />
                             )
                         }
                     />
+
                     {/* Public Routes */}
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
@@ -49,12 +52,15 @@ function App() {
 
                     {/* Protected Routes */}
                     <Route
-                        path="/welcome/"
+                        path="/"
                         element={<PrivateRoute element={<DefaultLayout />} />}
                     >
                         <Route path="onboard" element={<OnBoard />} />
                         <Route path="inactive" element={<InActive />} />
                         <Route path="employee" element={<Employee />} />
+                        <Route path="profile" element={<Dashboard />} />
+                        <Route path="shift" element={<Shift />} />
+                        <Route path="assign-shift" element={<AssignShift />} />
                         {/* Add more protected routes here */}
                     </Route>
 
@@ -62,10 +68,7 @@ function App() {
                     <Route
                         path="*"
                         element={
-                            <Navigate
-                                to={token ? "/dashboard" : "/login"}
-                                replace
-                            />
+                            <Navigate to={token ? "/" : "/login"} replace />
                         }
                     />
                 </Routes>
