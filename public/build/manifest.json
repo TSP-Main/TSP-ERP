@@ -1,6 +1,6 @@
 {
   "resources/js/app.jsx": {
-    "file": "assets/app-QqsX7D2b.js",
+    "file": "assets/app-CMrvkWKy.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
@@ -8,8 +8,7 @@
       "assets/app-DJA3KdWI.css"
     ],
     "assets": [
-      "assets/tms_logo-B_irCaLO.png",
-      "assets/placeholder-image-DJcp_zMF.jpg"
+      "assets/tms_logo-B_irCaLO.png"
     ]
   },
   "resources/js/assests/placeholder-image.jpg": {
