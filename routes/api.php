@@ -36,7 +36,7 @@ Route::post('/create-password/{user}', [AuthController::class, 'createPassword']
 Route::middleware('auth:api')->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('verify-otp', [AuthController::class, 'verifyOtp']);
-    Route::get('approve-user/{user}', [AuthController::class, 'approveUser']);
+    Route::get('approve-user/{user}', [StripePaymentController::class, 'approveUser']);
     Route::post('update-profile', [AuthController::class, 'updateProfile']);
     Route::get('/user/details', [AuthController::class, 'loggedInUserDetail']);
 });
