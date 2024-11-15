@@ -120,7 +120,7 @@ class StripePaymentController extends BaseController
                     $user->newSubscription('default', $priceId)->create($user->defaultPaymentMethod()->id);
 
                     CompanyApprovedEmailJob::dispatch($user, $companyCode);
-                    $user->update(['is_active' => StatusEnum::ACTIVE]);
+                    $user->company()->update(['is_active' => StatusEnum::ACTIVE]);
                     break;
 
                 case StatusEnum::EMPLOYEE:
@@ -131,7 +131,9 @@ class StripePaymentController extends BaseController
                     EmployeeApproveEmailJob::dispatch($user->email);
                     $user->update([
                         'is_active' => StatusEnum::ACTIVE,
-                        'otp_verified' => StatusEnum::OTP_VERIFIED,
+                    ]);
+                    $user->employee()->update([
+                        'is_active' => StatusEnum::ACTIVE,
                     ]);
                     break;
 

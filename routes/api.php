@@ -77,5 +77,4 @@ Route::middleware('auth:api')->group(function () {
 });
 // stripe payment
 Route::post('/create-payment-intent', [StripePaymentController::class, 'createSubscriptionPaymentIntent']);
-Route::get('/setup-intent', [AuthController::class, 'createSetupIntent']);
 Route::post('/handle-payment', [StripePaymentController::class, 'handlePayment']);
