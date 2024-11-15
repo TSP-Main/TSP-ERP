@@ -35,65 +35,35 @@ class ScheduleController extends BaseController
         return response()->json(['message' => 'Schedule created successfully', 'schedule' => $schedule]);
     }
 
+
     public function assignSchedule(AssignSchedueRequest $request)
     {
         try {
-            // $ipAddress = $request->ip(); // UK-based server IP is 51.15.112.35 (if you want to use), pakistan 119.73.100.157
-            // $timezone = getUserTimezone($ipAddress);
+            $ipAddress = $request->ip(); // UK-based server IP is 51.15.112.35 (if you want to use), pakistan 119.73.100.157
+            $timezone = getUserTimezone($ipAddress);
 
             $schedules = [];
-            foreach ($request->all() as $scheduleData) {
+
+            // Extract only valid schedule data
+            $data = array_filter($request->all(), function ($item) {
+                return is_array($item) && isset($item['employee_id'], $item['schedule_id'], $item['start_date'], $item['end_date']);
+            });
+
+            foreach ($data as $scheduleData) {
                 $schedules[] = EmployeeSchedule::create([
-                    'employee_id' => (int) $scheduleData['employee_id'], // Cast to integer
-                    'schedule_id' => (int) $scheduleData['schedule_id'], // Cast to integer
+                    'employee_id' => (int) $scheduleData['employee_id'],
+                    'schedule_id' => (int) $scheduleData['schedule_id'],
                     'start_date' => Carbon::parse($scheduleData['start_date'])->toDateTimeString(),
                     'end_date' => Carbon::parse($scheduleData['end_date'])->toDateTimeString(),
                 ]);
             }
+
             Log::info('Schedules saved', $schedules);
             return $this->sendResponse($schedules, 'Schedules assigned successfully');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode());
         }
     }
-
-    // public function assignSchedule(AssignSchedueRequest $request)
-    // {
-    //     try {
-    //         $ipAddress = '119.73.100.157'; // UK-based server IP is 51.15.112.35 (if you want to use), pakistan 119.73.100.157
-    //         $timezone = getUserTimezone($ipAddress);
-
-    //         $schedules = [];
-    //         foreach ($request->all() as $scheduleData) {
-    //             // Check if $scheduleData is an object or an array
-    //             if (is_object($scheduleData)) {
-    //                 $employeeId = $scheduleData->employee_id;
-    //                 $scheduleId = $scheduleData->schedule_id;
-    //                 $startDate = $scheduleData->start_date;
-    //                 $endDate = $scheduleData->end_date;
-    //             } else {
-    //                 // Fallback to array access if it's an array
-    //                 $employeeId = $scheduleData['employee_id'];
-    //                 $scheduleId = $scheduleData['schedule_id'];
-    //                 $startDate = $scheduleData['start_date'];
-    //                 $endDate = $scheduleData['end_date'];
-    //             }
-
-    //             // Create the schedule record
-    //             $schedules[] = EmployeeSchedule::create([
-    //                 // dd($employeeId, $scheduleId, $startDate, $endDate),
-    //                 'employee_id' => $employeeId,
-    //                 'schedule_id' => $scheduleId,
-    //                 'start_date' => Carbon::parse($startDate)->toDateTimeString(),
-    //                 'end_date' => Carbon::parse($endDate)->toDateTimeString(),
-    //             ]);
-    //         }
-
-    //         return $this->sendResponse($schedules, 'Schedules assigned successfully');
-    //     } catch (Exception $e) {
-    //         return $this->sendError($e->getMessage(), $e->getCode());
-    //     }
-    // }
 
 
     public function checkIn($employeeId)
@@ -247,7 +217,7 @@ class ScheduleController extends BaseController
             $schedule = Schedule::where('company_id', $companyId)->get();
 
             if ($schedule->isEmpty()) {
-                return $this->sendResponse('Company not found');
+                return $this->sendResponse('Company schedule not found');
             }
 
             return $this->sendResponse($schedule, 'All schedules successfully displayed');
