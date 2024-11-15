@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('company_code');
             $table->date('joining_date')->nullable();
             $table->date('employment_type')->comment('permanent, contract, intern, part-time')->nullable();
-            $table->boolean('is_active')->comment('1 for active, 0 for inactive')->default(1);
+            $table->boolean('is_active')->comment('1 for active, 0 for inactive')->default(0);
             $table->string('status')->nullable();
             $table->timestamps();
         });
