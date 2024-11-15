@@ -28,7 +28,7 @@ const Login = () => {
                 description: response.payload || error || "Login failed", // Use error from redux or default message
             });
         } else 
-          
+            console.log("email")
             navigate("/"); 
         }
     
