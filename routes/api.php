@@ -36,7 +36,7 @@ Route::post('/create-password/{user}', [AuthController::class, 'createPassword']
 Route::middleware('auth:api')->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('verify-otp', [AuthController::class, 'verifyOtp']);
-    Route::get('approve-user/{user}', [AuthController::class, 'approveUser']);
+    Route::get('approve-user/{user}', [StripePaymentController::class, 'approveUser']);
     Route::post('update-profile', [AuthController::class, 'updateProfile']);
     Route::get('/user/details', [AuthController::class, 'loggedInUserDetail']);
 });
@@ -60,6 +60,7 @@ Route::middleware('auth:api')->group(function () {
     Route::prefix('employee')->group(function () {
         Route::post('add-employee', [EmployeeController::class, 'create']);
         Route::get('show-employee/{user}', [EmployeeController::class, 'show']);
+        Route::get('in-active-employee/{companyCode}', [EmployeeController::class, 'inActiveEmployees']);
     });
 
     // Schedule routes
@@ -73,9 +74,7 @@ Route::middleware('auth:api')->group(function () {
         Route::post('check-out/{employee}', [ScheduleController::class, 'checkOut']);
         Route::get('/working-hours', [ScheduleController::class, 'getWorkingHours']);
     });
-
-    // stripe payment
-    Route::post('/create-payment-intent', [StripePaymentController::class, 'createSubscriptionPaymentIntent']);
-    Route::get('/setup-intent', [AuthController::class, 'createSetupIntent']);
-    Route::post('/handle-payment', [StripePaymentController::class, 'handlePayment']);
 });
+// stripe payment
+Route::post('/create-payment-intent', [StripePaymentController::class, 'createSubscriptionPaymentIntent']);
+Route::post('/handle-payment', [StripePaymentController::class, 'handlePayment']);

@@ -11,6 +11,7 @@ const apiRoutes = {
     employee: {
         all: (code) => `/all-employees/${code}`,
         invite: "/employee/add-employee",
+        inactive: (code) => `/employee/in-active-employee/${code}`,
     },
     schedule: {
         create: "/schedule/create-schedule",

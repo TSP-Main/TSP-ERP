@@ -26,41 +26,18 @@ function generateCompanySlug($companyName)
     return $slug;
 }
 
-// function getUserTimezone($ipAddress)
-// {
-//     try {
-//         // geolocation service API key.
-//         $token = env('IPINFO_SECRET');
-//         $response = Http::get("https://ipinfo.io/{$ipAddress}?token={$token}");
-
-//         if ($response->successful()) {
-//             $data = $response->json();
-//             return $data['timezone'] ?? 'UTC'; // Default to UTC if timezone is not found
-//         }
-
-//         return 'UTC'; // Fallback in case of error
-//     } catch (Exception $e) {
-//         Log::error("Failed to get timezone: " . $e->getMessage());
-//         return 'UTC';
-//     }
-// }
-
 function getUserTimezone($ipAddress)
 {
     try {
-        // Geolocation service API key.
+        // geolocation service API key.
         $token = env('IPINFO_SECRET');
         $response = Http::get("https://ipinfo.io/{$ipAddress}?token={$token}");
 
-        Log::info("IP Address: " . $ipAddress);
-        Log::info("API Response: " . $response->body());
-
         if ($response->successful()) {
-            $data = $response->object();
-            return $data->timezone ?? 'UTC';  // Default to UTC if timezone is not found
+            $data = $response->json();
+            return $data['timezone'] ?? 'UTC'; // Default to UTC if timezone is not found
         }
 
-        Log::warning("Failed to get timezone for IP: {$ipAddress}, using UTC.");
         return 'UTC'; // Fallback in case of error
     } catch (Exception $e) {
         Log::error("Failed to get timezone: " . $e->getMessage());

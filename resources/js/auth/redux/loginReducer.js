@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "../../services/axiosService";
 import apiRoutes from "../../routes/apiRoutes";
 import { notification } from "antd";
-
+import { useNavigate } from "react-router-dom";
 const initialState = {
     error: false,
     loading: false,
@@ -43,6 +43,7 @@ export const login = createAsyncThunk(
                     response.data.data.access_token
                 );
 
+
             }
             return response;
         } catch (error) {
@@ -61,10 +62,6 @@ export const SignUp = createAsyncThunk(
         try {
             const response = await axios.post(apiRoutes.register, authdata);
             if (response.data.status === 200) {
-                notification.success({
-                    message: "Success Please Wait for the approval process",
-                    description: response.data.message,
-                });
                 localStorage.setItem(
                     "access_token",
                     response.data.data.access_token

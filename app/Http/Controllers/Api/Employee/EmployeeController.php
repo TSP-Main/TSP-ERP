@@ -6,6 +6,7 @@ use App\Classes\StatusEnum;
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Employee\CreateEmployeeRequest;
 use App\Jobs\Employee\AddEmployeeInvitationJob;
+use App\Models\Company\CompanyModel;
 use App\Models\Employee\Employee;
 use App\Models\User;
 use Exception;
@@ -66,6 +67,25 @@ class EmployeeController extends BaseController
         }
     }
 
+    public function inActiveEmployees(Request $request, $companyCode)
+    {
+        try {
+            $paginate = $request->paginate ?? 20;
+
+            $employees = Employee::where('company_code', $companyCode)
+                ->where('is_active', StatusEnum::INACTIVE)
+                ->with('user')
+                ->paginate($paginate);
+
+            if ($employees->isEmpty()) {
+                return $this->sendResponse([], 'No inactive employees found for this company code', 200);
+            }
+
+            return $this->sendResponse($employees, 'Inactive employees displayed successfully');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
 
     public function show($user)
     {

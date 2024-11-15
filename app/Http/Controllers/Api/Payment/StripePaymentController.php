@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers\Api\Payment;
 
+use App\Classes\StatusEnum;
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Payment\GetStripePriceIdRequest;
+use App\Jobs\Company\CompanyApprovedEmailJob;
+use App\Jobs\Company\EmployeeApproveEmailJob;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
 use Exception;
+use Illuminate\Support\Facades\DB;
 use Stripe\Price;
 
 class StripePaymentController extends BaseController
@@ -38,6 +43,7 @@ class StripePaymentController extends BaseController
     //         return response()->json(['error' => $e->getMessage()], 500);
     //     }
     // }
+
 
     public function createSubscriptionPaymentIntent(GetStripePriceIdRequest $request)
     {
@@ -72,12 +78,77 @@ class StripePaymentController extends BaseController
                 'payment_method_types' => ['card'],
             ]);
 
-            return $this->sendResponse(['client_secret' => $paymentIntent->client_secret], 'Payment intent created successfully', 200);
+            return $this->sendResponse(['priceId' => $priceId, 'client_secret' => $paymentIntent->client_secret], 'Payment intent created successfully', 200);
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
 
+    public function approveUser(User $user)
+    {
+        try {
+            DB::beginTransaction();
+            $authUser = auth()->user();
+            $roleName = $user->roles->first()->name;
+            $companyCode = optional($user->company)->code; // Safely access company code
+
+            switch ($roleName) {
+                case StatusEnum::COMPANY:
+                    // if ($authUser->cannot('approve-company')) {
+                    //     return $this->sendError('Unauthorized access', 403);
+                    // }
+
+                    if (!$user->hasStripeId()) {
+                        $user->createAsStripeCustomer();
+                    }
+
+                    // Retrieve package and plan from the user's company details
+                    $company = $user->company;
+                    $package = $company->package;
+                    $plan = $company->plan;
+
+                    // Call createSubscriptionPaymentIntent to get priceId
+                    $subscriptionData = $this->createSubscriptionPaymentIntent($package, $plan);
+                    $priceId = $subscriptionData['priceId'] ?? null;
+
+                    if (!$priceId) {
+                        DB::rollBack();
+                        return $this->sendError('Invalid subscription plan or package', 400);
+                    }
+
+                    // Create a new subscription with the default payment method
+                    $user->newSubscription('default', $priceId)->create($user->defaultPaymentMethod()->id);
+
+                    CompanyApprovedEmailJob::dispatch($user, $companyCode);
+                    $user->company()->update(['is_active' => StatusEnum::ACTIVE]);
+                    break;
+
+                case StatusEnum::EMPLOYEE:
+                    // if ($authUser->cannot('approve-employee')) {
+                    //     return $this->sendError('Unauthorized access', 403);
+                    // }
+
+                    EmployeeApproveEmailJob::dispatch($user->email);
+                    $user->update([
+                        'is_active' => StatusEnum::ACTIVE,
+                    ]);
+                    $user->employee()->update([
+                        'is_active' => StatusEnum::ACTIVE,
+                    ]);
+                    break;
+
+                default:
+                    DB::rollBack();
+                    return $this->sendError('Invalid user role', 400);
+            }
+
+            DB::commit();
+            return $this->sendResponse(ucfirst($roleName) . ' approved successfully, email dispatched.', 200);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
 
     public function handlePayment(Request $request)
     {

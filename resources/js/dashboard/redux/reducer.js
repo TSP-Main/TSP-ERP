@@ -15,11 +15,12 @@ export const userData = createAsyncThunk(
             console.log("usersrsrsrs")
             const response = await axios.get(apiRoutes.userdetails);
             console.log(response.data.data);
-            sessionStorage.setItem(
+            localStorage.setItem(
                 "company_code",
                 response.data.data.company?.code
             );
-            sessionStorage.setItem("company_id", response?.data?.data?.id)
+            localStorage.setItem("company_id", response?.data?.data?.company?.id)
+            localStorage.setItem("employee_id", response?.data?.data?.employee?.id)
             return response.data;
         } catch (error) {
             console.log("redux error: " + error);

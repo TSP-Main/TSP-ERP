@@ -10,6 +10,7 @@ const Dashboard = () => {
 
     useEffect(() => {
         dispatch(userData());
+        
     }, [dispatch]);
     
     return (

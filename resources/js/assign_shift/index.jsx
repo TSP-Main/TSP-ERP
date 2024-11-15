@@ -46,7 +46,41 @@ function RowHeaderTable() {
                 }),
             };
         });
+    const getDatesForWeek = () => {
+        const todayIndex = currentDate.getDay(); // Get today's index (0=Sunday, 1=Monday, ..., 6=Saturday)
 
+        // Collect days from today to Saturday (end of the week)
+        const upcomingDays = daysOfWeek.slice(todayIndex).map((dayName, i) => {
+            const date = new Date(currentDate);
+            date.setDate(currentDate.getDate() + i); // Increment day starting from today
+            return {
+                day: dayName,
+                date: date,
+                formattedDate: date.toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                }),
+            };
+        });
+
+        // If today is not Sunday, include the start of the next week
+        if (todayIndex > 0) {
+            const nextWeekDays = daysOfWeek
+                .slice(0, todayIndex)
+                .map((dayName, i) => {
+                    const date = new Date(currentDate);
+                    date.setDate(
+                        currentDate.getDate() + upcomingDays.length + i
+                    ); // Increment to wrap around to next week
+                    return {
+                        day: dayName,
+                        date: date,
+                        formattedDate: date.toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                        }),
+                    };
+                });
         // If today is not Sunday, include the start of the next week
         if (todayIndex > 0) {
             const nextWeekDays = daysOfWeek
@@ -68,12 +102,20 @@ function RowHeaderTable() {
 
             return [...upcomingDays, ...nextWeekDays];
         }
+            return [...upcomingDays, ...nextWeekDays];
+        }
 
+        // If today is Sunday, return only upcomingDays
+        return upcomingDays;
+    };
         return upcomingDays;
     };
 
     const reorderedDays = getDatesForWeek();
+    // const reorderedDays = getDatesForWeek();
 
+    // Helper function to create the payload for assigning shifts
+    // Helper function to create the payload for assigning shifts
     // Fetch employee data
     useEffect(() => {
         dispatch(allEmployee(sessionStorage.getItem("company_code")));
@@ -123,6 +165,12 @@ function RowHeaderTable() {
                     end_date: assignment.days[0].date
                         .toISOString()
                         .slice(0, 10),
+                    start_date: assignment.days[0].date
+                        .toISOString()
+                        .slice(0, 10), // Format date as YYYY-MM-DD
+                    end_date: assignment.days[0].date
+                        .toISOString()
+                        .slice(0, 10), // Format date as YYYY-MM-DD
                 });
             } else {
                 const startDate = assignment.days[0].date
@@ -131,6 +179,7 @@ function RowHeaderTable() {
                 const endDate = assignment.days[assignment.days.length - 1].date
                     .toISOString()
                     .slice(0, 10);
+                
 
                 payload.push({
                     employee_id: assignment.employeeId,
@@ -142,9 +191,9 @@ function RowHeaderTable() {
         });
 
         console.log("payload: ", payload);
+        console.log("payload: " + payload);
         return payload;
-    };
-
+    }
     const handleCellClick = (employeeId, dayIndex, shiftId) => {
         setShiftAssignments((prevAssignments) => {
             const updatedAssignments = prevAssignments.map((assignment) => {
@@ -156,6 +205,7 @@ function RowHeaderTable() {
                     if (dayExists !== -1) {
                         assignment.days[dayExists].shiftId = shiftId;
                     } else {
+                        console.log("Assignment1");
                         assignment.days.push({
                             date: reorderedDays[dayIndex].date,
                             shiftId,
@@ -171,6 +221,7 @@ function RowHeaderTable() {
                     (assignment) => assignment.employeeId === employeeId
                 )
             ) {
+                console.log("Assignment");
                 updatedAssignments.push({
                     employeeId,
                     scheduleId: shiftId,
@@ -182,8 +233,67 @@ function RowHeaderTable() {
         });
     };
 
+    // Fetch employee data
+    useEffect(() => {
+        console.log("query");
+        dispatch(allEmployee(localStorage.getItem("company_code")));
+    }, []);
+
+    // Fetch schedule data once (on component mount)
+    useEffect(() => {
+        console.log("query");
+        const companyId = localStorage.getItem("company_id");
+        if (companyId) {
+            dispatch(showSchedule(companyId)); // Trigger the action to fetch schedule data
+        }
+    }, []);
+
+    // Format data for the table once employee data is available
+    useEffect(() => {
+        if (employeedata && employeedata.length > 0) {
+            const formattedData = employeedata.map((employee) => ({
+                key: employee.id,
+                rowHeader: employee.name,
+                ...reorderedDays.reduce((acc, day, index) => {
+                    acc[`col${index + 1}`] = null;
+                    return acc;
+                }, {}),
+            }));
+            setDataSource(formattedData);
+            setLoading(false);
+        }
+    }, [employeedata]);
+
+    // Handle shift assignment for all days when arrow icon is clicked
+    // Handle shift assignment for all days when arrow icon is clicked
+    const assignShiftForAllDays = (employeeId) => {
+        console.log("employee id", employeeId);
+        onShiftSelect = employeeId;
+        const shiftId = selectedShifts[employeeId];
+        console.log("shift ", shiftId);
     const assignShiftForAllDays = (employeeId, shiftId) => {
         if (shiftId) {
+            // Loop through each day in the week and call handleCellClick for each day
+            reorderedDays.forEach((_, dayIndex) => {
+                handleCellClick(employeeId, dayIndex, shiftId);
+            });
+
+            // Update the data source for the table immutably
+            setDataSource((prevDataSource) =>
+                prevDataSource.map((item) => {
+                    if (item.key === employeeId) {
+                        return {
+                            ...item,
+                            ...reorderedDays.reduce((acc, day, index) => {
+                                acc[`col${index + 1}`] = shiftId; // Apply shift ID to all columns
+                                return acc;
+                            }, {}),
+                        };
+                    }
+                    console.log("handle ", dataSource);
+                    return item;
+                })
+            );
             // Update the shift assignments immutably
             setShiftAssignments((prevAssignments) => {
                 const updatedAssignments = prevAssignments.map((assignment) => {
@@ -251,6 +361,7 @@ function RowHeaderTable() {
             key: "key",
             fixed: "left",
             width: 150,
+
             render: (text, record) => (
                 <span
                     style={{
@@ -283,18 +394,24 @@ function RowHeaderTable() {
             ),
             fixed: "top",
             dataIndex: `col${index + 1}`,
+            key: `${day.day}-${index}`, // Unique key for each column
             key: `${day.day}-${index}`,
             width: 200,
             render: (text, record) => (
                 <ShiftDropdown
                     scheduledata={scheduledata}
+                   
+                        // handleCellClick(record.key, index, shiftId);
                     onShiftSelect={(shiftId) => {
                         handleCellClick(record.key, index, shiftId);
                         setSelectedShifts((prev) => ({
                             ...prev,
                             [record.key]: shiftId,
+                            startDate: record.startDate,
+                            endDate: record.endDate,
                         }));
                     }}
+                    
                     selectedShiftId={selectedShifts[record.key]}
                 />
             ),
@@ -307,6 +424,14 @@ function RowHeaderTable() {
         })),
     ];
 
+    // if (scheduleLoading || loading) {
+    //     return <Spin />;
+    // }
+
+    console.log("schecdule data: ", scheduledata);
+    console.log("employee data: ", employeedata);
+    console.log("data source: ", dataSource);
+    console.log("selected shifts: ", selectedShifts);
     // Show loading spinner until all data is loaded
     if (loading || scheduleLoading) {
         return <Spin />;
@@ -315,6 +440,7 @@ function RowHeaderTable() {
     return (
         <>
             <Table
+                // key={JSON.stringify(dataSource)} // This forces a rerender when dataSource changes
                 key={JSON.stringify(dataSource)}
                 size="middle"
                 columns={columns}
@@ -348,6 +474,7 @@ function RowHeaderTable() {
             </div>
         </>
     );
+}
 }
 
 export default RowHeaderTable;

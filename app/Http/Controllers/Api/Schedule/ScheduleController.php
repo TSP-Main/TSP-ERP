@@ -6,13 +6,12 @@ use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Employee\AssignSchedueRequest;
 use App\Http\Requests\Schedule\CreateScheduleRequest;
 use App\Http\Requests\Schedule\GetWorkingHoursRequest;
-use App\Models\Company\CompanyModel;
 use App\Models\Company\EmployeeSchedule;
 use App\Models\Company\Schedule;
 use App\Models\Employee\Attendance;
 use Carbon\Carbon;
 use Exception;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ScheduleController extends BaseController
 {
@@ -36,27 +35,36 @@ class ScheduleController extends BaseController
         return response()->json(['message' => 'Schedule created successfully', 'schedule' => $schedule]);
     }
 
+
     public function assignSchedule(AssignSchedueRequest $request)
     {
         try {
-            $ipAddress = $request->ip();
+            $ipAddress = $request->ip(); // UK-based server IP is 51.15.112.35 (if you want to use), pakistan 119.73.100.157
             $timezone = getUserTimezone($ipAddress);
 
             $schedules = [];
-            foreach ($request->all() as $scheduleData) {
+
+            // Extract only valid schedule data
+            $data = array_filter($request->all(), function ($item) {
+                return is_array($item) && isset($item['employee_id'], $item['schedule_id'], $item['start_date'], $item['end_date']);
+            });
+
+            foreach ($data as $scheduleData) {
                 $schedules[] = EmployeeSchedule::create([
-                    'employee_id' => $scheduleData['employee_id'],
-                    'schedule_id' => $scheduleData['schedule_id'],
-                    'start_date' => Carbon::parse($scheduleData['start_date'])->timezone($timezone),
-                    'end_date' => Carbon::parse($scheduleData['end_date'])->timezone($timezone),
+                    'employee_id' => (int) $scheduleData['employee_id'],
+                    'schedule_id' => (int) $scheduleData['schedule_id'],
+                    'start_date' => Carbon::parse($scheduleData['start_date'])->toDateTimeString(),
+                    'end_date' => Carbon::parse($scheduleData['end_date'])->toDateTimeString(),
                 ]);
             }
 
+            Log::info('Schedules saved', $schedules);
             return $this->sendResponse($schedules, 'Schedules assigned successfully');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode());
         }
     }
+
 
     public function checkIn($employeeId)
     {
@@ -209,7 +217,7 @@ class ScheduleController extends BaseController
             $schedule = Schedule::where('company_id', $companyId)->get();
 
             if ($schedule->isEmpty()) {
-                return $this->sendResponse('Company not found');
+                return $this->sendResponse('Company schedule not found');
             }
 
             return $this->sendResponse($schedule, 'All schedules successfully displayed');

@@ -5,6 +5,7 @@ const ShiftDropdown = ({ scheduledata, onShiftSelect, selectedShiftId }) => {
     if (!scheduledata || scheduledata.length === 0) {
         return <div>No shifts available</div>;
     }
+    // console.log(onShiftSelect)
 
     return (
         <div>
