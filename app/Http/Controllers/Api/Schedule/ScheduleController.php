@@ -247,7 +247,7 @@ class ScheduleController extends BaseController
             $schedule = Schedule::where('company_id', $companyId)->get();
 
             if ($schedule->isEmpty()) {
-                return $this->sendResponse('Company not found');
+                return $this->sendResponse('Company schedule not found');
             }
 
             return $this->sendResponse($schedule, 'All schedules successfully displayed');
