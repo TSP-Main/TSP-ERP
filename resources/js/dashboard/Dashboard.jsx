@@ -11,7 +11,7 @@ const Dashboard = () => {
     useEffect(() => {
         dispatch(userData());
         
-    }, [dispatch]);
+    }, []);
     
     return (
         <div className="dashboard-container">

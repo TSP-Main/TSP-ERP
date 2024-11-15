@@ -22,6 +22,7 @@ import NewRegistration from './new_registration/index.jsx'
 // Main App Component
 function App() {
     const token = localStorage.getItem("access_token");
+    const isAuthenticated = token !== null && token !== undefined;
     console.log(token)
     return (
         <Provider store={store}>
@@ -31,13 +32,25 @@ function App() {
                     <Route
                         path="/"
                         index
-                        element={token ? <Navigate to="/profile" /> : <Login />}
+                        element={
+                            isAuthenticated ? (
+                                <Navigate to="/profile" />
+                            ) : (
+                                <Login />
+                            )
+                        }
                     />
 
                     {/* Public Routes */}
                     <Route
                         path="/login"
-                        element={token ? <Navigate to="/profile" /> : <Login />}
+                        element={
+                            isAuthenticated ? (
+                                <Navigate to="/profile" />
+                            ) : (
+                                <Login />
+                            )
+                        }
                     />
                     <Route path="/register" element={<Register />} />
                     <Route
@@ -72,7 +85,7 @@ function App() {
                     <Route
                         path="*"
                         element={
-                            <Navigate to={token ? "/" : "/login"} replace />
+                            <Navigate to={isAuthenticated ? "/" : "/login"} replace />
                         }
                     />
                 </Routes>

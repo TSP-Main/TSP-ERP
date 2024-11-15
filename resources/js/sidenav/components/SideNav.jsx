@@ -1,6 +1,6 @@
 // SideNav.jsx
 import React, { useState } from "react";
-import { Layout, Menu, Drawer, Button, Input } from "antd";
+import { Layout, Menu, Drawer, Button, Input, notification } from "antd";
 import { Link } from "react-router-dom";
 import {
     SearchOutlined,
@@ -13,7 +13,8 @@ import useResponsive from "../../hooks/useResponsive";
 import logo from "../../assests/tms_logo.png";
 import placeholder from "../../assests/placeholder-image.jpg";
 import "../styles/SideNav.css";
-
+import apiRoutes from "../../routes/apiRoutes";
+import axios from "../../services/axiosService";
 const { Header, Sider } = Layout;
 
 const SideNav = () => {
@@ -24,9 +25,23 @@ const SideNav = () => {
     const handleDrawerOpen = () => setDrawerVisible(true);
     const handleDrawerClose = () => setDrawerVisible(false);
 
-    return (
-        <Layout style={{ minHeight: "100vh" ,backgroundColor: "#F5F5F58A"}}>
+    const handleLogout = async() => {
+        try{
+                    const response=await axios.post(apiRoutes.logout);
+                    localStorage.clear();
+                    window.location.href = "/";
 
+        }catch(error){
+            notification.error({
+                message: "Error",
+                description: error.response?.data?.message || "Logout failed",
+            })
+        }
+
+    }
+
+    return (
+        <Layout style={{ minHeight: "100vh", backgroundColor: "#F5F5F58A" }}>
             {!isSmallScreen && (
                 <Sider
                     style={{
@@ -164,7 +179,8 @@ const SideNav = () => {
                         >
                             <MenuOutlined />
                         </div>
-                        <img
+                        <Button onClick={() => handleLogout()}>Log out</Button>
+                        {/* <img
                             src={placeholder}
                             alt="User Avatar"
                             style={{
@@ -175,7 +191,7 @@ const SideNav = () => {
                                 objectFit: "cover",
                                 cursor: "pointer",
                             }}
-                        />
+                        /> */}
                     </div>
                 </Header>
             </Layout>

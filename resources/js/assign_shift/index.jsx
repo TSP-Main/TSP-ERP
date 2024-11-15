@@ -441,7 +441,7 @@ function RowHeaderTable() {
         <>
             <Table
                 // key={JSON.stringify(dataSource)} // This forces a rerender when dataSource changes
-                key={JSON.stringify(dataSource)}
+             key={JSON.stringify(dataSource)}
                 size="middle"
                 columns={columns}
                 dataSource={dataSource}
