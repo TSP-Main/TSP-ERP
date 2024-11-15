@@ -60,6 +60,7 @@ Route::middleware('auth:api')->group(function () {
     Route::prefix('employee')->group(function () {
         Route::post('add-employee', [EmployeeController::class, 'create']);
         Route::get('show-employee/{user}', [EmployeeController::class, 'show']);
+        Route::get('in-active-employee/{companyCode}', [EmployeeController::class, 'inActiveEmployees']);
     });
 
     // Schedule routes

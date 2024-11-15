@@ -6,13 +6,12 @@ use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Employee\AssignSchedueRequest;
 use App\Http\Requests\Schedule\CreateScheduleRequest;
 use App\Http\Requests\Schedule\GetWorkingHoursRequest;
-use App\Models\Company\CompanyModel;
 use App\Models\Company\EmployeeSchedule;
 use App\Models\Company\Schedule;
 use App\Models\Employee\Attendance;
 use Carbon\Carbon;
 use Exception;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ScheduleController extends BaseController
 {
@@ -39,24 +38,63 @@ class ScheduleController extends BaseController
     public function assignSchedule(AssignSchedueRequest $request)
     {
         try {
-            $ipAddress = $request->ip();
-            $timezone = getUserTimezone($ipAddress);
+            // $ipAddress = $request->ip(); // UK-based server IP is 51.15.112.35 (if you want to use), pakistan 119.73.100.157
+            // $timezone = getUserTimezone($ipAddress);
 
             $schedules = [];
             foreach ($request->all() as $scheduleData) {
                 $schedules[] = EmployeeSchedule::create([
-                    'employee_id' => $scheduleData['employee_id'],
-                    'schedule_id' => $scheduleData['schedule_id'],
-                    'start_date' => Carbon::parse($scheduleData['start_date'])->timezone($timezone),
-                    'end_date' => Carbon::parse($scheduleData['end_date'])->timezone($timezone),
+                    'employee_id' => (int) $scheduleData['employee_id'], // Cast to integer
+                    'schedule_id' => (int) $scheduleData['schedule_id'], // Cast to integer
+                    'start_date' => Carbon::parse($scheduleData['start_date'])->toDateTimeString(),
+                    'end_date' => Carbon::parse($scheduleData['end_date'])->toDateTimeString(),
                 ]);
             }
-
+            Log::info('Schedules saved', $schedules);
             return $this->sendResponse($schedules, 'Schedules assigned successfully');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode());
         }
     }
+
+    // public function assignSchedule(AssignSchedueRequest $request)
+    // {
+    //     try {
+    //         $ipAddress = '119.73.100.157'; // UK-based server IP is 51.15.112.35 (if you want to use), pakistan 119.73.100.157
+    //         $timezone = getUserTimezone($ipAddress);
+
+    //         $schedules = [];
+    //         foreach ($request->all() as $scheduleData) {
+    //             // Check if $scheduleData is an object or an array
+    //             if (is_object($scheduleData)) {
+    //                 $employeeId = $scheduleData->employee_id;
+    //                 $scheduleId = $scheduleData->schedule_id;
+    //                 $startDate = $scheduleData->start_date;
+    //                 $endDate = $scheduleData->end_date;
+    //             } else {
+    //                 // Fallback to array access if it's an array
+    //                 $employeeId = $scheduleData['employee_id'];
+    //                 $scheduleId = $scheduleData['schedule_id'];
+    //                 $startDate = $scheduleData['start_date'];
+    //                 $endDate = $scheduleData['end_date'];
+    //             }
+
+    //             // Create the schedule record
+    //             $schedules[] = EmployeeSchedule::create([
+    //                 // dd($employeeId, $scheduleId, $startDate, $endDate),
+    //                 'employee_id' => $employeeId,
+    //                 'schedule_id' => $scheduleId,
+    //                 'start_date' => Carbon::parse($startDate)->toDateTimeString(),
+    //                 'end_date' => Carbon::parse($endDate)->toDateTimeString(),
+    //             ]);
+    //         }
+
+    //         return $this->sendResponse($schedules, 'Schedules assigned successfully');
+    //     } catch (Exception $e) {
+    //         return $this->sendError($e->getMessage(), $e->getCode());
+    //     }
+    // }
+
 
     public function checkIn($employeeId)
     {
