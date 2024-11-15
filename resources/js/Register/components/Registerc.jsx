@@ -37,12 +37,14 @@ const Register = () => {
                const clientSecret = response.payload.data.client_secret;
                console.log("Client Secret:", clientSecret);
 
-               // Step 2: Confirm card payment and get payment method ID
+               // Step 2: Confirm card payment to get payment method details
                const result = await stripe.confirmCardPayment(clientSecret, {
                    payment_method: {
                        card: elements.getElement(CardElement),
                        billing_details: {
-                           name: values.name, // Ensure the name matches the company name
+                           name: values.name, // Use the user's name here
+                           email: values.email,
+
                        },
                    },
                });
@@ -58,7 +60,7 @@ const Register = () => {
                // Extract payment_method_id from the result
                const paymentMethodId = result.paymentIntent.payment_method;
 
-               // Step 3: Proceed with registration if payment is successful
+               // Proceed with registration using payment method ID
                const registrationData = {
                    role: values.role,
                    name: values.name,
@@ -71,6 +73,7 @@ const Register = () => {
                    payment_method_id: paymentMethodId,
                };
 
+            //    Send registration data to the backend
                const registrationResponse = await dispatch(
                    SignUp(registrationData)
                );
@@ -85,10 +88,10 @@ const Register = () => {
                    return;
                }
 
-               // Successful registration notification
                notification.success({
                    message: "Registration Successful",
-                   description: "You have successfully registered.",
+                   description:
+                       "You have successfully registered. Please Wait for Approval to Complete",
                });
            } catch (error) {
                notification.error({
@@ -108,10 +111,10 @@ const Register = () => {
                return;
            }
 
-           // Successful registration notification
            notification.success({
                message: "Registration Successful",
-               description: "You have successfully registered.",
+               description:
+                   "You have successfully registered. Please Wait for Approval to Complete",
            });
        }
    };

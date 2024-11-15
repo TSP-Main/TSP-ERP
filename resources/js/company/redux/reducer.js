@@ -47,6 +47,7 @@ export const approveUserAction = createAsyncThunk(
         try {
             console.log("approving ....")
             const response = await axios.get(apiRoutes.company.approved(id));
+            console.log("approved user",response.data.data);
             return response.data.data; // Return data to update state if needed
         } catch (error) {
             return rejectWithValue(

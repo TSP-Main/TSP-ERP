@@ -7,7 +7,7 @@ const EmployeeModal = ({ isVisible, onSend, onCancel }) => {
     const [company_Code, setCompanyCode] = useState("");
 
     useEffect(() => {
-        const company_code = sessionStorage.getItem("company_code");
+        const company_code = localStorage.getItem("company_code");
         setCompanyCode(company_code);
         console.log(company_code);
         form.setFieldsValue({ company_code: company_code });

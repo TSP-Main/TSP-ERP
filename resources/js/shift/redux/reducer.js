@@ -29,7 +29,7 @@ export const showSchedule = createAsyncThunk(
         try {
             console.log("inside showSchedule");
             const response = await axios.get(apiRoutes.schedule.show(id)); // Pass `id` directly
-            console.log("hihihihi",response.data.data);
+            console.log("Schedule data:",response.data.data);
             return response.data.data;
         } catch (error) {
             console.error("redux error:", error);
@@ -55,7 +55,7 @@ const scheduleSlice = createSlice({
             .addCase(showSchedule.fulfilled, (state, action) => {
                 state.scheduledata = action.payload;
                 state.loading = false;
-                state.error = false;
+                state.error = action.payload || 'error';
             })
             .addCase(showSchedule.rejected, (state, action) => {
                 state.loading = false;

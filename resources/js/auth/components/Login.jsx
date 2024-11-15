@@ -19,7 +19,7 @@ const Login = () => {
         // Dispatch the login action
         const response = await dispatch(login(values));
          console.log("respomse",response)
-        if (response.error) {
+        if (error) {
             console.log("login component error", response.error);
             console.log(error)
             // If there is an error, show the notification
@@ -27,9 +27,9 @@ const Login = () => {
                 message: "Error",
                 description: response.payload || error || "Login failed", // Use error from redux or default message
             });
-        } else 
+        } else if(!error)
           
-            navigate("/"); 
+            navigate("/profile"); 
         }
     
 

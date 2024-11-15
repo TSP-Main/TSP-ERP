@@ -1,26 +1,61 @@
-import React, { useEffect } from 'react'
-import { Table } from 'antd';
-import { useDispatch } from 'react-redux';
-import { showSchedule } from '../redux/reducer';
-import { useSelector } from 'react-redux';
-const Tablee = () => {
-   const dispatch=useDispatch()
-   const {error,loading,scheduledata}=useSelector((state)=>state.schedule)
-    useEffect(() => {
-       const id = sessionStorage.getItem("company_id");
-           dispatch(showSchedule(id));
-       },[]);
-  return (
-      <Table
-          columns={columns} // Pass the columns here
-         dataSource={scheduledata} // Pass the employee data here
-        //   rowKey={(record) => record.employee.company_code}
-          pagination={false}
-      />
-  );
+import React, { useEffect } from "react";
+import { Table, Alert } from "antd";
+import { useDispatch, useSelector } from "react-redux";
+import { showSchedule } from "../redux/reducer";
 
+const ScheduleTable = () => {
+    const dispatch = useDispatch();
+    const { error, loading, scheduledata } = useSelector(
+        (state) => state.schedule
+    );
+    console.log("sche", scheduledata);
 
-}
+useEffect(() => {
+    const id = localStorage.getItem("company_id");
+    console.log("company id", id);
+    dispatch(showSchedule(id));
+   
+    // Log the fetched data
+    console.log("Fetched schedule data:", scheduledata);
+}, [dispatch]);
+    // Check if the data is properly structured
+//    if (!Array.isArray(scheduledata)) {
+//        console.error(
+//            "scheduledata should be an array, received:",
+//            typeof scheduledata,
+//            scheduledata // log the actual value
+//        );
+//        return (
+//            <Alert
+//                message="Error"
+//                description="Invalid data format. Data should be an array of objects."
+//                type="error"
+//                showIcon
+//            />
+//        );
+//    }
+
+    if (loading) return <h1>Loading...</h1>;
+
+    if (error || !scheduledata || scheduledata.length === 0)
+        return (
+            <Alert
+                message="Error"
+                description={error || "No schedule data available."}
+                type="error"
+                showIcon
+            />
+        );
+
+    return (
+        <Table
+            columns={columns}
+            dataSource={scheduledata}
+            pagination={false}
+            rowKey="id"
+        />
+    );
+};
 
 export const columns = [
     {
@@ -39,16 +74,16 @@ export const columns = [
         key: "end_time",
     },
     {
-        title:'Total Hours',
-        dataIndex:'total_hours',
-        key:'total_hours'
+        title: "Total Hours",
+        dataIndex: "total_hours",
+        key: "total_hours",
+        render: (text) => (text !== null ? text : "N/A"), // Handle null values
     },
     {
-        title:'Week Day',
-        dataIndex:'week_day',
-        key:'week_day'
-    }
+        title: "Week Day",
+        dataIndex: "week_day",
+        key: "week_day",
+    },
 ];
 
-
-export default Tablee
+export default ScheduleTable;

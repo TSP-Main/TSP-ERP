@@ -67,9 +67,15 @@ const RoleBasedMenu = () => {
                     "9",
                     <IoMdNotificationsOutline />
                 ),
-            ])
+            ]),
+            getItem(<Link to="/new-registration">New Registrations</Link>, "10", <FiUsers />),
+          
         );
+    }else if(userRole == "employee"){
+        items.push(
+             getItem(<Link to="/attendance">Attendance</Link>, "11", <FiUsers />))
     }
+
 
     return items;
 };

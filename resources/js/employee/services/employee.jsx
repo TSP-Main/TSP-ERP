@@ -15,7 +15,7 @@ function Employee() {
     // Fetch employees if they are not loaded already
     const dispatch = useDispatch();
     useEffect(() => {
-         const code=sessionStorage.getItem('company_code');
+         const code = localStorage.getItem("company_code");
          const response=dispatch(allEmployee(code)); // Assuming allEmployee fetches employee data
 
     }, []);

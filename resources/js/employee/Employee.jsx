@@ -42,7 +42,7 @@ const Employee = () => {
 
 
  useEffect(() => {
-     const code = sessionStorage.getItem("company_code");
+     const code = localStorage.getItem("company_code");
   
      dispatch(allEmployee(code));
  }, [dispatch]);

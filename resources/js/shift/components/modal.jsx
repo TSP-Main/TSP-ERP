@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Modal, Form, Input, TimePicker, Select,notification } from "antd";
-import { useDispatch } from "react-redux";
+import { useDispatch,useSelector } from "react-redux";
 import { createSchedule } from "../redux/reducer";
 
 const daysOfWeek = [
@@ -14,6 +14,7 @@ const daysOfWeek = [
 ];
 
 const ShiftModal = ({ isVisible, onCancel }) => {
+    const {error}=useSelector((state)=>state.schedule);
     const dispatch=useDispatch();
     const [form] = Form.useForm();
 
@@ -51,9 +52,11 @@ const ShiftModal = ({ isVisible, onCancel }) => {
     }
 
     useEffect(() => {
-        const id = sessionStorage.getItem("company_id");
+        const id = localStorage.getItem("company_id");
         form.setFieldsValue({ company_id: id });
     }, [form]);
+    // if(error)
+    //     return <h1>No schedule found</h1>
 
     return (
         <Modal
