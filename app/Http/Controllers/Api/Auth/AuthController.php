@@ -60,9 +60,16 @@ class AuthController extends BaseController
                     'logo' => $logoPath
                 ]);
 
+                Stripe::setApiKey(env('STRIPE_SECRET'));
+
                 // Save payment method ID to the user for future subscription use
                 $user->createOrGetStripeCustomer();
                 // dd($user->stripe_id, $user->payment_method_id, $user->paymentMethod);
+
+                // Attach the payment method to the Stripe customer
+                $paymentMethod = \Stripe\PaymentMethod::retrieve($request->payment_method_id);
+                $paymentMethod->attach(['customer' => $user->stripe_id]);
+
                 $user->updateDefaultPaymentMethod($request->payment_method_id);
 
                 // Store package and plan details for reference after admin approval
