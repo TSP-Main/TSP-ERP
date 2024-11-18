@@ -9,6 +9,7 @@ export const registerUser = async (values) => {
             notification.success({
                 message: "Success",
                 description: response.data.message,
+                duration: 3,
             });
             navigate('/')
         }
@@ -17,6 +18,7 @@ export const registerUser = async (values) => {
         notification.error({
             message: "Error",
             description: error.response?.data?.message || "Registration failed",
+            duration: 3,
         });
         throw error;
     }

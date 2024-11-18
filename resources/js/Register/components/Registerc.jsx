@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import CustomInput from "../../components/CustomInput";
 import { Button, Form, notification } from "antd";
 import WelcomePage from "../../components/WelcomePage";
-import "../styles/register.css";
+import styles from "../styles/Register.module.css"; // Import CSS Module
 import { useDispatch, useSelector } from "react-redux";
 import { getPrice, SignUp } from "../../auth/redux/loginReducer";
 import {
@@ -53,6 +53,7 @@ const Register = () => {
                    notification.error({
                        message: "Payment Error",
                        description: result.error.message,
+                       duration: 3,
                    });
                    return;
                }
@@ -84,6 +85,7 @@ const Register = () => {
                        description:
                            registrationResponse.payload ||
                            "Registration failed",
+                       duration: 3,
                    });
                    return;
                }
@@ -92,12 +94,14 @@ const Register = () => {
                    message: "Registration Successful",
                    description:
                        "You have successfully registered. Please Wait for Approval to Complete",
+                   duration: 3,
                });
            } catch (error) {
                notification.error({
                    message: "Error",
                    description:
                        error.message || "Payment or registration failed",
+                   duration: 3,
                });
            }
        } else {
@@ -107,6 +111,7 @@ const Register = () => {
                notification.error({
                    message: "Error",
                    description: response.payload || "Registration failed",
+                   duration: 3,
                });
                return;
            }
@@ -115,21 +120,23 @@ const Register = () => {
                message: "Registration Successful",
                description:
                    "You have successfully registered. Please Wait for Approval to Complete",
+               duration: 3,
            });
        }
    };
 
 
     return (
-        <div className="login-container">
+        <div className={styles.loginContainer}>
             <WelcomePage
+                containerStyle={{height: '450px',borderRadius: '8px 0px 0px 8px'}}
                 title="Hello Friend"
                 description="Sign In to access your personalized dashboard and features."
                 buttonText="Sign In"
                 linkPath="/"
             />
-            <div className="login-form-wrapper">
-                <div className="login-header">
+            <div className={styles.loginFormWrapper}>
+                <div>
                     <h2
                         style={{
                             fontWeight: "bold",
@@ -316,13 +323,13 @@ const Register = () => {
                             type="primary"
                             htmlType="submit"
                             size="large"
-                            className="custom-button"
+                            className={styles.customButton}
                             loading={loading}
                         >
                             Sign Up
                         </Button>
                     </Form.Item>
-                    <div className="login-footer">
+                    <div className={styles.loginFooter}>
                         <p>
                             Already have an account?{" "}
                             <a href="/login">Sign In</a>

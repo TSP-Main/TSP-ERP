@@ -11,6 +11,7 @@ const loginService = {
                 notification.success({
                     message: "Success",
                     description: response.data.message,
+                    duration: 3,
                 });
                 localStorage.setItem(
                     "access_token",
@@ -22,6 +23,7 @@ const loginService = {
             notification.error({
                 message: "Error",
                 description: error.response?.data?.message || "Login failed",
+                duration: 3,
             });
             throw error;
         }

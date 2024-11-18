@@ -1,42 +1,47 @@
-import React, { useContext, useState } from "react";
-import loginService from "../services/loginService";
+import React, { useState } from "react";
 import { Button, Form, notification } from "antd";
 import CustomInput from "../../components/CustomInput";
 import WelcomePage from "../../components/WelcomePage";
-import "../styles/Login.css";
+import styles from "../styles/Login.module.css"; // Import CSS Module
 import { useNavigate } from "react-router-dom";
-import UserContext from "../../context/userContext";
-import { useDispatch } from "react-redux";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { login } from "../redux/loginReducer";
 
 const Login = () => {
     const dispatch = useDispatch();
     const { error, loading } = useSelector((state) => state.auth);
     const navigate = useNavigate();
+    const [rememberMe, setRememberMe] = useState(false);
 
     const handleLoginClick = async (values) => {
-        // Dispatch the login action
         const response = await dispatch(login(values));
-         console.log("respomse",response)
+        console.log("response", response);
+
         if (error) {
-            console.log("login component error", response.error);
-            console.log(error)
-            // If there is an error, show the notification
             notification.error({
                 message: "Error",
-                description: response.payload || error || "Login failed", // Use error from redux or default message
+                description: response.payload || error || "Login failed",
+                duration: 3,
             });
-        } else if(!error)
-          
-            navigate("/profile"); 
+        } else if (!error) {
+            const accessToken = response.payload?.data?.data?.access_token;
+
+            if (accessToken) {
+                if (rememberMe) {
+                    localStorage.setItem("access_token", accessToken);
+                } else {
+                    sessionStorage.setItem("access_token", accessToken);
+                }
+            }
+
+            navigate("/profile");
         }
-    
+    };
 
     return (
-        <div className="login-container">
-            <div className="login-form-wrapper">
-                <div className="login-header">
+        <div className={styles.loginContainer}>
+            <div className={styles.loginFormWrapper}>
+                <div className={styles.loginHeader}>
                     <h2 style={{ fontWeight: "bold" }}>Sign In</h2>
                 </div>
                 <Form layout="vertical" onFinish={handleLoginClick}>
@@ -44,7 +49,6 @@ const Login = () => {
                         name="email"
                         placeholder="Email"
                         type="email"
-                        
                         rules={[
                             {
                                 required: true,
@@ -70,11 +74,18 @@ const Login = () => {
                             alignItems: "center",
                         }}
                     >
-                        <label className="remember-me">
-                            <input type="checkbox" name="remember" />
+                        <label className={styles.rememberMe}>
+                            <input
+                                type="checkbox"
+                                name="remember"
+                                checked={rememberMe}
+                                onChange={(e) =>
+                                    setRememberMe(e.target.checked)
+                                }
+                            />
                             Remember Me
                         </label>
-                        <a className="forgot-password" href="">
+                        <a className={styles.forgotPassword} href="/forget-password">
                             Forgot Password
                         </a>
                     </div>
@@ -83,13 +94,13 @@ const Login = () => {
                             type="primary"
                             htmlType="submit"
                             size="large"
-                            className="custom-button"
+                            className={styles.customButton}
                             loading={loading}
                         >
                             Login
                         </Button>
                     </Form.Item>
-                    <div className="login-footer">
+                    <div className={styles.loginFooter}>
                         <p>
                             Don't have an account?{" "}
                             <a href="/register">Sign Up</a>
@@ -97,8 +108,11 @@ const Login = () => {
                     </div>
                 </Form>
             </div>
-
+            
             <WelcomePage
+                containerStyle={{
+                    borderRadius: "0px 8px 8px 0px",
+                }}
                 title="Hello Friend"
                 description="Sign Up to access your personalized dashboard and features."
                 buttonText="Sign Up"

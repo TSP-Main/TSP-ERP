@@ -22,6 +22,7 @@ class Kernel extends HttpKernel
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
         \ipinfo\ipinfolaravel\ipinfolaravel::class,
+        \App\Http\Middleware\CorsPreflightMiddleware::class,
     ];
 
     /**

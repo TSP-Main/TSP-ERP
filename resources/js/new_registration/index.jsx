@@ -24,6 +24,7 @@ const InActive = () => {
             notification.success({
                 message: "Success",
                 description: "User approved successfully.",
+                duration: 3,
             });
             window.location.reload();
 
@@ -33,6 +34,7 @@ const InActive = () => {
             notification.error({
                 message: "Error",
                 description: error || "Failed to approve user.",
+                duration: 3,
             });
         }
     };

@@ -19,6 +19,9 @@ function RowHeaderTable() {
     const { scheduledata, loading: scheduleLoading } = useSelector(
         (state) => state.schedule
     );
+    const [dataSource, setDataSource] = useState([]);
+    const [loading,setLoading] = useState(false)
+
 
     const currentDate = new Date();
     const daysOfWeek = [
@@ -116,122 +119,71 @@ function RowHeaderTable() {
 
     // Helper function to create the payload for assigning shifts
     // Helper function to create the payload for assigning shifts
-    // Fetch employee data
-    useEffect(() => {
-        dispatch(allEmployee(sessionStorage.getItem("company_code")));
-    }, [dispatch]);
+   const createPayload = () => {
+       const payload = [];
 
-    // Fetch schedule data once (on component mount)
-    useEffect(() => {
-        const companyId = sessionStorage.getItem("company_id");
-        if (companyId) {
-            dispatch(showSchedule(companyId)); // Trigger the action to fetch schedule data
-        }
-    }, [dispatch]);
+       shiftAssignments.forEach((assignment) => {
+           // Sort the days to make sure the dates are in order
+           const sortedDays = assignment.days.sort((a, b) => a.date - b.date);
 
-    // Format data for the table once employee data is available
-    useEffect(() => {
-        // Wait until both `employeedata` and `scheduledata` are fully loaded
-        if (
-            !employeeLoading &&
-            !scheduleLoading &&
-            employeedata &&
-            employeedata.length > 0
-        ) {
-            const formattedData = employeedata.map((employee) => ({
-                key: employee.id,
-                rowHeader: employee.name,
-                ...reorderedDays.reduce((acc, day, index) => {
-                    acc[`col${index + 1}`] = null;
-                    return acc;
-                }, {}),
-            }));
-            setDataSource(formattedData);
-            setLoading(false); // Stop loading once data is processed
-        }
-    }, [employeeLoading, scheduleLoading, employeedata]);
+           // Find the earliest and latest dates for this assignment
+           const startDate = sortedDays[0].date.toISOString().slice(0, 10);
+           const endDate = sortedDays[sortedDays.length - 1].date
+               .toISOString()
+               .slice(0, 10);
 
-    const createPayload = () => {
-        const payload = [];
+           payload.push({
+               employee_id: assignment.employeeId,
+               schedule_id: assignment.scheduleId,
+               start_date: startDate,
+               end_date: endDate,
+           });
+       });
 
-        shiftAssignments.forEach((assignment) => {
-            if (assignment.days.length === 1) {
-                payload.push({
-                    employee_id: assignment.employeeId,
-                    schedule_id: assignment.scheduleId,
-                    start_date: assignment.days[0].date
-                        .toISOString()
-                        .slice(0, 10),
-                    end_date: assignment.days[0].date
-                        .toISOString()
-                        .slice(0, 10),
-                    start_date: assignment.days[0].date
-                        .toISOString()
-                        .slice(0, 10), // Format date as YYYY-MM-DD
-                    end_date: assignment.days[0].date
-                        .toISOString()
-                        .slice(0, 10), // Format date as YYYY-MM-DD
-                });
-            } else {
-                const startDate = assignment.days[0].date
-                    .toISOString()
-                    .slice(0, 10);
-                const endDate = assignment.days[assignment.days.length - 1].date
-                    .toISOString()
-                    .slice(0, 10);
-                
+       console.log("Payload: ", payload);
+       return payload;
+   };
 
-                payload.push({
-                    employee_id: assignment.employeeId,
-                    schedule_id: assignment.scheduleId,
-                    start_date: startDate,
-                    end_date: endDate,
-                });
-            }
-        });
+   const handleCellClick = (employeeId, dayIndex, shiftId) => {
+       setShiftAssignments((prevAssignments) => {
+           const updatedAssignments = [...prevAssignments];
 
-        console.log("payload: ", payload);
-        console.log("payload: " + payload);
-        return payload;
-    }
-    const handleCellClick = (employeeId, dayIndex, shiftId) => {
-        setShiftAssignments((prevAssignments) => {
-            const updatedAssignments = prevAssignments.map((assignment) => {
-                if (assignment.employeeId === employeeId) {
-                    const dayExists = assignment.days.findIndex(
-                        (day) => day.date === reorderedDays[dayIndex].date
-                    );
+           // Find an existing assignment for the employee
+           const employeeAssignment = updatedAssignments.find(
+               (assignment) => assignment.employeeId === employeeId
+           );
 
-                    if (dayExists !== -1) {
-                        assignment.days[dayExists].shiftId = shiftId;
-                    } else {
-                        console.log("Assignment1");
-                        assignment.days.push({
-                            date: reorderedDays[dayIndex].date,
-                            shiftId,
-                        });
-                    }
-                    return assignment;
-                }
-                return assignment;
-            });
+           if (employeeAssignment) {
+               // If the employee already has an assignment
+               const dayExists = employeeAssignment.days.findIndex(
+                   (day) =>
+                       day.date.toISOString().slice(0, 10) ===
+                       reorderedDays[dayIndex].date.toISOString().slice(0, 10)
+               );
 
-            if (
-                !updatedAssignments.some(
-                    (assignment) => assignment.employeeId === employeeId
-                )
-            ) {
-                console.log("Assignment");
-                updatedAssignments.push({
-                    employeeId,
-                    scheduleId: shiftId,
-                    days: [{ date: reorderedDays[dayIndex].date, shiftId }],
-                });
-            }
+               if (dayExists !== -1) {
+                   // Update the shiftId if the day already exists
+                   employeeAssignment.days[dayExists].shiftId = shiftId;
+               } else {
+                   // Add a new day if it doesn't exist
+                   employeeAssignment.days.push({
+                       date: reorderedDays[dayIndex].date,
+                       shiftId,
+                   });
+               }
+           } else {
+               // Create a new assignment if none exists for the employee
+               updatedAssignments.push({
+                   employeeId,
+                   scheduleId: shiftId,
+                   days: [{ date: reorderedDays[dayIndex].date, shiftId }],
+               });
+           }
 
-            return updatedAssignments;
-        });
-    };
+           return updatedAssignments;
+       });
+   };
+
 
     // Fetch employee data
     useEffect(() => {
@@ -266,87 +218,32 @@ function RowHeaderTable() {
 
     // Handle shift assignment for all days when arrow icon is clicked
     // Handle shift assignment for all days when arrow icon is clicked
-    const assignShiftForAllDays = (employeeId) => {
-        console.log("employee id", employeeId);
-        onShiftSelect = employeeId;
-        const shiftId = selectedShifts[employeeId];
-        console.log("shift ", shiftId);
-    const assignShiftForAllDays = (employeeId, shiftId) => {
-        if (shiftId) {
-            // Loop through each day in the week and call handleCellClick for each day
-            reorderedDays.forEach((_, dayIndex) => {
-                handleCellClick(employeeId, dayIndex, shiftId);
-            });
+const assignShiftForAllDays = (employeeId) => {
+    const shiftId = selectedShifts[employeeId];
+    if (shiftId) {
+        // Assign shifts for the whole week for the employee
+        reorderedDays.forEach((_, dayIndex) => {
+            handleCellClick(employeeId, dayIndex, shiftId);
+        });
 
-            // Update the data source for the table immutably
-            setDataSource((prevDataSource) =>
-                prevDataSource.map((item) => {
-                    if (item.key === employeeId) {
-                        return {
-                            ...item,
-                            ...reorderedDays.reduce((acc, day, index) => {
-                                acc[`col${index + 1}`] = shiftId; // Apply shift ID to all columns
-                                return acc;
-                            }, {}),
-                        };
-                    }
-                    console.log("handle ", dataSource);
-                    return item;
-                })
-            );
-            // Update the shift assignments immutably
-            setShiftAssignments((prevAssignments) => {
-                const updatedAssignments = prevAssignments.map((assignment) => {
-                    if (assignment.employeeId === employeeId) {
-                        return {
-                            ...assignment,
-                            days: reorderedDays.map((day) => ({
-                                date: day.date,
-                                shiftId,
-                            })),
-                        };
-                    }
-                    return assignment;
-                });
-
-                if (
-                    !updatedAssignments.some(
-                        (assignment) => assignment.employeeId === employeeId
-                    )
-                ) {
-                    return [
-                        ...updatedAssignments,
-                        {
-                            employeeId,
-                            scheduleId: shiftId,
-                            days: reorderedDays.map((day) => ({
-                                date: day.date,
-                                shiftId,
-                            })),
-                        },
-                    ];
+        // Update the data source immutably for the table display
+        setDataSource((prevDataSource) =>
+            prevDataSource.map((item) => {
+                if (item.key === employeeId) {
+                    return {
+                        ...item,
+                        ...reorderedDays.reduce((acc, day, index) => {
+                            acc[`col${index + 1}`] = shiftId; // Apply shift ID to all columns
+                            return acc;
+                        }, {}),
+                    };
                 }
+                return item;
+            })
+        );
+    }
+};
 
-                return updatedAssignments;
-            });
-
-            // Update the data source for the table immutably
-            setDataSource((prevDataSource) =>
-                prevDataSource.map((item) => {
-                    if (item.key === employeeId) {
-                        return {
-                            ...item,
-                            ...reorderedDays.reduce((acc, day, index) => {
-                                acc[`col${index + 1}`] = shiftId;
-                                return acc;
-                            }, {}),
-                        };
-                    }
-                    return item;
-                })
-            );
-        }
-    };
 
     const handleSubmit = () => {
         const payload = createPayload();
@@ -400,15 +297,11 @@ function RowHeaderTable() {
             render: (text, record) => (
                 <ShiftDropdown
                     scheduledata={scheduledata}
-                   
-                        // handleCellClick(record.key, index, shiftId);
                     onShiftSelect={(shiftId) => {
                         handleCellClick(record.key, index, shiftId);
                         setSelectedShifts((prev) => ({
                             ...prev,
                             [record.key]: shiftId,
-                            startDate: record.startDate,
-                            endDate: record.endDate,
                         }));
                     }}
                     

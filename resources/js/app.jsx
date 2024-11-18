@@ -7,7 +7,6 @@ import withAuth from "./middlewares/withAuth.js";
 import Login from "./auth/components/Login.jsx";
 import Register from "./Register/Register.jsx";
 import DefaultLayout from "./defaultLayout/DefaultLayout.jsx";
-import CreatePassword from "./createpassword/CreatePassword.jsx";
 import Attendance from './attendance/index.jsx'
 import ForgotPassword from "./forgetpassword/ForgotPassword.jsx";
 import OnBoard from "./company/OnBoard.jsx";
@@ -21,8 +20,9 @@ import AssignShift from './assign_shift/index.jsx'
 import NewRegistration from './new_registration/index.jsx'
 // Main App Component
 function App() {
-    const token = localStorage.getItem("access_token");
-    const isAuthenticated = token !== null && token !== undefined;
+    const token =
+        localStorage.getItem("access_token") ||
+        sessionStorage.getItem("access_token");
     console.log(token)
     return (
         <Provider store={store}>
@@ -53,10 +53,6 @@ function App() {
                         }
                     />
                     <Route path="/register" element={<Register />} />
-                    <Route
-                        path="/create-password"
-                        element={<CreatePassword />}
-                    />
                     <Route
                         path="/forget-password"
                         element={<ForgotPassword />}
