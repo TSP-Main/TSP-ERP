@@ -21,13 +21,16 @@ use App\Http\Controllers\Api\Schedule\ScheduleController;
 Route::get('test', function () {
     return response()->json(['message' => 'Test successful']);
 });
-
+// Handle OPTIONS requests
+Route::options('{any}', function () {
+    return response()->json([], 204);
+})->where('any', '.*');
 
 /*
  * Auth Apis
  */
 
-Route::post('verify-email', [AuthController::class, 'verifyEmail'])->name('verify-email');
+Route::post('verify-password-otp', [AuthController::class, 'verifyForgetPasswordOtp']);
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login'])->name('login');
 Route::post('forgot-password', [AuthController::class, 'forgotPassword'])->name('forgot-password');

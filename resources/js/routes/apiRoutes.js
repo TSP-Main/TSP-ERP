@@ -20,6 +20,10 @@ const apiRoutes = {
         create: "/schedule/create-schedule",
         show: (id) => `/schedule/${id}`,
     },
+    forgotpassword: {
+        email: "/forgot-password",
+        verifyCode: "/verify-password-otp",
+    },
     paymentIntent: "/create-payment-intent",
 };
 
