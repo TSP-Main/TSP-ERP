@@ -7,7 +7,7 @@ const url=import.meta.env.VITE_APP_URL
 
 // Create an Axios instance with a base URL
 const axios = axios_.create({
-  baseURL: `${url}/api`, // Update to your actual API base URL
+  baseURL: `${url}`, // Update to your actual API base URL
   headers: {
     'Content-Type': 'application/json',
   },
