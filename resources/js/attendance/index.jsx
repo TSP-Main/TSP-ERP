@@ -2,7 +2,7 @@ import { Table, Button } from "antd";
 import React, { useState, useEffect } from "react";
 import moment from "moment"; // Ensure you have moment.js installed
 import { useDispatch, useSelector } from "react-redux";
-import { assignedShechule, checkIn,checkOut } from "./redux/reducer";
+import { assignedShechule, checkIn, checkOut } from "./redux/reducer";
 
 const Index = () => {
     const dispatch = useDispatch();
@@ -10,7 +10,7 @@ const Index = () => {
         (state) => state.assignedShechule
     ); // Assuming your Redux state is correct
     const [data, setData] = useState([]);
-
+    const [statusCheckIn, setStatusCheckIn] = useState(false);
     // Generate dates starting from yesterday towards the next 7 days
     const generateDates = () => {
         const dates = [];
@@ -38,33 +38,47 @@ const Index = () => {
         // Return the formatted time
         return `${hours}:${minutes}:${seconds}`;
     }
- const handleCheckIn = () => {
-     const id = localStorage.getItem("employee_id");
-     const time_in = getCurrentTime();
+    const handleCheckIn = () => {
+        const id = localStorage.getItem("employee_id");
+        const time_in = getCurrentTime();
 
-     // Construct the payload object with `id` and `time_in`
-     const payload = {
-         id,
-         time_in,
-     };
+        // Construct the payload object with `id` and `time_in`
+        const payload = {
+            id,
+            time_in,
+        };
 
-     console.log("Check In employee", id, payload);
+        console.log("Check In employee", id, payload);
 
-     // Properly call `dispatch` with `checkIn` and the payload
-     dispatch(checkIn(payload));
- };
-     const handleCheckOut = () => {
-           const id = localStorage.getItem("employee_id");
-           const time_out = getCurrentTime();
+        // Properly call `dispatch` with `checkIn` and the payload
+        try {
+            const response = dispatch(checkIn(payload));
+            setStatusCheckIn(true);
+            localStorage.setItem("statusCheckIn", statusCheckIn);
+            // console.log("Successful check In employee");
+        } catch (error) {
+            console.log("Error in checkIn:", error);
+        }
+    };
+    const handleCheckOut = () => {
+        const id = localStorage.getItem("employee_id");
+        const time_out = getCurrentTime();
 
-           // Construct the payload object with `id` and `time_in`
-           const payload = {
-               id,
-               time_out,
-           };
-              console.log("Check out employee", id, payload);
-        dispatch(checkOut(payload));
-     };
+        // Construct the payload object with `id` and `time_in`
+        const payload = {
+            id,
+            time_out,
+        };
+        console.log("Check out employee", id, payload);
+        try{
+            dispatch(checkOut(payload));
+            setStatusCheckIn(false);
+           localStorage.removeItem("statusCheckIn");
+        }catch (error) {
+
+        }
+       
+    };
 
     useEffect(() => {
         // Use async function within useEffect to handle async dispatch
@@ -83,54 +97,56 @@ const Index = () => {
         fetchAssignedSchedule();
     }, [dispatch]);
 
- useEffect(() => {
-     if (Array.isArray(dataa) && dataa.length > 0) {
-         const generatedDates = generateDates();
+    useEffect(() => {
+        if (Array.isArray(dataa) && dataa.length > 0) {
+            const generatedDates = generateDates();
 
-         const updatedDates = generatedDates.map((dateItem) => {
-             let updatedItem = { ...dateItem };
+            const updatedDates = generatedDates.map((dateItem) => {
+                let updatedItem = { ...dateItem };
 
-             dataa.forEach((schedule) => {
-                 const scheduleStartDate = moment(schedule.start_date);
-                 const scheduleEndDate = moment(schedule.end_date);
+                dataa.forEach((schedule) => {
+                    const scheduleStartDate = moment(schedule.start_date);
+                    const scheduleEndDate = moment(schedule.end_date);
 
-                 if (
-                     scheduleStartDate.isSameOrBefore(dateItem.date, "day") &&
-                     scheduleEndDate.isSameOrAfter(dateItem.date, "day")
-                 ) {
-                     const scheduleExists = updatedItem.schedules.some(
-                         (existingSchedule) =>
-                             existingSchedule.schedule_id ===
-                             schedule.schedule_id
-                     );
+                    if (
+                        scheduleStartDate.isSameOrBefore(
+                            dateItem.date,
+                            "day"
+                        ) &&
+                        scheduleEndDate.isSameOrAfter(dateItem.date, "day")
+                    ) {
+                        const scheduleExists = updatedItem.schedules.some(
+                            (existingSchedule) =>
+                                existingSchedule.schedule_id ===
+                                schedule.schedule_id
+                        );
 
-                     if (!scheduleExists) {
-                         updatedItem.schedules.push({
-                             schedule_id: schedule.schedule_id,
-                             start_time: moment(
-                                 schedule.schedule.start_time,
-                                 "HH:mm:ss"
-                             ).format("hh:mm A"),
-                             end_time: moment(
-                                 schedule.schedule.end_time,
-                                 "HH:mm:ss"
-                             ).format("hh:mm A"),
-                             name: schedule.schedule.name,
-                         });
-                     }
-                 }
-             });
+                        if (!scheduleExists) {
+                            updatedItem.schedules.push({
+                                schedule_id: schedule.schedule_id,
+                                start_time: moment(
+                                    schedule.schedule.start_time,
+                                    "HH:mm:ss"
+                                ).format("hh:mm A"),
+                                end_time: moment(
+                                    schedule.schedule.end_time,
+                                    "HH:mm:ss"
+                                ).format("hh:mm A"),
+                                name: schedule.schedule.name,
+                            });
+                        }
+                    }
+                });
 
-             return updatedItem;
-         });
+                return updatedItem;
+            });
 
-         setData(updatedDates);
-     } else {
-         // If no data fetched, just display generated dates
-         setData(generateDates());
-     }
- }, [dataa]);
-
+            setData(updatedDates);
+        } else {
+            // If no data fetched, just display generated dates
+            setData(generateDates());
+        }
+    }, [dataa]);
 
     const columns = [
         {
@@ -166,10 +182,7 @@ const Index = () => {
                             >
                                 Check In
                             </Button>
-                            <Button
-                                type="primary"
-                                onClick={handleCheckOut}
-                            >
+                            <Button type="primary" onClick={handleCheckOut}>
                                 Check Out
                             </Button>
                         </>
@@ -178,7 +191,6 @@ const Index = () => {
             ),
         },
     ];
-  
 
     return (
         <Table

@@ -49,10 +49,11 @@ const OnBoard = () => {
         <div>
             <h1>On Board</h1>
             <Table
+                pagination={false}
                 columns={columns}
                 dataSource={onboarddata}
                 rowKey={(record) => record.company.code} // Use 'company.code' as unique key
-                pagination={{ pageSize: 10 }}
+                // pagination={{ pageSize: 10 }}
             />
         </div>
     );

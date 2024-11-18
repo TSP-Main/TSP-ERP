@@ -23,6 +23,7 @@ const apiRoutes = {
     forgotpassword: {
         email: "/forgot-password",
         verifyCode: "/verify-password-otp",
+        resetPassword: "/reset-password",
     },
     paymentIntent: "/create-payment-intent",
 };

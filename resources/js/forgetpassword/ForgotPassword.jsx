@@ -6,53 +6,100 @@ import logo from "../assests/tms_logo.png";
 import styles from "./ForgotPassword.module.css";
 import apiRoutes from "../routes/apiRoutes";
 import axios from "../services/axiosService";
+import { useNavigate } from "react-router-dom";
 const ForgotPassword = () => {
     const [step, setStep] = useState(1); // Step tracking (1: email, 2: code, 3: password)
     const [email, setEmail] = useState("");
     const [code, setCode] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [token, setToken] = useState("");
+    const navigate=useNavigate();
+    // Loading states for each step
+    const [loadingEmail, setLoadingEmail] = useState(false);
+    const [loadingCode, setLoadingCode] = useState(false);
+    const [loadingPassword, setLoadingPassword] = useState(false);
 
-    const handleEmailSubmit = async() => {
-        const payload={
-            email:email
+    const handleEmailSubmit = async () => {
+        setLoadingEmail(true);
+        const payload = {
+            email: email,
+        };
+        try {
+            const response = await axios.post(
+                apiRoutes.forgotpassword.email,
+                payload
+            );
+            setStep(2); // Move to code input step
+            notification.success({
+                description: response.data.message,
+                duration: 2,
+            });
+        } catch (error) {
+            notification.error({
+                description: error.response?.message || "Invalid Email",
+                duration: 2,
+            });
+        } finally {
+            setLoadingEmail(false); // Reset loading state
         }
-        const response=await axios.post(apiRoutes.forgotpassword.email,payload)
-        // Handle sending email for verification code
-        console.log("Email submitted:", email);
-        setStep(2); // Move to code input step
     };
 
-
-    const handleCodeSubmit = async() => {
-        const payload={
-            email:email,
-            otp:code,
-        }
-        const response=await axios.post(apiRoutes.forgotpassword.verifyCode,payload)
-        if(response.error){
+    const handleCodeSubmit = async () => {
+        setLoadingCode(true);
+        const payload = {
+            email: email,
+            otp: code,
+        };
+        try {
+            const response = await axios.post(
+                apiRoutes.forgotpassword.verifyCode,
+                payload
+            );
+            notification.success({
+                description: response.data.message,
+                duration: 2,
+            });
+            setToken(response.data.data.token);
+            setStep(3); // Move to password input step
+        } catch (error) {
             notification.error({
                 message: "Error",
-                description: response?.error?.message,
+                description: error?.response?.message || "Invalid Code",
                 duration: 3,
             });
+        } finally {
+            setLoadingCode(false); // Reset loading state
         }
-        // Handle verifying code
-        console.log("Code submitted:", code);
-        setStep(3); // Move to password input step
     };
 
-    const handlePasswordSubmit = () => {
-        // Handle password change logic
-        console.log("Password submitted:", password);
-        if (password !== confirmPassword) {
-            notification.error({
-                message: "Passwords do not match",
-            });
-        } else {
+    const handlePasswordSubmit = async () => {
+        setLoadingPassword(true);
+        const payload = {
+            email: email,
+            password: password,
+            password_confirmation: confirmPassword,
+            token: token,
+        };
+        try {
+            const response = await axios.post(
+                apiRoutes.forgotpassword.resetPassword,
+                payload
+            );
             notification.success({
-                message: "Password updated successfully",
+                description: response.data.message,
+                duration: 2,
             });
+            navigate('/login');
+        } catch (error) {
+            notification.error({
+                message: "Error",
+                description:
+                    error?.response?.message || "Failed to reset password",
+                duration: 3,
+            });
+        } finally {
+            setLoadingPassword(false); // Reset loading state
         }
     };
 
@@ -101,8 +148,9 @@ const ForgotPassword = () => {
                                 fontSize="10px"
                                 type="link"
                                 onClick={handleEmailSubmit}
-                                disabled={!email}
+                                disabled={!email || loadingEmail}
                                 className={styles.sendButton}
+                                loading={loadingEmail}
                             >
                                 <SendOutlined />
                             </Button>
@@ -132,7 +180,6 @@ const ForgotPassword = () => {
                                     flexDirection: "row",
                                     alignItems: "center",
                                     justifyContent: "center",
-
                                     fontSize: "10px",
                                 }}
                             >
@@ -141,7 +188,8 @@ const ForgotPassword = () => {
                                     htmlType="submit"
                                     icon={<CheckCircleOutlined />}
                                     onClick={handleCodeSubmit}
-                                    disabled={!code}
+                                    disabled={!code || loadingCode}
+                                    loading={loadingCode}
                                 >
                                     Verify Code
                                 </Button>
@@ -166,6 +214,7 @@ const ForgotPassword = () => {
                                     },
                                 ]}
                             />
+
                             <CustomInput
                                 name="confirm_password"
                                 placeholder="Confirm Password"
@@ -174,12 +223,29 @@ const ForgotPassword = () => {
                                 onChange={(e) =>
                                     setConfirmPassword(e.target.value)
                                 }
+                                dependencies={["password"]}
                                 rules={[
                                     {
                                         required: true,
                                         message:
                                             "Please confirm your password!",
                                     },
+                                    ({ getFieldValue }) => ({
+                                        validator(_, value) {
+                                            if (
+                                                !value ||
+                                                getFieldValue("password") ===
+                                                    value
+                                            ) {
+                                                return Promise.resolve();
+                                            }
+                                            return Promise.reject(
+                                                new Error(
+                                                    "The two passwords do not match!"
+                                                )
+                                            );
+                                        },
+                                    }),
                                 ]}
                             />
                             <Button
@@ -188,6 +254,8 @@ const ForgotPassword = () => {
                                 size="large"
                                 className={styles.customButton}
                                 onClick={handlePasswordSubmit}
+                                disabled={loadingPassword}
+                                loading={loadingPassword}
                             >
                                 Reset Password
                             </Button>

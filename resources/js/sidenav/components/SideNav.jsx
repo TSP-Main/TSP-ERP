@@ -38,6 +38,7 @@ const SideNav = () => {
             setLoading(true)
             const response = await axios.post(apiRoutes.logout);
             localStorage.clear();
+            sessionStorage.clear();
             // window.location.href = "/";
             navigate('/login')
             setLoading(false);
@@ -168,7 +169,7 @@ const SideNav = () => {
                             alignItems: "center",
                         }}
                     >
-                        <Input
+                        {/* <Input
                             style={{
                                 maxWidth: "375px",
                                 maxHeight: "58px",
@@ -177,8 +178,8 @@ const SideNav = () => {
                             }}
                             placeholder="Search"
                             prefix={<SearchOutlined />}
-                        />
-                        <div
+                        /> */}
+                        {/* <div
                             style={{
                                 width: "35px",
                                 height: "35px",
@@ -191,7 +192,7 @@ const SideNav = () => {
                             }}
                         >
                             <MenuOutlined />
-                        </div>
+                        </div> */}
                         <Button
                             loading={loading}
                             onClick={() => handleLogout()}
