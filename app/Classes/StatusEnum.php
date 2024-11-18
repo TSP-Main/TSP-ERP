@@ -25,7 +25,7 @@ class StatusEnum
 
     public const COMPANY = "company";
     public const EMPLOYEE = "employee";
-    public const MANAGER = "manger";
+    public const MANAGER = "manager";
 
     public const DATE_FORMAT = 'Y-m-d';
     public const TIME_FORMAT = 'H:i';
