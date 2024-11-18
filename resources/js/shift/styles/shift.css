@@ -1,0 +1,12 @@
+.buttonshift{
+
+   display: flex;
+   flex-direction: row;
+   justify-content: flex-end;
+   /* align-items: flex-end; */
+   /* min-height: 100vh; */
+   /* align-items: flex-start; */
+   /* justifyContent: 'flex-end', alignItems: 'flex-start', minHeight: '100vh'  */
+ 
+   
+}

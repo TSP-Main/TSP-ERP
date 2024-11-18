@@ -21,7 +21,10 @@ use App\Http\Controllers\Api\Schedule\ScheduleController;
 Route::get('test', function () {
     return response()->json(['message' => 'Test successful']);
 });
-
+// Handle OPTIONS requests
+Route::options('{any}', function () {
+    return response()->json([], 204);
+})->where('any', '.*');
 
 /*
  * Auth Apis

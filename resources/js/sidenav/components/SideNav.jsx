@@ -1,67 +1,37 @@
+// SideNav.jsx
 import React, { useState } from "react";
-import { Layout, Menu, Drawer, Button, Dropdown, Input } from "antd";
-import "../styles/SideNav.css";
+import { Layout, Menu, Drawer, Button, Input } from "antd";
 import { Link } from "react-router-dom";
-import placeholder from "../../assests/placeholder-image.jpg";
-import { IoMdNotificationsOutline } from "react-icons/io";
-import { FiUsers } from "react-icons/fi";
-import { MdAirplanemodeActive } from "react-icons/md";
 import {
     SearchOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
     MenuOutlined,
-    UserOutlined,
 } from "@ant-design/icons";
-import { FaRegBuilding } from "react-icons/fa";
+import RoleBasedMenu from "../services/RoleBasedMenu"; // Import RoleBasedMenu component
 import useResponsive from "../../hooks/useResponsive";
-import logo from "../../assests/tms_logo.png"; // Adjust the path if needed
-
+import logo from "../../assests/tms_logo.png";
+import placeholder from "../../assests/placeholder-image.jpg";
+import "../styles/SideNav.css";
 
 const { Header, Sider } = Layout;
-function getItem(label, key, icon, children) {
-    return {
-        key,
-        icon,
-        children,
-        label,
-    };
-}
 
-const items = [
-    getItem("Dashboard", "1", <UserOutlined />),
-    getItem("Company", "2", <FaRegBuilding />, [
-        getItem(
-            <Link to="/welcome/onboard">Onboard</Link>,
-            "3",
-            <MdAirplanemodeActive />
-        ),
-        getItem(
-            <Link to="/welcome/inactive">New Request</Link>,
-            "4",
-            <IoMdNotificationsOutline />
-        ),
-    ]),
-    // getItem("Employee", "5", <FiUsers />, <Link to={"/welcome/employee"} />),
-    getItem(<Link to="/welcome/employee">Employee</Link>, "5", <FiUsers />),
-];
 const SideNav = () => {
-    const [loadingLogout, setLoadingLogout] = useState(false);
     const [collapsed, setCollapsed] = useState(false);
     const [drawerVisible, setDrawerVisible] = useState(false);
-    const isSmallScreen = useResponsive(); // Detect screen size
+    const isSmallScreen = useResponsive();
 
     const handleDrawerOpen = () => setDrawerVisible(true);
     const handleDrawerClose = () => setDrawerVisible(false);
 
     return (
-        <Layout style={{ minHeight: "100vh" }}>
-            {/* Sidebar for large screens */}
+        <Layout style={{ minHeight: "100vh" ,backgroundColor: "#F5F5F58A"}}>
+
             {!isSmallScreen && (
                 <Sider
                     style={{
                         backgroundColor: "#F5F5F58A",
-                        borderRight: "1px solid #00000033",
+                        // borderRight: "1px solid #00000033",
                     }}
                     trigger={null}
                     collapsible
@@ -73,9 +43,9 @@ const SideNav = () => {
                             src={logo}
                             alt="Logo"
                             style={{
-                                // paddingLeft: collapsed ? "20px" : "70px",
-                                // paddingTop: collapsed ? "20px" : "20px",
-                                // paddingBottom: "10px",
+                                paddingLeft: collapsed ? "20px" : "70px",
+                                paddingTop: "20px",
+                                paddingBottom: "10px",
                                 width: collapsed ? "70px" : "130px",
                             }}
                         />
@@ -86,9 +56,8 @@ const SideNav = () => {
                             color: "black",
                         }}
                         theme="light"
-                        // defaultSelectedKeys={["1"]}
                         mode="inline"
-                        items={items}
+                        items={RoleBasedMenu()} // Use RoleBasedMenu directly
                     />
                 </Sider>
             )}
@@ -100,34 +69,28 @@ const SideNav = () => {
                     onClose={handleDrawerClose}
                     visible={drawerVisible}
                     bodyStyle={{
-                     backgroundColor: "#F5F5F58A",
+                        backgroundColor: "#F5F5F58A",
                         display: "flex",
                         flexDirection: "column",
-                        alignItems: "center", // Horizontally center the content
-                        height: "100vh", // Full-height to center vertically
+                        alignItems: "center",
+                        height: "100vh",
                     }}
                 >
                     <div
                         className="demo-logo-vertical"
                         style={{ marginBottom: "20px" }}
                     >
-                        <img
-                            src={logo}
-                            alt="Logo"
-                            style={{
-                                width: "100px", // Adjust width as needed
-                            }}
-                        />
+                        <img src={logo} alt="Logo" style={{ width: "100px" }} />
                     </div>
                     <Menu
                         style={{
                             backgroundColor: "#F5F5F58A",
                             color: "black",
-                            width: "100%", // Take full width of Drawer
+                            width: "100%",
                         }}
                         theme="light"
                         mode="inline"
-                        items={items}
+                        items={RoleBasedMenu()}
                     />
                 </Drawer>
             )}
@@ -135,7 +98,7 @@ const SideNav = () => {
             <Layout>
                 <Header
                     style={{
-                        // padding: 0,
+                        padding: 0,
                         background: "#fff",
                         position: "fixed",
                         left: isSmallScreen ? 0 : collapsed ? 90 : 210,
@@ -145,7 +108,7 @@ const SideNav = () => {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        // padding: "0 16px",
+                        padding: "0 16px",
                     }}
                 >
                     {isSmallScreen ? (
@@ -187,7 +150,6 @@ const SideNav = () => {
                             placeholder="Search"
                             prefix={<SearchOutlined />}
                         />
-
                         <div
                             style={{
                                 width: "35px",
@@ -200,9 +162,8 @@ const SideNav = () => {
                                 cursor: "pointer",
                             }}
                         >
-                            <IoMdNotificationsOutline />
+                            <MenuOutlined />
                         </div>
-                        {/* Avatar */}
                         <img
                             src={placeholder}
                             alt="User Avatar"

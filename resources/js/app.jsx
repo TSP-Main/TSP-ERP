@@ -8,17 +8,21 @@ import Login from "./auth/components/Login.jsx";
 import Register from "./Register/Register.jsx";
 import DefaultLayout from "./defaultLayout/DefaultLayout.jsx";
 import CreatePassword from "./createpassword/CreatePassword.jsx";
+import Attendance from './attendance/index.jsx'
 import ForgotPassword from "./forgetpassword/ForgotPassword.jsx";
 import OnBoard from "./company/OnBoard.jsx";
 import InActive from "./company/InActive.jsx";
 import Employee from "./employee/Employee.jsx";
 import PrivateRoute from "./PrivateRoute.jsx";
+import Shift from './shift/index.jsx'
 import "../css/app.css";
-
+import Dashboard from "./dashboard/Dashboard.jsx";
+import AssignShift from './assign_shift/index.jsx'
+import NewRegistration from './new_registration/index.jsx'
 // Main App Component
 function App() {
     const token = localStorage.getItem("access_token");
-
+    console.log(token)
     return (
         <Provider store={store}>
             <BrowserRouter>
@@ -27,16 +31,14 @@ function App() {
                     <Route
                         path="/"
                         index
-                        element={
-                            token ? (
-                                <Navigate to="/welcome" replace />
-                            ) : (
-                                <Navigate to="/login" replace />
-                            )
-                        }
+                        element={token ? <Navigate to="/profile" /> : <Login />}
                     />
+
                     {/* Public Routes */}
-                    <Route path="/login" element={<Login />} />
+                    <Route
+                        path="/login"
+                        element={token ? <Navigate to="/profile" /> : <Login />}
+                    />
                     <Route path="/register" element={<Register />} />
                     <Route
                         path="/create-password"
@@ -49,12 +51,20 @@ function App() {
 
                     {/* Protected Routes */}
                     <Route
-                        path="/welcome/"
+                        path="/"
                         element={<PrivateRoute element={<DefaultLayout />} />}
                     >
                         <Route path="onboard" element={<OnBoard />} />
                         <Route path="inactive" element={<InActive />} />
                         <Route path="employee" element={<Employee />} />
+                        <Route path="profile" element={<Dashboard />} />
+                        <Route path="shift" element={<Shift />} />
+                        <Route path="assign-shift" element={<AssignShift />} />
+                        <Route
+                            path="new-registration"
+                            element={<NewRegistration />}
+                        />
+                        <Route path="attendance" element={<Attendance />} />
                         {/* Add more protected routes here */}
                     </Route>
 
@@ -62,10 +72,7 @@ function App() {
                     <Route
                         path="*"
                         element={
-                            <Navigate
-                                to={token ? "/dashboard" : "/login"}
-                                replace
-                            />
+                            <Navigate to={token ? "/" : "/login"} replace />
                         }
                     />
                 </Routes>
