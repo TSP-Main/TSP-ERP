@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Employee;
 
 use App\Classes\StatusEnum;
 use App\Http\Controllers\Api\BaseController;
+use App\Http\Requests\Employee\CompanyEmployeeRequest;
 use App\Http\Requests\Employee\CreateEmployeeRequest;
 use App\Jobs\Employee\AddEmployeeInvitationJob;
 use App\Models\Company\CompanyModel;
@@ -35,6 +36,7 @@ class EmployeeController extends BaseController
                 'company_code' => $companyCode,
             ]);
             $employee->assignRole($request->role);
+
             AddEmployeeInvitationJob::dispatch($companyCode, $employee);
             DB::commit();
             return $this->sendResponse(['employee', $employee], 'Employee successfully added, Mail has been dispatched');
@@ -44,28 +46,41 @@ class EmployeeController extends BaseController
         }
     }
 
-    public function allCompanyEmployees(Request $request, $companyCode)
+    public function allCompanyEmployees(CompanyEmployeeRequest $request, $companyCode)
     {
         try {
             $paginate = $request->pagination ?? 20;
+
+            // Check if the user has the required permission
             if (auth()->user()->cannot('show-employees')) {
                 return $this->sendError('Unauthorized access', 403);
             }
 
-            // Retrieve employees based on the company_code in the Employee model
-            $employees = User::whereHas('employee', function ($query) use ($companyCode) {
+            $query = User::whereHas('employee', function ($query) use ($companyCode) {
                 $query->where('company_code', $companyCode);
-            })->with(['employee', 'roles'])->paginate($paginate);
+            });
 
-            if ($employees->isEmpty()) {
-                return $this->sendResponse('No employees found for this company code');
+            // Apply role filter if provided
+            if ($request->has('role') && $request->role === StatusEnum::MANAGER) {
+                $query->whereHas('roles', function ($query) {
+                    $query->where('name', StatusEnum::MANAGER);
+                });
             }
 
-            return $this->sendResponse($employees, 'Employees displayed successfully');
+            // Include employee and role relationships and paginate the result
+            $employees = $query->with(['employee', 'roles'])->paginate($paginate);
+
+            if ($employees->isEmpty()) {
+                return $this->sendResponse([], 'No employees found for this company.');
+            }
+
+            return $this->sendResponse($employees, 'Employees displayed successfully.');
         } catch (Exception $e) {
+            // Handle exceptions and send an error response
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
+
 
     public function inActiveEmployees(Request $request, $companyCode)
     {
