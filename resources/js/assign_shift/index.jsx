@@ -19,8 +19,8 @@ function RowHeaderTable() {
     const { scheduledata, loading: scheduleLoading } = useSelector(
         (state) => state.schedule
     );
-    const [dataSource, setDataSource] = useState([]);
-    const [loading,setLoading] = useState(false)
+    // const [dataSource, setDataSource] = useState([]);
+    // const [loading,setLoading] = useState(false)
 
 
     const currentDate = new Date();
@@ -368,6 +368,6 @@ const assignShiftForAllDays = (employeeId) => {
         </>
     );
 }
-}
+
 
 export default RowHeaderTable;
