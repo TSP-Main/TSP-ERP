@@ -15,7 +15,7 @@ export const inactiveUsersData = createAsyncThunk(
         try {
             console.log("inside inactive api")
             const response = await axios.get(apiRoutes.company.inactive);
-            console.log(response.data.data);
+            console.log("inactive",response.data.data);
             return response.data.data.data;
         } catch (error) {
             console.log("redux error: " + error)

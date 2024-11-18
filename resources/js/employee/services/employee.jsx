@@ -32,7 +32,7 @@ function Employee() {
         <Table
             columns={columns} // Pass the columns here
             dataSource={employeedata} // Pass the employee data here
-            rowKey={(record) => record.employee.company_code}
+            // rowKey={(record) => record.employee.company_code}
             pagination={false}
         />
     );

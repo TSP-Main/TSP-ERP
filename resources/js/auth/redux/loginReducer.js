@@ -2,7 +2,6 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "../../services/axiosService";
 import apiRoutes from "../../routes/apiRoutes";
 import { notification } from "antd";
-import { useNavigate } from "react-router-dom";
 const initialState = {
     error: false,
     loading: false,
@@ -17,7 +16,7 @@ export const getPrice=createAsyncThunk(
     async(data,{rejectWithValue})=>{
         try{
           const response=await axios.post(apiRoutes.paymentIntent,data);
-          console.log(response.data)
+        //   console.log(response.data)
           return response.data;
         }catch(error){
              return rejectWithValue(
@@ -32,11 +31,12 @@ export const login = createAsyncThunk(
     async (authdata, { rejectWithValue }) => {
         try {
             const response = await axios.post(apiRoutes.login, authdata);
-            console.log(response);
+            // console.log(response);
             if (response.status === 200) {
                 notification.success({
                     message: "Success",
                     description: response.data.message,
+                    duration: 3,
                 });
                 localStorage.setItem(
                     "access_token",
@@ -47,7 +47,7 @@ export const login = createAsyncThunk(
             }
             return response;
         } catch (error) {
-            console.log("login redux", error);
+            // console.log("login redux", error);
             console.log("hihi", error.response?.data?.errors);
 
           return rejectWithValue(

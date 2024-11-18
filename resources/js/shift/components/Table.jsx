@@ -8,36 +8,21 @@ const ScheduleTable = () => {
     const { error, loading, scheduledata } = useSelector(
         (state) => state.schedule
     );
-    console.log("sche", scheduledata);
 
-useEffect(() => {
-    const id = localStorage.getItem("company_id");
-    console.log("company id", id);
-    dispatch(showSchedule(id));
-   
-    // Log the fetched data
-    console.log("Fetched schedule data:", scheduledata);
-}, [dispatch]);
-    // Check if the data is properly structured
-//    if (!Array.isArray(scheduledata)) {
-//        console.error(
-//            "scheduledata should be an array, received:",
-//            typeof scheduledata,
-//            scheduledata // log the actual value
-//        );
-//        return (
-//            <Alert
-//                message="Error"
-//                description="Invalid data format. Data should be an array of objects."
-//                type="error"
-//                showIcon
-//            />
-//        );
-//    }
+    useEffect(() => {
+        const id = localStorage.getItem("company_id");
+        dispatch(showSchedule(id));
+    }, [dispatch]);
+
+    // Ensure scheduledata is an array
+    const dataSource = Array.isArray(scheduledata) ? scheduledata : [];
+
+    // Debugging logs
+    console.log("Final data for table:", dataSource);
 
     if (loading) return <h1>Loading...</h1>;
 
-    if (error || !scheduledata || scheduledata.length === 0)
+    if (error || !dataSource || dataSource.length === 0)
         return (
             <Alert
                 message="Error"
@@ -50,14 +35,13 @@ useEffect(() => {
     return (
         <Table
             columns={columns}
-            dataSource={scheduledata}
+            dataSource={dataSource}
             pagination={false}
             rowKey="id"
         />
     );
 };
-
-export const columns = [
+const columns = [
     {
         title: "Name",
         dataIndex: "name",
@@ -73,17 +57,7 @@ export const columns = [
         dataIndex: "end_time",
         key: "end_time",
     },
-    {
-        title: "Total Hours",
-        dataIndex: "total_hours",
-        key: "total_hours",
-        render: (text) => (text !== null ? text : "N/A"), // Handle null values
-    },
-    {
-        title: "Week Day",
-        dataIndex: "week_day",
-        key: "week_day",
-    },
+
 ];
 
 export default ScheduleTable;

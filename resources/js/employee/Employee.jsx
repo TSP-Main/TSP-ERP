@@ -28,14 +28,20 @@ const Employee = () => {
         if(response.error){
             notification.error({
                 message: "Error",
-                description:response?.payload?.data?.message || 'Problem sending, Recheck and try again'
-            })
+                description:
+                    response?.payload?.data?.message ||
+                    "Problem sending, Recheck and try again",
+                duration: 3,
+            });
         }
         else{
             notification.success({
                 message: "Success",
-                description:response?.payload?.data?.message || 'Invite sent successfully'
-            })
+                description:
+                    response?.payload?.data?.message ||
+                    "Invite sent successfully",
+                duration: 3,
+            });
         }
         hideModal(); // Close modal after submission
     };

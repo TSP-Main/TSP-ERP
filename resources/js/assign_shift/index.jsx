@@ -15,7 +15,8 @@ function RowHeaderTable() {
         (state) => state.schedule
     );
     const [dataSource, setDataSource] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading,setLoading] = useState(false)
+
 
     const todayIndex = new Date().getDay();
     const currentDate = new Date();
@@ -77,79 +78,71 @@ function RowHeaderTable() {
 
     // Helper function to create the payload for assigning shifts
     // Helper function to create the payload for assigning shifts
-    const createPayload = () => {
-        const payload = [];
+   const createPayload = () => {
+       const payload = [];
 
-        shiftAssignments.forEach((assignment) => {
-            if (assignment.days.length === 1) {
-                payload.push({
-                    employee_id: assignment.employeeId,
-                    schedule_id: assignment.scheduleId,
-                    start_date: assignment.days[0].date
-                        .toISOString()
-                        .slice(0, 10), // Format date as YYYY-MM-DD
-                    end_date: assignment.days[0].date
-                        .toISOString()
-                        .slice(0, 10), // Format date as YYYY-MM-DD
-                });
-            } else {
-                const startDate = assignment.days[0].date
-                    .toISOString()
-                    .slice(0, 10); // Format date as YYYY-MM-DD
-                const endDate = assignment.days[assignment.days.length - 1].date
-                    .toISOString()
-                    .slice(0, 10); // Format date as YYYY-MM-DD
+       shiftAssignments.forEach((assignment) => {
+           // Sort the days to make sure the dates are in order
+           const sortedDays = assignment.days.sort((a, b) => a.date - b.date);
 
-                payload.push({
-                    employee_id: assignment.employeeId,
-                    schedule_id: assignment.scheduleId,
-                    start_date: startDate,
-                    end_date: endDate,
-                });
-            }
-        });
-        console.log("payload: " + payload);
-        return payload;
-    };
+           // Find the earliest and latest dates for this assignment
+           const startDate = sortedDays[0].date.toISOString().slice(0, 10);
+           const endDate = sortedDays[sortedDays.length - 1].date
+               .toISOString()
+               .slice(0, 10);
 
-    const handleCellClick = (employeeId, dayIndex, shiftId) => {
-        setShiftAssignments((prevAssignments) => {
-            const updatedAssignments = prevAssignments.map((assignment) => {
-                if (assignment.employeeId === employeeId) {
-                    const dayExists = assignment.days.findIndex(
-                        (day) => day.date === reorderedDays[dayIndex].date
-                    );
+           payload.push({
+               employee_id: assignment.employeeId,
+               schedule_id: assignment.scheduleId,
+               start_date: startDate,
+               end_date: endDate,
+           });
+       });
 
-                    if (dayExists !== -1) {
-                        assignment.days[dayExists].shiftId = shiftId;
-                    } else {
-                        console.log("Assignment1");
-                        assignment.days.push({
-                            date: reorderedDays[dayIndex].date,
-                            shiftId,
-                        });
-                    }
-                    return assignment;
-                }
-                return assignment;
-            });
+       console.log("Payload: ", payload);
+       return payload;
+   };
 
-            if (
-                !updatedAssignments.some(
-                    (assignment) => assignment.employeeId === employeeId
-                )
-            ) {
-                console.log("Assignment");
-                updatedAssignments.push({
-                    employeeId,
-                    scheduleId: shiftId,
-                    days: [{ date: reorderedDays[dayIndex].date, shiftId }],
-                });
-            }
+   const handleCellClick = (employeeId, dayIndex, shiftId) => {
+       setShiftAssignments((prevAssignments) => {
+           const updatedAssignments = [...prevAssignments];
 
-            return updatedAssignments;
-        });
-    };
+           // Find an existing assignment for the employee
+           const employeeAssignment = updatedAssignments.find(
+               (assignment) => assignment.employeeId === employeeId
+           );
+
+           if (employeeAssignment) {
+               // If the employee already has an assignment
+               const dayExists = employeeAssignment.days.findIndex(
+                   (day) =>
+                       day.date.toISOString().slice(0, 10) ===
+                       reorderedDays[dayIndex].date.toISOString().slice(0, 10)
+               );
+
+               if (dayExists !== -1) {
+                   // Update the shiftId if the day already exists
+                   employeeAssignment.days[dayExists].shiftId = shiftId;
+               } else {
+                   // Add a new day if it doesn't exist
+                   employeeAssignment.days.push({
+                       date: reorderedDays[dayIndex].date,
+                       shiftId,
+                   });
+               }
+           } else {
+               // Create a new assignment if none exists for the employee
+               updatedAssignments.push({
+                   employeeId,
+                   scheduleId: shiftId,
+                   days: [{ date: reorderedDays[dayIndex].date, shiftId }],
+               });
+           }
+
+           return updatedAssignments;
+       });
+   };
+
 
     // Fetch employee data
     useEffect(() => {
@@ -184,35 +177,32 @@ function RowHeaderTable() {
 
     // Handle shift assignment for all days when arrow icon is clicked
     // Handle shift assignment for all days when arrow icon is clicked
-    const assignShiftForAllDays = (employeeId) => {
-        console.log("employee id", employeeId);
-        onShiftSelect = employeeId;
-        const shiftId = selectedShifts[employeeId];
-        console.log("shift ", shiftId);
-        if (shiftId) {
-            // Loop through each day in the week and call handleCellClick for each day
-            reorderedDays.forEach((_, dayIndex) => {
-                handleCellClick(employeeId, dayIndex, shiftId);
-            });
+const assignShiftForAllDays = (employeeId) => {
+    const shiftId = selectedShifts[employeeId];
+    if (shiftId) {
+        // Assign shifts for the whole week for the employee
+        reorderedDays.forEach((_, dayIndex) => {
+            handleCellClick(employeeId, dayIndex, shiftId);
+        });
 
-            // Update the data source for the table immutably
-            setDataSource((prevDataSource) =>
-                prevDataSource.map((item) => {
-                    if (item.key === employeeId) {
-                        return {
-                            ...item,
-                            ...reorderedDays.reduce((acc, day, index) => {
-                                acc[`col${index + 1}`] = shiftId; // Apply shift ID to all columns
-                                return acc;
-                            }, {}),
-                        };
-                    }
-                    console.log("handle ", dataSource);
-                    return item;
-                })
-            );
-        }
-    };
+        // Update the data source immutably for the table display
+        setDataSource((prevDataSource) =>
+            prevDataSource.map((item) => {
+                if (item.key === employeeId) {
+                    return {
+                        ...item,
+                        ...reorderedDays.reduce((acc, day, index) => {
+                            acc[`col${index + 1}`] = shiftId; // Apply shift ID to all columns
+                            return acc;
+                        }, {}),
+                    };
+                }
+                return item;
+            })
+        );
+    }
+};
+
 
     const handleSubmit = () => {
         const payload = createPayload();
@@ -261,12 +251,10 @@ function RowHeaderTable() {
                 <ShiftDropdown
                     scheduledata={scheduledata}
                     onShiftSelect={(shiftId) => {
-                        // handleCellClick(record.key, index, shiftId);
+                        handleCellClick(record.key, index, shiftId);
                         setSelectedShifts((prev) => ({
                             ...prev,
                             [record.key]: shiftId,
-                            startDate: record.startDate,
-                            endDate: record.endDate,
                         }));
                     }}
                     selectedShiftId={selectedShifts[record.key]}

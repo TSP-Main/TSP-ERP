@@ -1,7 +1,7 @@
 // SideNav.jsx
-import React, { useState } from "react";
-import { Layout, Menu, Drawer, Button, Input } from "antd";
-import { Link } from "react-router-dom";
+import React, { useState,useEffect } from "react";
+import { Layout, Menu, Drawer, Button, Input, notification } from "antd";
+import { Link,useNavigate } from "react-router-dom";
 import {
     SearchOutlined,
     MenuFoldOutlined,
@@ -13,20 +13,46 @@ import useResponsive from "../../hooks/useResponsive";
 import logo from "../../assests/tms_logo.png";
 import placeholder from "../../assests/placeholder-image.jpg";
 import "../styles/SideNav.css";
-
+import apiRoutes from "../../routes/apiRoutes";
+import axios from "../../services/axiosService";
+import { useLocation } from "react-router-dom";
 const { Header, Sider } = Layout;
 
+
 const SideNav = () => {
+    const navigate = useNavigate();
+    const location = useLocation(); 
+    
     const [collapsed, setCollapsed] = useState(false);
     const [drawerVisible, setDrawerVisible] = useState(false);
     const isSmallScreen = useResponsive();
-
+    const  [loading, setLoading] = useState(false);
     const handleDrawerOpen = () => setDrawerVisible(true);
     const handleDrawerClose = () => setDrawerVisible(false);
+     const currentPath = location.pathname;
+   useEffect(() => {
+       console.log("Current Path: ", currentPath); // Debugging line
+   }, [currentPath]);
+    const handleLogout = async () => {
+        try {
+            setLoading(true)
+            const response = await axios.post(apiRoutes.logout);
+            localStorage.clear();
+            // window.location.href = "/";
+            navigate('/login')
+            setLoading(false);
+        } catch (error) {
+            setLoading(false);
+            notification.error({
+                message: "Error",
+                description: error.response?.data?.message || "Logout failed",
+                duration: 3,
+            });
+        }
+    };
 
     return (
-        <Layout style={{ minHeight: "100vh" ,backgroundColor: "#F5F5F58A"}}>
-
+        <Layout style={{ minHeight: "100vh", backgroundColor: "#F5F5F58A" }}>
             {!isSmallScreen && (
                 <Sider
                     style={{
@@ -57,6 +83,7 @@ const SideNav = () => {
                         }}
                         theme="light"
                         mode="inline"
+                        selectedKeys={[currentPath]}
                         items={RoleBasedMenu()} // Use RoleBasedMenu directly
                     />
                 </Sider>
@@ -90,6 +117,7 @@ const SideNav = () => {
                         }}
                         theme="light"
                         mode="inline"
+                        selectedKeys={[currentPath]}
                         items={RoleBasedMenu()}
                     />
                 </Drawer>
@@ -164,7 +192,13 @@ const SideNav = () => {
                         >
                             <MenuOutlined />
                         </div>
-                        <img
+                        <Button
+                            loading={loading}
+                            onClick={() => handleLogout()}
+                        >
+                            Log out
+                        </Button>
+                        {/* <img
                             src={placeholder}
                             alt="User Avatar"
                             style={{
@@ -175,7 +209,7 @@ const SideNav = () => {
                                 objectFit: "cover",
                                 cursor: "pointer",
                             }}
-                        />
+                        /> */}
                     </div>
                 </Header>
             </Layout>

@@ -10,7 +10,13 @@ const ForgotPassword = () => {
     // const { register, handleSubmit,formState:{ errors} } = useForm();
     return (
         <div className="login-container">
-            <div className="login-form-wrapper">
+            <div
+                className="login-form-wrapper"
+                style={{
+                    borderRadius: "8px",
+                   maxHeight: "400px",
+                }}
+            >
                 <div className="demo-logo-vertical">
                     <img src={logo} alt="Logo" />
                 </div>

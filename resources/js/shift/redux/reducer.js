@@ -5,8 +5,8 @@ import apiRoutes from "../../routes/apiRoutes";
 const initialState = {
     error: false,
     loading: false,
-    scheduledata: null,
-}
+    scheduledata: [], // Initialize as an empty array
+};
 
 export const createSchedule = createAsyncThunk(
     "schedule/create",
@@ -29,23 +29,21 @@ export const showSchedule = createAsyncThunk(
         try {
             console.log("inside showSchedule");
             const response = await axios.get(apiRoutes.schedule.show(id)); // Pass `id` directly
-            console.log("Schedule data:",response.data.data);
+            // Return the data payload if successful
             return response.data.data;
         } catch (error) {
-            console.error("redux error:", error);
-            return rejectWithValue(error.response || "Failed to fetch data");
+            // Handle error and use rejectWithValue for Redux error state
+            return rejectWithValue(error.response?.data?.message || "Failed to fetch data");
         }
     }
 );
 
+
+// Create schedule slice with reducers
 // Create schedule slice with reducers
 const scheduleSlice = createSlice({
     name: "schedule",
-    initialState: {
-        scheduledata: null,
-        loading: false,
-        error: false,
-    },
+    initialState,
     extraReducers: (builder) => {
         builder
             .addCase(showSchedule.pending, (state) => {
@@ -55,7 +53,7 @@ const scheduleSlice = createSlice({
             .addCase(showSchedule.fulfilled, (state, action) => {
                 state.scheduledata = action.payload;
                 state.loading = false;
-                state.error = action.payload || 'error';
+                state.error = false;
             })
             .addCase(showSchedule.rejected, (state, action) => {
                 state.loading = false;
@@ -63,5 +61,6 @@ const scheduleSlice = createSlice({
             });
     },
 });
+
 
 export default scheduleSlice.reducer;

@@ -21,7 +21,9 @@ import AssignShift from './assign_shift/index.jsx'
 import NewRegistration from './new_registration/index.jsx'
 // Main App Component
 function App() {
-    const token = localStorage.getItem("access_token");
+    const token =
+        localStorage.getItem("access_token") ||
+        sessionStorage.getItem("access_token");
     console.log(token)
     return (
         <Provider store={store}>

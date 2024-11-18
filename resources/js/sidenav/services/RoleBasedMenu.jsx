@@ -1,17 +1,17 @@
-// RoleBasedMenu.jsx
-import React,{useEffect} from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useSelector } from "react-redux"; // Import useSelector to access Redux store
+import { useSelector, useDispatch } from "react-redux";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { FiUsers } from "react-icons/fi";
 import { MdAirplanemodeActive } from "react-icons/md";
 import { CiTimer } from "react-icons/ci";
 import { FaRegBuilding } from "react-icons/fa";
-import { useDispatch } from "react-redux";
 import { userData } from "../../dashboard/redux/reducer";
+
+// Helper function to create menu items
 function getItem(label, key, icon, children) {
     return {
-        key,
+        key, // Key is the unique identifier for each menu item
         icon,
         children,
         label,
@@ -19,19 +19,22 @@ function getItem(label, key, icon, children) {
 }
 
 const RoleBasedMenu = () => {
-    // Get the role from the Redux store
-    const {userdata}=useSelector((state)=>state.user)
-    const dispatch=useDispatch();
-    useEffect(()=>{
+    const { userdata } = useSelector((state) => state.user);
+    const dispatch = useDispatch();
+
+    useEffect(() => {
         dispatch(userData());
-    },[])
-     console.log("user data", userdata)
+    }, [dispatch]);
+
+    console.log("user data", userdata);
     const userRole = userdata?.data?.roles?.[0]?.name;
-    console.log("user role ",userRole)
+    console.log("user role ", userRole);
+
+    // Default menu items for all roles
     let items = [
         getItem(
             <Link to="/profile">Profile</Link>,
-            "6",
+            "/profile", // Key should match the path for proper selection
             <MdAirplanemodeActive />
         ),
     ];
@@ -39,43 +42,53 @@ const RoleBasedMenu = () => {
     // Define menu items based on the user's role
     if (userRole === "super_admin") {
         items.push(
-            getItem("Company", "2", <FaRegBuilding />, [
+            getItem("Company", "company", <FaRegBuilding />, [
                 getItem(
                     <Link to="/onboard">Onboard</Link>,
-                    "3",
+                    "/onboard", // Key matching the URL path
                     <MdAirplanemodeActive />
                 ),
                 getItem(
                     <Link to="/inactive">New Request</Link>,
-                    "4",
+                    "/inactive", // Key matching the URL path
                     <IoMdNotificationsOutline />
                 ),
             ])
         );
     } else if (userRole === "company" || userRole === "manager") {
         items.push(
-            getItem(<Link to="/employee">Employee</Link>, "5", <FiUsers />),
-            // getItem(<Link to="/shift">Shift</Link>, "7", <CiTimer />)
-            getItem("Shift", "7", <FaRegBuilding />, [
+            getItem(
+                <Link to="/employee">Employee</Link>,
+                "/employee", // Key matching the URL path
+                <FiUsers />
+            ),
+            getItem("Shift", "shift", <FaRegBuilding />, [
                 getItem(
                     <Link to="/shift">Shifts</Link>,
-                    "8",
+                    "/shift", // Key matching the URL path
                     <MdAirplanemodeActive />
                 ),
                 getItem(
                     <Link to="/assign-shift">Assign Shift</Link>,
-                    "9",
+                    "/assign-shift", // Key matching the URL path
                     <IoMdNotificationsOutline />
                 ),
             ]),
-            getItem(<Link to="/new-registration">New Registrations</Link>, "10", <FiUsers />),
-          
+            getItem(
+                <Link to="/new-registration">New Registrations</Link>,
+                "/new-registration", // Key matching the URL path
+                <FiUsers />
+            )
         );
-    }else if(userRole == "employee"){
+    } else if (userRole === "employee") {
         items.push(
-             getItem(<Link to="/attendance">Attendance</Link>, "11", <FiUsers />))
+            getItem(
+                <Link to="/attendance">Attendance</Link>,
+                "/attendance", // Key matching the URL path
+                <FiUsers />
+            )
+        );
     }
-
 
     return items;
 };

@@ -53,6 +53,7 @@ const Register = () => {
                    notification.error({
                        message: "Payment Error",
                        description: result.error.message,
+                       duration: 3,
                    });
                    return;
                }
@@ -84,6 +85,7 @@ const Register = () => {
                        description:
                            registrationResponse.payload ||
                            "Registration failed",
+                       duration: 3,
                    });
                    return;
                }
@@ -92,12 +94,14 @@ const Register = () => {
                    message: "Registration Successful",
                    description:
                        "You have successfully registered. Please Wait for Approval to Complete",
+                   duration: 3,
                });
            } catch (error) {
                notification.error({
                    message: "Error",
                    description:
                        error.message || "Payment or registration failed",
+                   duration: 3,
                });
            }
        } else {
@@ -107,6 +111,7 @@ const Register = () => {
                notification.error({
                    message: "Error",
                    description: response.payload || "Registration failed",
+                   duration: 3,
                });
                return;
            }
@@ -115,6 +120,7 @@ const Register = () => {
                message: "Registration Successful",
                description:
                    "You have successfully registered. Please Wait for Approval to Complete",
+               duration: 3,
            });
        }
    };
