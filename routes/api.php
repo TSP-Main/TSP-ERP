@@ -30,7 +30,7 @@ Route::options('{any}', function () {
  * Auth Apis
  */
 
-Route::post('verify-email', [AuthController::class, 'verifyEmail'])->name('verify-email');
+Route::post('verify-password-otp', [AuthController::class, 'verifyForgetPasswordOtp']);
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login'])->name('login');
 Route::post('forgot-password', [AuthController::class, 'forgotPassword'])->name('forgot-password');

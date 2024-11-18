@@ -11,6 +11,7 @@ use App\Http\Requests\Auth\RegisterUserRequest;
 use App\Http\Requests\Auth\ForgetPasswordRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Requests\Auth\UpdateProfileRequest;
+use App\Http\Requests\Auth\verifyForgetPasswordOtpRequest;
 use App\Http\Requests\Auth\VerifyOtpRequest;
 use App\Jobs\Company\CompanyApprovedEmailJob;
 use App\Jobs\Company\EmployeeApproveEmailJob;
@@ -20,13 +21,16 @@ use App\Models\Otp;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Request;
 use Stripe\Stripe;
 use Stripe\SetupIntent;
+use Illuminate\Support\Str;
 
 
 
@@ -213,28 +217,94 @@ class AuthController extends BaseController
     public function forgotPassword(ForgetPasswordRequest $request)
     {
         try {
-            Password::sendResetLink(['email' => $request->email]);
+            // Password::sendResetLink(['email' => $request->email]);
+            $otp = rand(1000, 9999);
 
-            return $this->sendResponse([], 'Reset password link sent on your email id.');
+            // Store OTP in the cache for 30 minutes (adjust as needed)
+            $email = $request->email;
+            Cache::put('password_reset_otp_' . $email, $otp, now()->addMinutes(30));
+
+            //send otp via email
+            Mail::send('emails.otp.PasswordResetOtp', ['otp' => $otp], function ($message) use ($email) {
+                $message->to($email)
+                    ->subject('Your Password Reset OTP');
+            });
+
+            return $this->sendResponse([], 'OTP sent to your email.');
         } catch (Exception $e) {
             Log::error('Password reset error: ' . $e->getMessage());
             return $this->sendError('Something went wrong, error in processing email', 406, 406);
         }
     }
 
-    public function resetPassword(ResetPasswordRequest $request)
+    public function verifyForgetPasswordOtp(verifyForgetPasswordOtpRequest $request)
     {
-        $reset_password_status = Password::reset($request->all(), function ($user, $password) {
-            $user->password = Hash::make($password);
-            $user->save();
-        });
+        $email = $request->email;
+        $otp = $request->otp;
 
-        if ($reset_password_status == Password::INVALID_TOKEN) {
-            return $this->sendError(['token' => ['Invalid token.']], 400);
+        // Check if the OTP matches
+        $cachedOtp = Cache::get('password_reset_otp_' . $email);
+        if ($cachedOtp && $cachedOtp == $otp) {
+            // OTP is valid; proceed to allow password reset
+            Cache::forget('password_reset_otp_' . $email);
+
+            // Generate a temporary token for password reset
+            $token = Str::random(64);
+
+            // Store the token in the database or cache (optional)
+            DB::table('password_reset_tokens')->updateOrInsert(
+                ['email' => $email],
+                ['token' => $token, 'created_at' => now()]
+            );
+
+            return $this->sendResponse(['token' => $token], 'OTP verified successfully.');
         }
 
-        return $this->sendResponse([], 'Password has been reset successfully.');
+        return $this->sendError('Invalid or expired OTP.', 400, 400);
     }
+
+    public function resetPassword(ResetPasswordRequest $request)
+    {
+        DB::beginTransaction();
+        try {
+            // Validate token and reset the password
+            $record = DB::table('password_reset_tokens')
+                ->where('email', $request->email)
+                ->where('token', $request->token)
+                ->first();
+
+            if ($record && now()->subMinutes(30)->lt($record->created_at)) {
+                // Update the user's password
+                $user = User::where('email', $request->email)->firstOrFail();
+                $user->update(['password' => bcrypt($request->password)]);
+
+                // Clean up the token
+                DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+                return $this->sendResponse([], 'Password reset successfully.');
+            }
+            DB::commit();
+            return $this->sendError('Invalid or expired token.', 400, 400);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Password reset error: ' . $e->getMessage());
+            return $this->sendError('Something went wrong', 406, 406);
+        }
+    }
+
+    // public function resetPassword(ResetPasswordRequest $request)
+    // {
+    //     $reset_password_status = Password::reset($request->all(), function ($user, $password) {
+    //         $user->password = Hash::make($password);
+    //         $user->save();
+    //     });
+
+    //     if ($reset_password_status == Password::INVALID_TOKEN) {
+    //         return $this->sendError(['token' => ['Invalid token.']], 400);
+    //     }
+
+    //     return $this->sendResponse([], 'Password has been reset successfully.');
+    // }
 
     public function verifyOtp(VerifyOtpRequest $request)
     {
