@@ -100,6 +100,7 @@ const SideNav = () => {
                         mode="inline"
                         selectedKeys={[currentPath]}
                         items={RoleBasedMenu()} // Use RoleBasedMenu directly
+                        onClick={handleDrawerClose}
                     />
                 </Sider>
             )}
@@ -134,6 +135,7 @@ const SideNav = () => {
                         mode="inline"
                         selectedKeys={[currentPath]}
                         items={RoleBasedMenu()}
+                        onClick={handleDrawerClose}
                     />
                 </Drawer>
             )}
@@ -213,7 +215,11 @@ const SideNav = () => {
                         >
                             Log out
                         </Button> */}
-                        <Dropdown overlay={profilemenu} trigger={["click"]} style={{ cursor: "pointer",marginRight:'45px' }}>
+                        <Dropdown
+                            overlay={profilemenu}
+                            trigger={["click"]}
+                            style={{ cursor: "pointer", marginRight: "45px" }}
+                        >
                             <img
                                 src={placeholder}
                                 alt="User Avatar"

@@ -14,7 +14,7 @@ export const userData = createAsyncThunk(
         try {
             console.log("usersrsrsrs")
             const response = await axios.get(apiRoutes.userdetails);
-            console.log(response.data.data);
+            console.log("useeerrr",response.data.data);
             localStorage.setItem(
                 "company_code",
                 response.data.data.company?.code

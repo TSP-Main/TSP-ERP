@@ -32,11 +32,11 @@ const RoleBasedMenu = () => {
 
     // Default menu items for all roles
     let items = [
-        getItem(
-            <Link to="/profile">Profile</Link>,
-            "/profile", // Key should match the path for proper selection
-            <MdAirplanemodeActive />
-        ),
+        // getItem(
+        //     <Link to="/profile">Profile</Link>,
+        //     "/profile", // Key should match the path for proper selection
+        //     <MdAirplanemodeActive />
+        // ),
     ];
 
     // Define menu items based on the user's role
