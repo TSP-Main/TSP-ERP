@@ -15,7 +15,7 @@ import NewRegistration from "./new_registration/index.jsx";
 import Attendance from "./attendance/index.jsx";
 import PrivateRoute from "./PrivateRoute.jsx";
 import { getDefaultPage } from "./services/defaultPage.js";
-
+import Dashboard from "./dashboard/Dashboard.jsx";
 const RoutesComponent = () => {
     const { userdata } = useSelector((state) => state.user); // Using useSelector to get userdata
     const token =
@@ -38,10 +38,12 @@ const RoutesComponent = () => {
             />
             <Route path="/register" element={<Register />} />
             <Route path="/forget-password" element={<ForgotPassword />} />
+          
             <Route
                 path="/"
                 element={<PrivateRoute element={<DefaultLayout />} />}
             >
+                <Route path="profile" element={<Dashboard />} />
                 <Route path="onboard" element={<OnBoard />} />
                 <Route path="inactive" element={<InActive />} />
                 <Route path="employee" element={<Employee />} />

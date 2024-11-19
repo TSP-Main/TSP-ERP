@@ -63,9 +63,9 @@
 
         <p>Please click the button below to set your password:</p>
 
-        <div class="btn-container">
+        <!-- <div class="btn-container">
             <a href="{{ url('/create-password/{{ $employee->id }}') }}" class="login-btn">Set Your Password</a>
-        </div>
+        </div> -->
 
         <div class="footer">
             <p>If you have any questions, feel free to contact us!</p>

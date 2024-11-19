@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { userData } from "./redux/reducer";
 import "./styles/Dashboard.css"; // Importing the CSS file
-import { MailOutlined, UserOutlined, IdcardOutlined } from "@ant-design/icons";
+import { MailOutlined, UserOutlined, IdcardOutlined,BarcodeOutlined } from "@ant-design/icons";
 import { Button } from "antd";
 import { useNavigate } from "react-router-dom";
 
@@ -69,7 +69,7 @@ const Dashboard = () => {
                         </div>
                         {userdata?.data?.company?.code && (
                             <div className="profile-detail">
-                                <IdcardOutlined className="icon" />
+                                <BarcodeOutlined className="icon" />
                                 <div>
                                     <h3>Company Code</h3>
                                     <p>

@@ -2,18 +2,18 @@ import React from "react";
 import { Select } from "antd";
 
 const ShiftDropdown = ({ scheduledata, onShiftSelect, selectedShiftId }) => {
-    if (!scheduledata || scheduledata.length === 0) {
+    // Check if scheduledata is a valid array
+    if (!Array.isArray(scheduledata) || scheduledata.length === 0) {
         return <div>No shifts available</div>;
     }
-    // console.log(onShiftSelect)
 
     return (
         <div>
             <Select
                 placeholder="Select shift"
                 style={{ width: "100%" }}
-                value={selectedShiftId} // Use selectedShiftId to control the selected value
-                onChange={onShiftSelect} // Call the passed function with selected shift ID
+                value={selectedShiftId}
+                onChange={onShiftSelect}
             >
                 {scheduledata.map((data) => (
                     <Select.Option key={data.id} value={data.id}>
@@ -24,5 +24,6 @@ const ShiftDropdown = ({ scheduledata, onShiftSelect, selectedShiftId }) => {
         </div>
     );
 };
+
 
 export default ShiftDropdown;

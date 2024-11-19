@@ -5,7 +5,7 @@
 }
 /* Persistent selected styling for light theme */
 .ant-menu-light .ant-menu-item-selected {
-    background-color: #a4b3c8 !important; /* Selected background color */
+    background-color: #cfd8e4 !important; /* Selected background color */
     color: #fff !important; /* Selected text color */
     font-weight: bold !important; /* Optional: Bold font */
     border-radius: 8px; /* Optional: Rounded corners */

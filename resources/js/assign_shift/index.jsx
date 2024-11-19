@@ -192,13 +192,12 @@ function RowHeaderTable() {
     }, []);
 
     // Fetch schedule data once (on component mount)
-    useEffect(() => {
-        console.log("query");
-        const companyId = localStorage.getItem("company_id");
-        if (companyId) {
-            dispatch(showSchedule(companyId)); // Trigger the action to fetch schedule data
-        }
-    }, []);
+useEffect(() => {
+    const companyId = localStorage.getItem("company_id");
+    if (companyId) {
+        dispatch(showSchedule(companyId)); // Trigger the action to fetch schedule data
+    }
+}, []);
 
     // Format data for the table once employee data is available
     useEffect(() => {

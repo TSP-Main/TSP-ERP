@@ -2,6 +2,8 @@
 import React, { useState,useEffect } from "react";
 import { Layout, Menu, Drawer, Button, Dropdown, notification } from "antd";
 import { Link,useNavigate } from "react-router-dom";
+import { IoLogOut } from "react-icons/io5";
+import { FaUser } from "react-icons/fa";
 import {
     SearchOutlined,
     MenuFoldOutlined,
@@ -53,18 +55,22 @@ const SideNav = () => {
             });
         }
     };
-    const profilemenu=(
+    const profilemenu = (
         <Menu>
             <Menu.Item>
-                <Link to="/profile">Profile</Link>
+                <Link to="/profile">
+                    <FaUser style={{ marginRight: "5px" }} />
+                    Profile
+                </Link>
             </Menu.Item>
             <Menu.Item>
                 <Link to="/logout" onClick={handleLogout}>
+                    <IoLogOut style={{ marginRight: "5px" }} />
                     Logout
                 </Link>
             </Menu.Item>
         </Menu>
-    )
+    );
 
     return (
         <Layout style={{ minHeight: "100vh", backgroundColor: "#F5F5F58A" }}>
@@ -110,8 +116,8 @@ const SideNav = () => {
                     placement="left"
                     closable={false}
                     onClose={handleDrawerClose}
-                    visible={drawerVisible}
-                    bodyStyle={{
+                    open={drawerVisible}
+                    styles={{
                         backgroundColor: "#F5F5F58A",
                         display: "flex",
                         flexDirection: "column",

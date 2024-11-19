@@ -3,6 +3,7 @@ import { Button,TimePicker } from "antd";
 import ShiftModal from "./components/modal";
 import './styles/shift.css'
 import Tablee from './components/Table'
+import { showSchedule } from "./redux/reducer";
 const index = () => {
         const [isModalVisible, setIsModalVisible] = useState(false);
 const showModal = () => {
@@ -12,7 +13,10 @@ const showModal = () => {
 
 // Hide Modal
 const hideModal = () => {
+    
     setIsModalVisible(false);
+     
+
 };
     return (
         <>

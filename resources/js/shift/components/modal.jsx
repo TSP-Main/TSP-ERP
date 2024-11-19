@@ -42,7 +42,7 @@ const ShiftModal = ({ isVisible, onCancel }) => {
                 message: "Error",
                 description:
                     response?.payload?.data?.message ||
-                    "Problem sending, Recheck and try again",
+                    "Problem Creating, Recheck and try again",
                 duration: 3,
             });
         }
@@ -52,6 +52,9 @@ const ShiftModal = ({ isVisible, onCancel }) => {
                 description: response?.message || "Shift created successfully",
                 duration: 3,
             });
+            
+            onCancel();
+            window.location.reload();
         }
     }
 
