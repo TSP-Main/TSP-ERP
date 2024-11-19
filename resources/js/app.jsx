@@ -7,23 +7,23 @@ import withAuth from "./middlewares/withAuth.js";
 import Login from "./auth/components/Login.jsx";
 import Register from "./Register/Register.jsx";
 import DefaultLayout from "./defaultLayout/DefaultLayout.jsx";
-import Attendance from './attendance/index.jsx'
+import Attendance from "./attendance/index.jsx";
 import ForgotPassword from "./forgetpassword/ForgotPassword.jsx";
 import OnBoard from "./company/OnBoard.jsx";
 import InActive from "./company/InActive.jsx";
 import Employee from "./employee/Employee.jsx";
 import PrivateRoute from "./PrivateRoute.jsx";
-import Shift from './shift/index.jsx'
+import Shift from "./shift/index.jsx";
 import "../css/app.css";
 import Dashboard from "./dashboard/Dashboard.jsx";
-import AssignShift from './assign_shift/index.jsx'
-import NewRegistration from './new_registration/index.jsx'
+import AssignShift from "./assign_shift/index.jsx";
+import NewRegistration from "./new_registration/index.jsx";
 // Main App Component
 function App() {
     const token =
         localStorage.getItem("access_token") ||
         sessionStorage.getItem("access_token");
-    console.log(token)
+    console.log(token);
     return (
         <Provider store={store}>
             <BrowserRouter>

@@ -9,11 +9,11 @@ import { FaRegBuilding } from "react-icons/fa";
 import { userData } from "../../dashboard/redux/reducer";
 
 // Helper function to create menu items
-function getItem(label, key, icon, children) {
+function getItem(label, key, icon, items) {
     return {
         key, // Key is the unique identifier for each menu item
         icon,
-        children,
+        items,
         label,
     };
 }

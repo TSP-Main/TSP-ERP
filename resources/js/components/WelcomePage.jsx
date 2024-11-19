@@ -17,6 +17,10 @@ const WelcomePage = ({
             <Link to={linkPath} style={{ textDecoration: "none" }}>
                 <Button
                     className={styles.customButton} // Use styles from CSS Module
+                    style={{
+                        backgroundColor: "transparent",
+                        border: "1px solid #fff",
+                    }}
                     size="large"
                     htmlType="button"
                     type="primary"

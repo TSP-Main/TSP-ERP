@@ -9,16 +9,20 @@ import { FaArrowRight } from "react-icons/fa";
 function RowHeaderTable() {
     const [shiftAssignments, setShiftAssignments] = useState([]);
     const [selectedShifts, setSelectedShifts] = useState({});
+    const [dataSource, setDataSource] = useState([]);
+    const [loading, setLoading] = useState(true); // Unified loading state
+
     const dispatch = useDispatch();
-    const { employeedata } = useSelector((state) => state.employee);
+    const { employeedata, loading: employeeLoading } = useSelector(
+        (state) => state.employee
+    );
     const { scheduledata, loading: scheduleLoading } = useSelector(
         (state) => state.schedule
     );
-    const [dataSource, setDataSource] = useState([]);
-    const [loading,setLoading] = useState(false)
+    // const [dataSource, setDataSource] = useState([]);
+    // const [loading,setLoading] = useState(false)
 
 
-    const todayIndex = new Date().getDay();
     const currentDate = new Date();
     const daysOfWeek = [
         "Sunday",
@@ -31,6 +35,20 @@ function RowHeaderTable() {
     ];
 
     // Helper function to filter only upcoming dates
+    const getDatesForWeek = () => {
+        const todayIndex = currentDate.getDay(); // Get today's index (0=Sunday, 1=Monday, ..., 6=Saturday)
+        const upcomingDays = daysOfWeek.slice(todayIndex).map((dayName, i) => {
+            const date = new Date(currentDate);
+            date.setDate(currentDate.getDate() + i);
+            return {
+                day: dayName,
+                date: date,
+                formattedDate: date.toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                }),
+            };
+        });
     const getDatesForWeek = () => {
         const todayIndex = currentDate.getDay(); // Get today's index (0=Sunday, 1=Monday, ..., 6=Saturday)
 
@@ -66,15 +84,38 @@ function RowHeaderTable() {
                         }),
                     };
                 });
+        // If today is not Sunday, include the start of the next week
+        if (todayIndex > 0) {
+            const nextWeekDays = daysOfWeek
+                .slice(0, todayIndex)
+                .map((dayName, i) => {
+                    const date = new Date(currentDate);
+                    date.setDate(
+                        currentDate.getDate() + upcomingDays.length + i
+                    );
+                    return {
+                        day: dayName,
+                        date: date,
+                        formattedDate: date.toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                        }),
+                    };
+                });
 
+            return [...upcomingDays, ...nextWeekDays];
+        }
             return [...upcomingDays, ...nextWeekDays];
         }
 
         // If today is Sunday, return only upcomingDays
         return upcomingDays;
     };
+        return upcomingDays;
+    };
 
     const reorderedDays = getDatesForWeek();
+    // const reorderedDays = getDatesForWeek();
 
     // Helper function to create the payload for assigning shifts
     // Helper function to create the payload for assigning shifts
@@ -230,7 +271,12 @@ const assignShiftForAllDays = (employeeId) => {
                     <div>
                         <FaArrowRight
                             type="link"
-                            onClick={() => assignShiftForAllDays(record.key)}
+                            onClick={() => {
+                                const shiftId = selectedShifts[record.key];
+                                if (shiftId) {
+                                    assignShiftForAllDays(record.key, shiftId);
+                                }
+                            }}
                         />
                     </div>
                 </span>
@@ -246,6 +292,7 @@ const assignShiftForAllDays = (employeeId) => {
             fixed: "top",
             dataIndex: `col${index + 1}`,
             key: `${day.day}-${index}`, // Unique key for each column
+            key: `${day.day}-${index}`,
             width: 200,
             render: (text, record) => (
                 <ShiftDropdown
@@ -257,6 +304,7 @@ const assignShiftForAllDays = (employeeId) => {
                             [record.key]: shiftId,
                         }));
                     }}
+                    
                     selectedShiftId={selectedShifts[record.key]}
                 />
             ),
@@ -277,11 +325,16 @@ const assignShiftForAllDays = (employeeId) => {
     console.log("employee data: ", employeedata);
     console.log("data source: ", dataSource);
     console.log("selected shifts: ", selectedShifts);
+    // Show loading spinner until all data is loaded
+    if (loading || scheduleLoading) {
+        return <Spin />;
+    }
 
     return (
         <>
             <Table
-                key={JSON.stringify(dataSource)} // This forces a rerender when dataSource changes
+                // key={JSON.stringify(dataSource)} // This forces a rerender when dataSource changes
+             key={JSON.stringify(dataSource)}
                 size="middle"
                 columns={columns}
                 dataSource={dataSource}
@@ -315,5 +368,6 @@ const assignShiftForAllDays = (employeeId) => {
         </>
     );
 }
+
 
 export default RowHeaderTable;
