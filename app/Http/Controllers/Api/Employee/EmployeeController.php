@@ -26,20 +26,23 @@ class EmployeeController extends BaseController
                 return $this->sendError('Unauthorized access', 403);
             }
             $companyCode = $request->company_code;
-            $employee = User::create([
+            $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => bcrypt(Str::random(8)), // Auto-generated 8-character password
+                'is_active' => StatusEnum::ACTIVE
             ]);
             Employee::create([
-                'user_id' => $employee->id,
+                'user_id' => $user->id,
                 'company_code' => $companyCode,
+                'is_active' => StatusEnum::ACTIVE
             ]);
-            $employee->assignRole($request->role);
+            $user->assignRole($request->role);
 
-            AddEmployeeInvitationJob::dispatch($companyCode, $employee);
+            AddEmployeeInvitationJob::dispatch($companyCode, $user);
+            $user->load('employee');
             DB::commit();
-            return $this->sendResponse(['employee', $employee], 'Employee successfully added, Mail has been dispatched');
+            return $this->sendResponse($user, 'Employee successfully added, Mail has been dispatched');
         } catch (Exception $e) {
             DB::rollBack();
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
