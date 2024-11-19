@@ -9,11 +9,11 @@ import { FaRegBuilding } from "react-icons/fa";
 import { userData } from "../../dashboard/redux/reducer";
 
 // Helper function to create menu items
-function getItem(label, key, icon, items) {
+function getItem(label, key, icon, children) {
     return {
         key, // Key is the unique identifier for each menu item
         icon,
-        items,
+        children,
         label,
     };
 }
@@ -26,9 +26,9 @@ const RoleBasedMenu = () => {
         dispatch(userData());
     }, [dispatch]);
 
-    console.log("user data", userdata);
+    // console.log("user data", userdata);
     const userRole = userdata?.data?.roles?.[0]?.name;
-    console.log("user role ", userRole);
+    // console.log("user role ", userRole);
 
     // Default menu items for all roles
     let items = [

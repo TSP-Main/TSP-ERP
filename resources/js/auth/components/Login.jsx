@@ -14,17 +14,17 @@ const Login = () => {
     const [rememberMe, setRememberMe] = useState(false);
 
     const handleLoginClick = async (values) => {
-        const response = await dispatch(login(values));
-        console.log("response", response);
+        try {
+            const response = await dispatch(login(values)).unwrap(); // Ensure response is unwrapped correctly
+            console.log("response", response);
 
-        if (error) {
-            notification.error({
-                message: "Error",
-                description: response.payload || error || "Login failed",
+            notification.success({
+                message: "Success",
+                description: "Logged in successfully!",
                 duration: 3,
             });
-        } else if (!error) {
-            const accessToken = response.payload?.data?.data?.access_token;
+
+            const accessToken = response?.data?.access_token;
 
             if (accessToken) {
                 if (rememberMe) {
@@ -35,6 +35,13 @@ const Login = () => {
             }
 
             navigate("/profile");
+        } catch (err) {
+            console.error("Login error:", err);
+            notification.error({
+                message: "Error",
+                description: err?.response?.data?.message || "Login failed",
+                duration: 3,
+            });
         }
     };
 
@@ -85,7 +92,10 @@ const Login = () => {
                             />
                             Remember Me
                         </label>
-                        <a className={styles.forgotPassword} href="/forget-password">
+                        <a
+                            className={styles.forgotPassword}
+                            href="/forget-password"
+                        >
                             Forgot Password
                         </a>
                     </div>
@@ -108,7 +118,7 @@ const Login = () => {
                     </div>
                 </Form>
             </div>
-            
+
             <WelcomePage
                 containerStyle={{
                     borderRadius: "0px 8px 8px 0px",

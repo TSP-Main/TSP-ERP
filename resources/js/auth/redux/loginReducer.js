@@ -33,11 +33,7 @@ export const login = createAsyncThunk(
             const response = await axios.post(apiRoutes.login, authdata);
             // console.log(response);
             if (response.status === 200) {
-                notification.success({
-                    message: "Success",
-                    description: response.data.message,
-                    duration: 3,
-                });
+               
                 localStorage.setItem(
                     "access_token",
                     response.data.data.access_token

@@ -39,8 +39,10 @@ const SideNav = () => {
             const response = await axios.post(apiRoutes.logout);
             localStorage.clear();
             sessionStorage.clear();
+            
             // window.location.href = "/";
             navigate('/login')
+            window.location.reload();
             setLoading(false);
         } catch (error) {
             setLoading(false);
@@ -211,14 +213,14 @@ const SideNav = () => {
                         >
                             Log out
                         </Button> */}
-                        <Dropdown overlay={profilemenu} trigger={["click"]} style={{ cursor: "pointer" }}>
+                        <Dropdown overlay={profilemenu} trigger={["click"]} style={{ cursor: "pointer",marginRight:'45px' }}>
                             <img
                                 src={placeholder}
                                 alt="User Avatar"
                                 style={{
                                     border: "1px solid #00000033",
-                                    width: "35px",
-                                    height: "35px",
+                                    width: "45px",
+                                    height: "45px",
                                     borderRadius: "50%",
                                     objectFit: "cover",
                                     cursor: "pointer",

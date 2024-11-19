@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import moment from "moment"; // Ensure you have moment.js installed
 import { useDispatch, useSelector } from "react-redux";
 import { assignedShechule, checkIn, checkOut } from "./redux/reducer";
+import Cookies from "js-cookie";
 
 const Index = () => {
     const dispatch = useDispatch();
@@ -11,6 +12,7 @@ const Index = () => {
     ); // Assuming your Redux state is correct
     const [data, setData] = useState([]);
     const [statusCheckIn, setStatusCheckIn] = useState(false);
+    console.log("sate",statusCheckIn)
     // Generate dates starting from yesterday towards the next 7 days
     const generateDates = () => {
         const dates = [];
@@ -38,58 +40,48 @@ const Index = () => {
         // Return the formatted time
         return `${hours}:${minutes}:${seconds}`;
     }
-    const handleCheckIn = async () => {
-        const id = localStorage.getItem("employee_id");
-        const time_in = getCurrentTime();
+   const handleCheckIn = async () => {
+       const id = localStorage.getItem("employee_id");
+       const time_in = getCurrentTime();
 
-        // Construct the payload object
-        const payload = {
-            id,
-            time_in,
-        };
+       const payload = { id, time_in };
 
-        console.log("Attempting to Check In", payload);
+       try {
+           await dispatch(checkIn(payload));
+           setStatusCheckIn(true);
 
-        try {
-            // Dispatch the action and wait for its completion if it's a thunk
-            await dispatch(checkIn(payload));
-
-            // Update state and localStorage upon success
-            setStatusCheckIn(true);
-            localStorage.setItem("statusCheckIn", "true");
-
-            console.log("Successfully Checked In:", payload);
-        } catch (error) {
-            console.error("Error during Check In:", error);
-        }
-    };
+           // Store status in cookies
+           Cookies.set("statusCheckIn", "true", { expires: 7 }); // cookie will persist for 7 days
+           console.log("Successfully Checked In:", payload);
+       } catch (error) {
+           console.error("Error during Check In:", error);
+       }
+   };
 
   const handleCheckOut = async () => {
       const id = localStorage.getItem("employee_id");
       const time_out = getCurrentTime();
 
-      // Construct the payload object
-      const payload = {
-          id,
-          time_out,
-      };
-
-      console.log("Attempting to Check Out", payload);
+      const payload = { id, time_out };
 
       try {
-          // Dispatch the action and wait for its completion if it's a thunk
           await dispatch(checkOut(payload));
-
-          // Update state and localStorage upon success
           setStatusCheckIn(false);
-          localStorage.removeItem("statusCheckIn");
 
+          // Store status in cookies
+          Cookies.set("statusCheckIn", "false", { expires: 7 });
           console.log("Successfully Checked Out:", payload);
       } catch (error) {
           console.error("Error during Check Out:", error);
       }
   };
 
+useEffect(() => {
+    const savedStatus = Cookies.get("statusCheckIn");
+    if (savedStatus !== undefined) {
+        setStatusCheckIn(savedStatus === "true");
+    }
+}, []);
 
     useEffect(() => {
         // Use async function within useEffect to handle async dispatch
@@ -203,7 +195,7 @@ const Index = () => {
                 if (record.schedules.length > 0 && isWithinSchedule) {
                     return (
                         <>
-                            {!statusCheckIn ? (
+                            {!statusCheckIn  ? (
                                 <Button
                                     style={{ marginRight: "10px" }}
                                     type="primary"
