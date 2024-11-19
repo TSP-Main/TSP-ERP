@@ -36,10 +36,11 @@ const Login = () => {
 
             navigate("/profile");
         } catch (err) {
+
             console.error("Login error:", err);
             notification.error({
                 message: "Error",
-                description: err?.response?.data?.message || "Login failed",
+                description: err || "Login failed",
                 duration: 3,
             });
         }
