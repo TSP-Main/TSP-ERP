@@ -1,6 +1,6 @@
 // SideNav.jsx
 import React, { useState,useEffect } from "react";
-import { Layout, Menu, Drawer, Button, Input, notification } from "antd";
+import { Layout, Menu, Drawer, Button, Dropdown, notification } from "antd";
 import { Link,useNavigate } from "react-router-dom";
 import {
     SearchOutlined,
@@ -51,6 +51,18 @@ const SideNav = () => {
             });
         }
     };
+    const profilemenu=(
+        <Menu>
+            <Menu.Item>
+                <Link to="/profile">Profile</Link>
+            </Menu.Item>
+            <Menu.Item>
+                <Link to="/logout" onClick={handleLogout}>
+                    Logout
+                </Link>
+            </Menu.Item>
+        </Menu>
+    )
 
     return (
         <Layout style={{ minHeight: "100vh", backgroundColor: "#F5F5F58A" }}>
@@ -193,24 +205,26 @@ const SideNav = () => {
                         >
                             <MenuOutlined />
                         </div> */}
-                        <Button
+                        {/* <Button
                             loading={loading}
                             onClick={() => handleLogout()}
                         >
                             Log out
-                        </Button>
-                        {/* <img
-                            src={placeholder}
-                            alt="User Avatar"
-                            style={{
-                                border: "1px solid #00000033",
-                                width: "35px",
-                                height: "35px",
-                                borderRadius: "50%",
-                                objectFit: "cover",
-                                cursor: "pointer",
-                            }}
-                        /> */}
+                        </Button> */}
+                        <Dropdown overlay={profilemenu} trigger={["click"]} style={{ cursor: "pointer" }}>
+                            <img
+                                src={placeholder}
+                                alt="User Avatar"
+                                style={{
+                                    border: "1px solid #00000033",
+                                    width: "35px",
+                                    height: "35px",
+                                    borderRadius: "50%",
+                                    objectFit: "cover",
+                                    cursor: "pointer",
+                                }}
+                            />
+                        </Dropdown>
                     </div>
                 </Header>
             </Layout>

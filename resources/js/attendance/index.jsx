@@ -38,47 +38,58 @@ const Index = () => {
         // Return the formatted time
         return `${hours}:${minutes}:${seconds}`;
     }
-    const handleCheckIn = () => {
+    const handleCheckIn = async () => {
         const id = localStorage.getItem("employee_id");
         const time_in = getCurrentTime();
 
-        // Construct the payload object with `id` and `time_in`
+        // Construct the payload object
         const payload = {
             id,
             time_in,
         };
 
-        console.log("Check In employee", id, payload);
+        console.log("Attempting to Check In", payload);
 
-        // Properly call `dispatch` with `checkIn` and the payload
         try {
-            const response = dispatch(checkIn(payload));
+            // Dispatch the action and wait for its completion if it's a thunk
+            await dispatch(checkIn(payload));
+
+            // Update state and localStorage upon success
             setStatusCheckIn(true);
-            localStorage.setItem("statusCheckIn", statusCheckIn);
-            // console.log("Successful check In employee");
+            localStorage.setItem("statusCheckIn", "true");
+
+            console.log("Successfully Checked In:", payload);
         } catch (error) {
-            console.log("Error in checkIn:", error);
+            console.error("Error during Check In:", error);
         }
     };
-    const handleCheckOut = () => {
-        const id = localStorage.getItem("employee_id");
-        const time_out = getCurrentTime();
 
-        // Construct the payload object with `id` and `time_in`
-        const payload = {
-            id,
-            time_out,
-        };
-        console.log("Check out employee", id, payload);
-        try{
-            dispatch(checkOut(payload));
-            setStatusCheckIn(false);
-           localStorage.removeItem("statusCheckIn");
-        }catch (error) {
+  const handleCheckOut = async () => {
+      const id = localStorage.getItem("employee_id");
+      const time_out = getCurrentTime();
 
-        }
-       
-    };
+      // Construct the payload object
+      const payload = {
+          id,
+          time_out,
+      };
+
+      console.log("Attempting to Check Out", payload);
+
+      try {
+          // Dispatch the action and wait for its completion if it's a thunk
+          await dispatch(checkOut(payload));
+
+          // Update state and localStorage upon success
+          setStatusCheckIn(false);
+          localStorage.removeItem("statusCheckIn");
+
+          console.log("Successfully Checked Out:", payload);
+      } catch (error) {
+          console.error("Error during Check Out:", error);
+      }
+  };
+
 
     useEffect(() => {
         // Use async function within useEffect to handle async dispatch
@@ -171,24 +182,46 @@ const Index = () => {
         {
             title: "Actions",
             key: "actions",
-            render: (text, record) => (
-                <>
-                    {record.schedules.length > 0 && (
+            render: (text, record) => {
+                // Get current date and time
+                const now = moment();
+
+                // Check if current time falls within any of the schedules
+                const isWithinSchedule = record.schedules.some((schedule) => {
+                    const scheduleStartTime = moment(
+                        `${record.date} ${schedule.start_time}`,
+                        "YYYY-MM-DD hh:mm A"
+                    );
+                    const scheduleEndTime = moment(
+                        `${record.date} ${schedule.end_time}`,
+                        "YYYY-MM-DD hh:mm A"
+                    );
+                    return now.isBetween(scheduleStartTime, scheduleEndTime);
+                });
+
+                // Render buttons only if within a valid schedule
+                if (record.schedules.length > 0 && isWithinSchedule) {
+                    return (
                         <>
-                            <Button
-                                style={{ marginRight: "10px" }}
-                                type="primary"
-                                onClick={handleCheckIn}
-                            >
-                                Check In
-                            </Button>
-                            <Button type="primary" onClick={handleCheckOut}>
-                                Check Out
-                            </Button>
+                            {!statusCheckIn ? (
+                                <Button
+                                    style={{ marginRight: "10px" }}
+                                    type="primary"
+                                    onClick={handleCheckIn}
+                                >
+                                    Check In
+                                </Button>
+                            ) : (
+                                <Button type="primary" onClick={handleCheckOut}>
+                                    Check Out
+                                </Button>
+                            )}
                         </>
-                    )}
-                </>
-            ),
+                    );
+                }
+
+                return null; // Don't show any buttons if not within schedule
+            },
         },
     ];
 
@@ -198,6 +231,13 @@ const Index = () => {
             dataSource={data}
             pagination={false} // Remove pagination to show all dates in one view
             loading={loading} // Show loading spinner while fetching data
+            style={{
+                minWidth: 800,
+                tableLayout: "fixed",
+                overflowX: "auto",
+                overflowY: "auto",
+            }}
+            scroll={{ x: "max-content", y: 500 }}
         />
     );
 };
