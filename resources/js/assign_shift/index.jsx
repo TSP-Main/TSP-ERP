@@ -326,15 +326,14 @@ const assignShiftForAllDays = (employeeId) => {
     console.log("data source: ", dataSource);
     console.log("selected shifts: ", selectedShifts);
     // Show loading spinner until all data is loaded
-    if (loading || scheduleLoading) {
+    if ( scheduleLoading) {
         return <Spin />;
     }
 
     return (
         <>
             <Table
-                // key={JSON.stringify(dataSource)} // This forces a rerender when dataSource changes
-             key={JSON.stringify(dataSource)}
+                key={JSON.stringify(dataSource)}
                 size="middle"
                 columns={columns}
                 dataSource={dataSource}
@@ -348,7 +347,11 @@ const assignShiftForAllDays = (employeeId) => {
                     overflowX: "auto",
                     overflowY: "auto",
                 }}
+                locale={{
+                    emptyText: "No employees or shifts available.",
+                }}
             />
+
             <div
                 style={{
                     display: "flex",

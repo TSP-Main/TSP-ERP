@@ -1,78 +1,19 @@
+// src/App.jsx
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import store from "./store/store.js";
-import withAuth from "./middlewares/withAuth.js";
-import Login from "./auth/components/Login.jsx";
-import Register from "./Register/Register.jsx";
-import DefaultLayout from "./defaultLayout/DefaultLayout.jsx";
-import Attendance from "./attendance/index.jsx";
-import ForgotPassword from "./forgetpassword/ForgotPassword.jsx";
-import OnBoard from "./company/OnBoard.jsx";
-import InActive from "./company/InActive.jsx";
-import Employee from "./employee/Employee.jsx";
-import PrivateRoute from "./PrivateRoute.jsx";
-import Shift from "./shift/index.jsx";
-import "../css/app.css";
-import Dashboard from "./dashboard/Dashboard.jsx";
-import AssignShift from "./assign_shift/index.jsx";
-import NewRegistration from "./new_registration/index.jsx";
+import RoutesComponent from "./Routes.jsx"; // Import RoutesComponent
+
+
+
 // Main App Component
 function App() {
-    const token =
-        localStorage.getItem("access_token") ||
-        sessionStorage.getItem("access_token");
-    console.log(token);
     return (
         <Provider store={store}>
             <BrowserRouter>
-                <Routes>
-                    {/* Redirect root URL to login or dashboard based on token */}
-                    <Route
-                        path="/"
-                        index
-                        element={token ? <Navigate to="/profile" /> : <Login />}
-                    />
-
-                    {/* Public Routes */}
-                    <Route
-                        path="/login"
-                        element={token ? <Navigate to="/profile" /> : <Login />}
-                    />
-                    <Route path="/register" element={<Register />} />
-                    <Route
-                        path="/forget-password"
-                        element={<ForgotPassword />}
-                    />
-
-                    {/* Protected Routes */}
-                    <Route
-                        path="/"
-                        element={<PrivateRoute element={<DefaultLayout />} />}
-                    >
-                        <Route path="onboard" element={<OnBoard />} />
-                        <Route path="inactive" element={<InActive />} />
-                        <Route path="employee" element={<Employee />} />
-                        <Route path="profile" element={<Dashboard />} />
-                        <Route path="shift" element={<Shift />} />
-                        <Route path="assign-shift" element={<AssignShift />} />
-                        <Route
-                            path="new-registration"
-                            element={<NewRegistration />}
-                        />
-                        <Route path="attendance" element={<Attendance />} />
-                        {/* Add more protected routes here */}
-                    </Route>
-
-                    {/* Redirect any unknown paths */}
-                    <Route
-                        path="*"
-                        element={
-                            <Navigate to={token ? "/" : "/login"} replace />
-                        }
-                    />
-                </Routes>
+                <RoutesComponent />
             </BrowserRouter>
         </Provider>
     );

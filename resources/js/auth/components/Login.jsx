@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button, Form, notification } from "antd";
 import CustomInput from "../../components/CustomInput";
 import WelcomePage from "../../components/WelcomePage";
@@ -6,18 +6,27 @@ import styles from "../styles/Login.module.css"; // Import CSS Module
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "../redux/loginReducer";
+import { userData } from "../../dashboard/redux/reducer";
+import { getDefaultPage } from "../../services/defaultPage";
 
 const Login = () => {
     const dispatch = useDispatch();
-    const { error, loading } = useSelector((state) => state.auth);
+    const { loading } = useSelector((state) => state.auth); // Assuming user is available here
+     const { userdata } = useSelector((state) => state.user);
     const navigate = useNavigate();
     const [rememberMe, setRememberMe] = useState(false);
+    //  const user = userdata?.data?.roles?.[0]?.name; 
+   
+    
+   
 
     const handleLoginClick = async (values) => {
         try {
             const response = await dispatch(login(values)).unwrap(); // Ensure response is unwrapped correctly
             console.log("response", response);
-
+            const user_data=await dispatch(userData());
+            
+        
             notification.success({
                 message: "Success",
                 description: "Logged in successfully!",
@@ -33,10 +42,13 @@ const Login = () => {
                     sessionStorage.setItem("access_token", accessToken);
                 }
             }
-
-            navigate("/profile");
+            console.log("users data",user_data.payload);
+          
+            // Get the default page based on the user's role
+            const defaultPage = getDefaultPage(user_data.payload); // Pass the user to get the default page
+             console.log("defaultPage", defaultPage)
+            navigate(defaultPage); // Navigate to the default page
         } catch (err) {
-
             console.error("Login error:", err);
             notification.error({
                 message: "Error",

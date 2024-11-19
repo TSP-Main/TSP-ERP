@@ -22,7 +22,7 @@ const ScheduleTable = () => {
 
     if (loading) return <h1>Loading...</h1>;
 
-    if (error || !dataSource || dataSource.length === 0)
+    if (error )
         return (
             <Alert
                 message="Error"
@@ -31,15 +31,22 @@ const ScheduleTable = () => {
                 showIcon
             />
         );
-
-    return (
-        <Table
-            columns={columns}
-            dataSource={dataSource}
-            pagination={false}
-            rowKey="id"
-        />
-    );
+    if (!dataSource || dataSource.length === 0){
+         <Alert
+             message="Success"
+             description={ "No schedule data available."}
+             type="success"
+             showIcon
+         />;
+    }
+        return (
+            <Table
+                columns={columns}
+                dataSource={dataSource}
+                pagination={false}
+                rowKey="id"
+            />
+        );
 };
 const columns = [
     {
