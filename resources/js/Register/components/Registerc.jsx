@@ -26,104 +26,119 @@ const Register = () => {
         setUserType(value);
     };
 
-   const onFinish = async (values) => {
-       if (role === "company" && stripe && elements) {
-           try {
-               // Step 1: Get the price based on package and plan
-               const response = await dispatch(
-                   getPrice({ package: values.package, plan: values.plan })
-               );
+  const onFinish = async (values) => {
+      if (role === "company" && stripe && elements) {
+          try {
+              // Step 1: Get price and client_secret
+            //   const response = await dispatch(
+            //       getPrice({ package: values.package, plan: values.plan })
+            //   );
 
-               const clientSecret = response.payload.data.client_secret;
-               console.log("Client Secret:", clientSecret);
+            //   if (!response.payload || !response.payload.data.client_secret) {
+            //       notification.error({
+            //           message: "Error",
+            //           description: "Failed to fetch payment details",
+            //           duration: 3,
+            //       });
+            //       return;
+            //   }
 
-               // Step 2: Confirm card payment to get payment method details
-               const result = await stripe.confirmCardPayment(clientSecret, {
-                   payment_method: {
-                       card: elements.getElement(CardElement),
-                       billing_details: {
-                           name: values.name, // Use the user's name here
-                           email: values.email,
+              const clientSecret =
+                  "pi_3QNBozRwCYjkbSmY0V5J2Jd8_secret_U0CXog0bnVJcsILta7y4C2LiA"
+              console.log("Client Secret:", clientSecret);
 
-                       },
-                   },
-               });
+              // Step 2: Confirm payment
+              const result = await stripe.confirmCardPayment(clientSecret, {
+                  payment_method: {
+                      card: elements.getElement(CardElement),
+                      billing_details: {
+                          name: values.name,
+                          email: values.email,
+                      },
+                  },
+              });
 
-               if (result.error) {
-                   notification.error({
-                       message: "Payment Error",
-                       description: result.error.message,
-                       duration: 3,
-                   });
-                   return;
-               }
+              if (result.error) {
+                  notification.error({
+                      message: "Payment Error",
+                      description: result.error.message,
+                      duration: 3,
+                  });
+                  return;
+              }
 
-               // Extract payment_method_id from the result
-               const paymentMethodId = result.paymentIntent.payment_method;
+              // Step 3: Use payment method ID for registration
+              const paymentMethodId = result.paymentIntent.payment_method;
 
-               // Proceed with registration using payment method ID
-               const registrationData = {
-                   role: values.role,
-                   name: values.name,
-                   email: values.email,
-                   password: values.password,
-                   password_confirmation: values.password_confirmation,
-                   company_name: values.company_name,
-                   package: values.package,
-                   plan: values.plan,
-                   payment_method_id: paymentMethodId,
-               };
+              const registrationData = {
+                  role: values.role,
+                  name: values.name,
+                  email: values.email,
+                  password: values.password,
+                  password_confirmation: values.password_confirmation,
+                  company_name: values.company_name,
+                  package: values.package,
+                  plan: values.plan,
+                  payment_method_id: paymentMethodId,
+              };
 
-            //    Send registration data to the backend
-               const registrationResponse = await dispatch(
-                   SignUp(registrationData)
-               );
+              const registrationResponse = await dispatch(
+                  SignUp(registrationData)
+              );
 
-               if (registrationResponse.error) {
-                   notification.error({
-                       message: "Registration Error",
-                       description:
-                           registrationResponse.payload ||
-                           "Registration failed",
-                       duration: 3,
-                   });
-                   return;
-               }
+              if (registrationResponse.error) {
+                  notification.error({
+                      message: "Registration Error",
+                      description:
+                          registrationResponse.payload ||
+                          "Registration failed due to server error",
+                      duration: 3,
+                  });
+                  return;
+              }
 
-               notification.success({
-                   message: "Registration Successful",
-                   description:
-                       "You have successfully registered. Please Wait for Approval to Complete",
-                   duration: 3,
-               });
-           } catch (error) {
-               notification.error({
-                   message: "Error",
-                   description:
-                       error.message || "Payment or registration failed",
-                   duration: 3,
-               });
-           }
-       } else {
-           // Normal registration for employees without payment
-           const response = await dispatch(SignUp(values));
-           if (response.error) {
-               notification.error({
-                   message: "Error",
-                   description: response.payload || "Registration failed",
-                   duration: 3,
-               });
-               return;
-           }
+              notification.success({
+                  message: "Registration Successful",
+                  description:
+                      "You have successfully registered. Please wait for approval.",
+                  duration: 3,
+              });
+          } catch (error) {
+              notification.error({
+                  message: "Error",
+                  description: error.message || "An unexpected error occurred.",
+                  duration: 3,
+              });
+          }
+      } else {
+          // Employee registration logic (without payment)
+          try {
+              const response = await dispatch(SignUp(values));
+              if (response.error) {
+                  notification.error({
+                      message: "Registration Error",
+                      description: response.payload || "Registration failed",
+                      duration: 3,
+                  });
+                  return;
+              }
 
-           notification.success({
-               message: "Registration Successful",
-               description:
-                   "You have successfully registered. Please Wait for Approval to Complete",
-               duration: 3,
-           });
-       }
-   };
+              notification.success({
+                  message: "Registration Successful",
+                  description:
+                      "You have successfully registered. Please wait for approval.",
+                  duration: 3,
+              });
+          } catch (error) {
+              notification.error({
+                  message: "Error",
+                  description: error.message || "An unexpected error occurred.",
+                  duration: 3,
+              });
+          }
+      }
+  };
+
 
 
     return (

@@ -6,16 +6,21 @@ import { CodeFilled } from "@ant-design/icons";
 const initialState = {
     error: false,
     loading: false,
-    employeedata:null
+    employeedata: null,
 };
 
 export const allEmployee = createAsyncThunk(
     "user/employee",
-    async (code,{rejectWithValue}) => {
+    async ({ code, role }, { rejectWithValue }) => {
         try {
-            console.log("inside inactive api");
-            const response = await axios.get(apiRoutes.employee.all(code));
-            console.log('employee',response.data.data.data);
+            console.log("Users", code, role);
+            console.log("Employeeseses",{role})
+            const response = await axios.get(apiRoutes.employee.all(code), {
+                params: {
+                    role: role,
+                },
+            });
+            console.log("employee", response.data.data.data);
             return response.data.data.data;
         } catch (error) {
             console.log("redux error: " + error);
@@ -26,22 +31,20 @@ export const allEmployee = createAsyncThunk(
     }
 );
 
-export const sendInvite=createAsyncThunk(
+export const sendInvite = createAsyncThunk(
     "user/invite",
-    async (data,{rejectWithValue}) => {
+    async (data, { rejectWithValue }) => {
         try {
             console.log("inside inactive api");
-            const response = await axios.post(apiRoutes.employee.invite,data);
+            const response = await axios.post(apiRoutes.employee.invite, data);
             console.log(response.data.data);
             return response.data.data;
         } catch (error) {
             console.log("redux error: " + error);
-            return rejectWithValue(
-                error.response|| "Failed to fetch data"
-            );
+            return rejectWithValue(error.response || "Failed to fetch data");
         }
     }
-)
+);
 // export const approveUserAction = createAsyncThunk(
 //     "user/approve",
 //     async (id, { rejectWithValue }) => {
@@ -74,8 +77,7 @@ const employeeSlice = createSlice({
             .addCase(allEmployee.rejected, (state, action) => {
                 state.loading = false;
                 state.error = true;
-            })
-
+            });
     },
 });
 

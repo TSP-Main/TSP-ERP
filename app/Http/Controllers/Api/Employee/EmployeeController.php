@@ -25,11 +25,12 @@ class EmployeeController extends BaseController
             if (auth()->user()->cannot('create-employee')) {
                 return $this->sendError('Unauthorized access', 403);
             }
+            $plainPassword = Str::random(8);
             $companyCode = $request->company_code;
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
-                'password' => bcrypt(Str::random(8)), // Auto-generated 8-character password
+                'password' => bcrypt($plainPassword), // Auto-generated 8-character password
                 'is_active' => StatusEnum::ACTIVE
             ]);
             Employee::create([
@@ -39,7 +40,7 @@ class EmployeeController extends BaseController
             ]);
             $user->assignRole($request->role);
 
-            AddEmployeeInvitationJob::dispatch($companyCode, $user);
+            AddEmployeeInvitationJob::dispatch($companyCode, $user, $plainPassword);
             $user->load('employee');
             DB::commit();
             return $this->sendResponse($user, 'Employee successfully added, Mail has been dispatched');

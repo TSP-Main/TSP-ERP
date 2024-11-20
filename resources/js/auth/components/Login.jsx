@@ -11,53 +11,50 @@ import { getDefaultPage } from "../../services/defaultPage";
 
 const Login = () => {
     const dispatch = useDispatch();
-    const { loading } = useSelector((state) => state.auth); // Assuming user is available here
-     const { userdata } = useSelector((state) => state.user);
+    const { error, loading } = useSelector((state) => state.auth); // Assuming user is available here
+    const { userdata } = useSelector((state) => state.user);
     const navigate = useNavigate();
     const [rememberMe, setRememberMe] = useState(false);
-    //  const user = userdata?.data?.roles?.[0]?.name; 
-   
-    
-   
+    //  const user = userdata?.data?.roles?.[0]?.name;
 
-    const handleLoginClick = async (values) => {
-        try {
-            
-            const response = await dispatch(login(values)); // Ensure response is unwrapped correctly
-            // console.log("response", response);
-            const user_data=await dispatch(userData());
-            
-        
-            notification.success({
-                message: "Success",
-                description: "Logged in successfully!",
-                duration: 3,
-            });
+ const handleLoginClick = async (values) => {
+     try {
+         // Unwrap the response to check for errors explicitly
+         const response = await dispatch(login(values)).unwrap();
 
-            const accessToken = response?.data?.access_token;
+         const user_data = await dispatch(userData()).unwrap();
 
-            if (accessToken) {
-                if (rememberMe) {
-                    localStorage.setItem("access_token", accessToken);
-                } else {
-                    sessionStorage.setItem("access_token", accessToken);
-                }
-            }
-            console.log("users data",user_data.payload);
-          
-            // Get the default page based on the user's role
-            const defaultPage = getDefaultPage(user_data.payload); // Pass the user to get the default page
-             console.log("defaultPage", defaultPage)
-            navigate(defaultPage); // Navigate to the default page
-        } catch (err) {
-            console.error("Login error:", err);
-            notification.error({
-                message: "Error",
-                description: err || "Login failed",
-                duration: 3,
-            });
-        }
-    };
+         const accessToken = response?.access_token;
+
+         if (accessToken) {
+             if (rememberMe) {
+                 localStorage.setItem("access_token", accessToken);
+             } else {
+                 sessionStorage.setItem("access_token", accessToken);
+             }
+         }
+
+         console.log("user data", user_data);
+         notification.success({
+             message: "Success",
+             description: "Logged in successfully!",
+             duration: 3,
+         });
+
+         // Get the default page based on the user's role
+         const defaultPage = getDefaultPage(user_data); // Pass the user data to get the default page
+         console.log("defaultPage", defaultPage);
+         navigate(defaultPage); // Navigate to the default page
+     } catch (err) {
+         console.error("Login error:", err);
+         notification.error({
+             message: "Error",
+             description: err || "Login failed",
+             duration: 3,
+         });
+     }
+ };
+
 
     return (
         <div className={styles.loginContainer}>
