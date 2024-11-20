@@ -46,64 +46,64 @@ class StripePaymentController extends BaseController
 
 
     public function createSubscriptionPaymentIntent(GetStripePriceIdRequest $request)
-{
-    try {
-        // Retrieve package and plan from request
-        $package = $request->package;
-        $plan = $request->plan;
+    {
+        try {
+            // Retrieve package and plan from request
+            $package = $request->package;
+            $plan = $request->plan;
 
-        // Get Stripe price ID using helper function
-        $priceId = getStripePriceId($package, $plan);
+            // Get Stripe price ID using helper function
+            $priceId = getStripePriceId($package, $plan);
 
-        // Check if the price ID exists
-        if (!$priceId) {
-            return $this->sendResponse('Invalid package or plan', 400);
-        }
+            // Check if the price ID exists
+            if (!$priceId) {
+                return $this->sendResponse('Invalid package or plan', 400);
+            }
 
-        // Set Stripe secret key
-        Stripe::setApiKey(env('STRIPE_SECRET'));
+            // Set Stripe secret key
+            Stripe::setApiKey(env('STRIPE_SECRET'));
 
-        // Retrieve price details from Stripe using the price_id
-        $price = Price::retrieve($priceId);
+            // Retrieve price details from Stripe using the price_id
+            $price = Price::retrieve($priceId);
 
-        // Validate the response to ensure price exists
-        if (!$price || !isset($price->unit_amount) || !isset($price->currency)) {
-            return $this->sendResponse('Invalid price ID or price not found.', 400);
-        }
+            // Validate the response to ensure price exists
+            if (!$price || !isset($price->unit_amount) || !isset($price->currency)) {
+                return $this->sendResponse('Invalid price ID or price not found.', 400);
+            }
 
-        // Retrieve or create the Stripe customer
-        $user = auth()->user(); // Assuming the user is authenticated
-        if (!$user) {
-            return $this->sendResponse('User not authenticated', 401);
-        }
+            // Retrieve or create the Stripe customer
+            // $user = auth()->user(); // Assuming the user is authenticated
+            // if (!$user) {
+            //     return $this->sendResponse('User not authenticated', 401);
+            // }
 
-        $stripeCustomer = $user->createOrGetStripeCustomer();
-        if (!$stripeCustomer) {
-            $stripeCustomer = \Stripe\Customer::create([
-                'email' => $user->email,
-                'name' => $user->name,
+            // $stripeCustomer = $user->createOrGetStripeCustomer();
+            // if (!$stripeCustomer) {
+                $stripeCustomer = \Stripe\Customer::create([
+                    'email' => $request->email,
+                    'name' => $request->name,
+                ]);
+                $stripe_id = $stripeCustomer->id;
+                // $user->stripe_id = 
+                // $user->save();
+            // }
+
+            // Create a PaymentIntent with the price's amount, currency, and customer
+            $paymentIntent = PaymentIntent::create([
+                'amount' => $price->unit_amount, // Amount in cents
+                'currency' => $price->currency,
+                'payment_method_types' => ['card'],
+                'customer' => $stripe_id, // Associate with Stripe customer
             ]);
-            $user->stripe_id = $stripeCustomer->id;
-            $user->save();
+
+            return $this->sendResponse([
+                'priceId' => $priceId,
+                'client_secret' => $paymentIntent->client_secret,
+            ], 'Payment intent created successfully', 200);
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
-
-        // Create a PaymentIntent with the price's amount, currency, and customer
-        $paymentIntent = PaymentIntent::create([
-            'amount' => $price->unit_amount, // Amount in cents
-            'currency' => $price->currency,
-            'payment_method_types' => ['card'],
-            'customer' => $user->stripe_id, // Associate with Stripe customer
-        ]);
-
-        return $this->sendResponse([
-            'priceId' => $priceId,
-            'client_secret' => $paymentIntent->client_secret,
-        ], 'Payment intent created successfully', 200);
-
-    } catch (Exception $e) {
-        return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
     }
-}
 
     public function approveUser(User $user)
     {

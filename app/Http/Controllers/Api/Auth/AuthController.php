@@ -65,7 +65,7 @@ class AuthController extends BaseController
                 Stripe::setApiKey(env('STRIPE_SECRET'));
 
                 // Save payment method ID to the user for future subscription use
-                $user->createOrGetStripeCustomer();
+                // $user->createOrGetStripeCustomer();
                 // dd($user->stripe_id, $user->payment_method_id, $user->paymentMethod);
 
                 // Ensure the user has a Stripe customer
@@ -80,7 +80,8 @@ class AuthController extends BaseController
                 // Attach the payment method to the Stripe customer
                 try {
                     $paymentMethod = \Stripe\PaymentMethod::retrieve($request->payment_method_id);
-                    $paymentMethod->attach(['customer' => $user->stripe_id]);
+                    // dd($user->stripe_id, $paymentMethod);
+                    // $aa = $paymentMethod->attach(['customer' => $user->stripe_id]);
                 } catch (Exception $e) {
                     return $this->sendError('Invalid or already used payment method ID.', 400);
                 }
