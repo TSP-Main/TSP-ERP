@@ -13,7 +13,7 @@ const ShiftDropdown = ({ scheduledata, onShiftSelect, selectedShiftId }) => {
                 placeholder="Select shift"
                 style={{ width: "100%" }}
                 value={selectedShiftId}
-                onChange={onShiftSelect}
+                onChange={(value) => onShiftSelect(value)}
             >
                 {scheduledata.map((data) => (
                     <Select.Option key={data.id} value={data.id}>
@@ -24,6 +24,5 @@ const ShiftDropdown = ({ scheduledata, onShiftSelect, selectedShiftId }) => {
         </div>
     );
 };
-
 
 export default ShiftDropdown;

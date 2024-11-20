@@ -22,8 +22,9 @@ const Login = () => {
 
     const handleLoginClick = async (values) => {
         try {
-            const response = await dispatch(login(values)).unwrap(); // Ensure response is unwrapped correctly
-            console.log("response", response);
+            
+            const response = await dispatch(login(values)); // Ensure response is unwrapped correctly
+            // console.log("response", response);
             const user_data=await dispatch(userData());
             
         

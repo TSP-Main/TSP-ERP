@@ -18,13 +18,15 @@ import "../styles/SideNav.css";
 import apiRoutes from "../../routes/apiRoutes";
 import axios from "../../services/axiosService";
 import { useLocation } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { logout } from "../../auth/redux/loginReducer";
 const { Header, Sider } = Layout;
 
 
 const SideNav = () => {
     const navigate = useNavigate();
     const location = useLocation(); 
-    
+    const dispatch=useDispatch()
     const [collapsed, setCollapsed] = useState(false);
     const [drawerVisible, setDrawerVisible] = useState(false);
     const isSmallScreen = useResponsive();
@@ -32,20 +34,13 @@ const SideNav = () => {
     const handleDrawerOpen = () => setDrawerVisible(true);
     const handleDrawerClose = () => setDrawerVisible(false);
      const currentPath = location.pathname;
-   useEffect(() => {
-       console.log("Current Path: ", currentPath); // Debugging line
-   }, [currentPath]);
     const handleLogout = async () => {
         try {
             setLoading(true)
-            const response = await axios.post(apiRoutes.logout);
-            localStorage.clear();
-            sessionStorage.clear();
-            
-            // window.location.href = "/";
+            dispatch(logout())
             navigate('/login')
-            window.location.reload();
-            setLoading(false);
+            // window.location.reload();
+            
         } catch (error) {
             setLoading(false);
             notification.error({
@@ -57,13 +52,13 @@ const SideNav = () => {
     };
     const profilemenu = (
         <Menu>
-            <Menu.Item>
+            <Menu.Item key="/profile">
                 <Link to="/profile">
                     <FaUser style={{ marginRight: "5px" }} />
                     Profile
                 </Link>
             </Menu.Item>
-            <Menu.Item>
+            <Menu.Item key='/logout'>
                 <Link to="/logout" onClick={handleLogout}>
                     <IoLogOut style={{ marginRight: "5px" }} />
                     Logout
@@ -78,6 +73,14 @@ const SideNav = () => {
                 <Sider
                     style={{
                         backgroundColor: "#F5F5F58A",
+                        // overflow: "auto",
+                        // height: "100vh",
+                        // position: "fixed",
+                        // insetInlineStart: 0,
+                        // top: 0,
+                        // bottom: 0,
+                        // scrollbarWidth: "thin",
+                        // scrollbarGutter: "stable",
                         // borderRight: "1px solid #00000033",
                     }}
                     trigger={null}
@@ -101,6 +104,7 @@ const SideNav = () => {
                         style={{
                             backgroundColor: "#F5F5F58A",
                             color: "black",
+                            // position: "fixed",
                         }}
                         theme="light"
                         mode="inline"
@@ -136,6 +140,7 @@ const SideNav = () => {
                             backgroundColor: "#F5F5F58A",
                             color: "black",
                             width: "100%",
+                            position: "fixed",
                         }}
                         theme="light"
                         mode="inline"
