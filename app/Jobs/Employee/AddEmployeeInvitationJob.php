@@ -18,11 +18,12 @@ class AddEmployeeInvitationJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    private $companyCode, $employee;
-    public function __construct($companyCode, $employee)
+    private $companyCode, $employee, $plainPassword;
+    public function __construct($companyCode, $employee, $plainPassword)
     {
         $this->companyCode = $companyCode;
         $this->employee = $employee;
+        $this->plainPassword = $plainPassword;
     }
 
     /**
@@ -34,6 +35,7 @@ class AddEmployeeInvitationJob implements ShouldQueue
             $data = [
                 'companyCode' => $this->companyCode,
                 'employee' => $this->employee,
+                'plainPassword' => $this->plainPassword,
             ];
 
             Mail::send('emails.employee.AddEmployeeEmail', $data, function ($m) {

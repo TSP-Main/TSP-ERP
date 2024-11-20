@@ -59,13 +59,10 @@
         <p><strong>Your Details:</strong></p>
         <p>Name: <strong>{{ $employee->name }}</strong></p>
         <p>Email: <strong>{{ $employee->email }}</strong></p>
+        <p>password: <strong>{{ $plainPassword }}</strong></p>
         <p>Company Code: <strong>{{ $companyCode }}</strong></p>
 
         <p>Please click the button below to set your password:</p>
-
-        <div class="btn-container">
-            <a href="{{ url('/create-password/{{ $employee->id }}') }}" class="login-btn">Set Your Password</a>
-        </div>
 
         <div class="footer">
             <p>If you have any questions, feel free to contact us!</p>

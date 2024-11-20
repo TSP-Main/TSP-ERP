@@ -70,6 +70,15 @@ class AuthController extends BaseController
                 $user->createOrGetStripeCustomer();
                 // dd($user->stripe_id, $user->payment_method_id, $user->paymentMethod);
 
+                // Ensure the user has a Stripe customer
+                if (!$user->stripe_id) {
+                    $stripeCustomer = \Stripe\Customer::create([
+                        'email' => $user->email,
+                        'name' => $user->name,
+                    ]);
+                    $user->stripe_id = $stripeCustomer->id;
+                    $user->save();
+                }
                 // Attach the payment method to the Stripe customer
                 $paymentMethod = \Stripe\PaymentMethod::retrieve($request->payment_method_id);
                 $paymentMethod->attach(['customer' => $user->stripe_id]);
