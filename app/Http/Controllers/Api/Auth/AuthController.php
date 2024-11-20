@@ -26,8 +26,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Facades\Request;
 use Stripe\Stripe;
 use Stripe\SetupIntent;
 use Illuminate\Support\Str;
@@ -71,17 +69,21 @@ class AuthController extends BaseController
                 // dd($user->stripe_id, $user->payment_method_id, $user->paymentMethod);
 
                 // Ensure the user has a Stripe customer
-                if (!$user->stripe_id) {
-                    $stripeCustomer = \Stripe\Customer::create([
-                        'email' => $user->email,
-                        'name' => $user->name,
-                    ]);
-                    $user->stripe_id = $stripeCustomer->id;
-                    $user->save();
-                }
+                // if (!$user->stripe_id) {
+                //     $stripeCustomer = \Stripe\Customer::create([
+                //         'email' => $user->email,
+                //         'name' => $user->name,
+                //     ]);
+                //     $user->stripe_id = $stripeCustomer->id;
+                //     $user->save();
+                // }
                 // Attach the payment method to the Stripe customer
-                $paymentMethod = \Stripe\PaymentMethod::retrieve($request->payment_method_id);
-                $paymentMethod->attach(['customer' => $user->stripe_id]);
+                try {
+                    $paymentMethod = \Stripe\PaymentMethod::retrieve($request->payment_method_id);
+                    $paymentMethod->attach(['customer' => $user->stripe_id]);
+                } catch (Exception $e) {
+                    return $this->sendError('Invalid or already used payment method ID.', 400);
+                }
 
                 $user->updateDefaultPaymentMethod($request->payment_method_id);
 
@@ -300,20 +302,6 @@ class AuthController extends BaseController
             return $this->sendError('Something went wrong', 406, 406);
         }
     }
-
-    // public function resetPassword(ResetPasswordRequest $request)
-    // {
-    //     $reset_password_status = Password::reset($request->all(), function ($user, $password) {
-    //         $user->password = Hash::make($password);
-    //         $user->save();
-    //     });
-
-    //     if ($reset_password_status == Password::INVALID_TOKEN) {
-    //         return $this->sendError(['token' => ['Invalid token.']], 400);
-    //     }
-
-    //     return $this->sendResponse([], 'Password has been reset successfully.');
-    // }
 
     public function verifyOtp(VerifyOtpRequest $request)
     {
