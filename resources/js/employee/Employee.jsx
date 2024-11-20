@@ -8,9 +8,10 @@ import { useSelector } from "react-redux";
 import Employe from "./services/employee";
 const Employee = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const dispatch=useDispatch();
-   const {error,loading,employeedata} =useSelector((state)=>state.employee)
-      console.log("Employeev vffvfv", employeedata);
+    const dispatch = useDispatch();
+    const [Loading, setLoading] = useState(false);
+    //    const {error,loading,employeedata} =useSelector((state)=>state.employee)
+
     // Show Modal
     const showModal = () => {
         setIsModalVisible(true);
@@ -22,10 +23,17 @@ const Employee = () => {
     };
     // Handle Form Submission
     const handleSendInvite = async (values) => {
-        const response= await dispatch(sendInvite(values));
-        // console.log('bedbed',response)
-        // console.log('errnnf',response.payload)
-        if(response.error){
+        setLoading(true);
+        try {
+            const response = await dispatch(sendInvite(values));
+            notification.success({
+                message: "Success",
+                description:
+                    response?.payload?.data?.message ||
+                    "Invite sent successfully",
+                duration: 3,
+            });
+        } catch (error) {
             notification.error({
                 message: "Error",
                 description:
@@ -34,24 +42,8 @@ const Employee = () => {
                 duration: 3,
             });
         }
-        else{
-            notification.success({
-                message: "Success",
-                description:
-                    response?.payload?.data?.message ||
-                    "Invite sent successfully",
-                duration: 3,
-            });
-        }
-        hideModal(); // Close modal after submission
+        hideModal();
     };
-
-
- useEffect(() => {
-     const code = localStorage.getItem("company_code");
-  
-     dispatch(allEmployee(code));
- }, [dispatch]);
 
     return (
         <>
@@ -61,11 +53,11 @@ const Employee = () => {
                 onClick={showModal}
                 style={{ backgroundColor: "Black", color: "white" }}
             />
-            <Employe/>
+            <Employe />
             <SendInviteModal
                 isVisible={isModalVisible}
                 onSend={handleSendInvite}
-                loading={loading}
+                loading={Loading}
                 onCancel={hideModal}
             />
         </>

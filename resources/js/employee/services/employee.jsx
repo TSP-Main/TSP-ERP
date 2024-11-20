@@ -18,7 +18,7 @@ function Employee() {
          const code = localStorage.getItem("company_code");
          const response=dispatch(allEmployee(code)); // Assuming allEmployee fetches employee data
 
-    }, []);
+    }, [dispatch]);
 
     // Show loading state
     if (loading) return <Spin size="large" tip="Loading..." />;
