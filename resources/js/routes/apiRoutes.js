@@ -19,6 +19,7 @@ const apiRoutes = {
     schedule: {
         create: "/schedule/create-schedule",
         show: (id) => `/schedule/${id}`,
+        assignSchedule: `/schedule/assign-schedule`
     },
     forgotpassword: {
         email: "/forgot-password",

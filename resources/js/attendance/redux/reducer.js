@@ -34,6 +34,28 @@ export const assignedShechule = createAsyncThunk(
         }
     }
 );
+
+export const assignSchedule = createAsyncThunk('employee/assignSchedule', async (schedulePayload, { rejectWithValue }) => {
+
+
+    try {
+        
+        const response = await axios.post(apiRoutes.schedule.assignSchedule, schedulePayload)
+
+        console.log('===============Assign schedule response=====================');
+        console.log(response);
+        console.log('====================================');
+
+    } catch (error) {
+        return rejectWithValue(
+            error.response?.data?.message || "Failed to assign schedule"
+        );
+    }
+
+
+})
+
+
 export const checkIn = createAsyncThunk(
     "employee/checkIn",
     async ({ id, time_in }, { rejectWithValue }) => {
