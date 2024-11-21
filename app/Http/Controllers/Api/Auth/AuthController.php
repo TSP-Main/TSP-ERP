@@ -26,8 +26,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Facades\Request;
 use Stripe\Stripe;
 use Stripe\SetupIntent;
 use Illuminate\Support\Str;
@@ -64,27 +62,34 @@ class AuthController extends BaseController
                     'logo' => $logoPath
                 ]);
 
-                Stripe::setApiKey(env('STRIPE_SECRET'));
+                try {
+                    Stripe::setApiKey(env('STRIPE_SECRET'));
 
-                // Save payment method ID to the user for future subscription use
-                $user->createOrGetStripeCustomer();
-                // dd($user->stripe_id, $user->payment_method_id, $user->paymentMethod);
+                    // Attach the payment method to the customer
+                    $paymentMethod = \Stripe\PaymentMethod::retrieve($request->payment_method_id);
+                    $paymentMethod->attach(['customer' => $user->stripe_id]);
 
-                // Attach the payment method to the Stripe customer
-                $paymentMethod = \Stripe\PaymentMethod::retrieve($request->payment_method_id);
-                $paymentMethod->attach(['customer' => $user->stripe_id]);
+                    // Update the default payment method
+                    $user->updateDefaultPaymentMethod($request->payment_method_id);
 
-                $user->updateDefaultPaymentMethod($request->payment_method_id);
+                    // Store package and plan details for reference
+                    $company->update([
+                        'package' => $request->package,
+                        'plan' => $request->plan,
+                    ]);
 
-                // Store package and plan details for reference after admin approval
-                $company->update([
-                    'package' => $request->package,
-                    'plan' => $request->plan,
-                ]);
-                DB::commit();
-                // Reload user with related company and card details
-                $user->refresh()->load('company');
-                return $this->sendResponse($user, 'User register successfully');
+                    DB::commit();
+
+                    // Reload user with related company and card details
+                    $user->refresh()->load('company');
+                    return $this->sendResponse($user, 'User registered successfully');
+                } catch (\Stripe\Exception\InvalidRequestException $e) {
+                    DB::rollBack();
+                    return $this->sendError('Invalid or already used payment method ID.', 400);
+                } catch (Exception $e) {
+                    DB::rollBack();
+                    return $this->sendError('An error occurred during registration.', 500);
+                }
             } elseif ($request->role === StatusEnum::EMPLOYEE) {
                 $company = CompanyModel::where('code', $request->company_code)->firstOrFail();
                 // Register employee user
@@ -291,20 +296,6 @@ class AuthController extends BaseController
             return $this->sendError('Something went wrong', 406, 406);
         }
     }
-
-    // public function resetPassword(ResetPasswordRequest $request)
-    // {
-    //     $reset_password_status = Password::reset($request->all(), function ($user, $password) {
-    //         $user->password = Hash::make($password);
-    //         $user->save();
-    //     });
-
-    //     if ($reset_password_status == Password::INVALID_TOKEN) {
-    //         return $this->sendError(['token' => ['Invalid token.']], 400);
-    //     }
-
-    //     return $this->sendResponse([], 'Password has been reset successfully.');
-    // }
 
     public function verifyOtp(VerifyOtpRequest $request)
     {

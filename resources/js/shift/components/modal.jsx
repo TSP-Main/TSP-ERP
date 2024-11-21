@@ -108,7 +108,7 @@ const ShiftModal = ({ isVisible, onCancel }) => {
                         ]}
                     >
                         <TimePicker
-                            format="HH:mm:ss"
+                            format="HH:mm"
                             placeholder="Select Start Time"
                         />
                     </Form.Item>
@@ -125,7 +125,7 @@ const ShiftModal = ({ isVisible, onCancel }) => {
                         ]}
                     >
                         <TimePicker
-                            format="HH:mm:ss"
+                            format="HH:mm"
                             placeholder="Select End Time"
                         />
                     </Form.Item>

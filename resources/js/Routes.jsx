@@ -1,61 +1,67 @@
-// src/Routes.jsx
-import React from "react";
+import React, { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import Login from "./auth/components/Login.jsx";
 import Register from "./Register/Register.jsx";
 import ForgotPassword from "./forgetpassword/ForgotPassword.jsx";
-import DefaultLayout from "./defaultLayout/DefaultLayout.jsx";
-import OnBoard from "./company/OnBoard.jsx";
-import InActive from "./company/InActive.jsx";
-import Employee from "./employee/Employee.jsx";
-import Shift from "./shift/index.jsx";
-import AssignShift from "./assign_shift/index.jsx";
-import NewRegistration from "./new_registration/index.jsx";
-import Attendance from "./attendance/index.jsx";
 import PrivateRoute from "./PrivateRoute.jsx";
-import { getDefaultPage } from "./services/defaultPage.js";
-import Dashboard from "./dashboard/Dashboard.jsx";
+import AdminRoutes from "./routes/AdminRoutes.jsx";
+import CompanyRoutes from "./routes/CompanyRoutes.jsx";
+import EmployeeRoutes from "./routes/EmployeeRoutes.jsx";
+import { userData } from "./dashboard/redux/reducer.js";
+import DefaultLayout from "./defaultLayout/DefaultLayout.jsx";
+import Dashboard from "./Profile/Profile.jsx";
+
 const RoutesComponent = () => {
-    const { userdata } = useSelector((state) => state.user); // Using useSelector to get userdata
+    const { userdata } = useSelector((state) => state.user);
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        dispatch(userData());
+    }, [dispatch]);
+
+    const userRole = userdata?.data?.roles?.[0]?.name;
     const token =
         localStorage.getItem("access_token") ||
         sessionStorage.getItem("access_token");
 
-    // Determine the default page based on role
-    const defaultPage = getDefaultPage(userdata);
-
     return (
         <Routes>
+            {/* Public Routes */}
             <Route
                 path="/"
                 index
-                element={token ? <Navigate to={defaultPage} /> : <Login />}
+                element={token ? <Navigate to="/dashboard" /> : <Login />}
             />
             <Route
                 path="/login"
-                element={token ? <Navigate to={defaultPage} /> : <Login />}
+                element={token ? <Navigate to="/dashboard" /> : <Login />}
             />
             <Route path="/register" element={<Register />} />
             <Route path="/forget-password" element={<ForgotPassword />} />
-          
-            <Route
+              <Route
                 path="/"
                 element={<PrivateRoute element={<DefaultLayout />} />}
             >
-                <Route path="profile" element={<Dashboard />} />
-                <Route path="onboard" element={<OnBoard />} />
-                <Route path="inactive" element={<InActive />} />
-                <Route path="employee" element={<Employee />} />
-                <Route path="shift" element={<Shift />} />
-                <Route path="assign-shift" element={<AssignShift />} />
-                <Route path="new-registration" element={<NewRegistration />} />
-                <Route path="attendance" element={<Attendance />} />
+                <Route path="dashboard" element={<Dashboard />} />
             </Route>
+
+            {/* Role-Based Private Routes */}
+            {userRole === "super_admin" && (
+                <Route path="/*" element={<AdminRoutes />} />
+            )}
+            {userRole === "company" && (
+                <Route path="/*" element={<CompanyRoutes />} />
+            )}
+            {userRole === "employee" && (
+                <Route path="/*" element={<EmployeeRoutes />} />
+            )}
+
+            {/* Fallback Route */}
             <Route
                 path="*"
                 element={
-                    <Navigate to={token ? defaultPage : "/login"} replace />
+                    <Navigate to={token ? "/dashboard" : "/login"} replace />
                 }
             />
         </Routes>

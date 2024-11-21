@@ -1,95 +1,85 @@
 import { Table, Button } from "antd";
 import React, { useState, useEffect } from "react";
-import moment from "moment"; // Ensure you have moment.js installed
+import moment from "moment";
 import { useDispatch, useSelector } from "react-redux";
 import { assignedShechule, checkIn, checkOut } from "./redux/reducer";
 import Cookies from "js-cookie";
 
 const Index = () => {
     const dispatch = useDispatch();
-    const { dataa, loading, error } = useSelector(
-        (state) => state.assignedShechule
-    ); // Assuming your Redux state is correct
+    const { dataa, loading } = useSelector((state) => state.assignedShechule);
     const [data, setData] = useState([]);
     const [statusCheckIn, setStatusCheckIn] = useState(false);
-    console.log("sate",statusCheckIn)
+
     // Generate dates starting from yesterday towards the next 7 days
     const generateDates = () => {
         const dates = [];
-        const yesterday = moment().subtract(1, "days"); // Start from yesterday
+        const yesterday = moment().subtract(1, "days");
 
         for (let i = 0; i < 7; i++) {
-            const date = moment(yesterday).add(i, "days"); // Increment days from yesterday
+            const date = moment(yesterday).add(i, "days");
             dates.push({
                 key: i.toString(),
-                date: date.format("YYYY-MM-DD"), // Use YYYY-MM-DD format for easier comparison
-                displayDate: date.format("dddd, MMM DD"), // Format for display
-                schedules: [], // Initially set as empty array to hold schedules
+                date: date.format("YYYY-MM-DD"),
+                displayDate: date.format("dddd, MMM DD"),
+                schedules: [],
             });
         }
         return dates;
     };
+
     function getCurrentTime() {
         const now = new Date();
-
-        // Pad hours, minutes, and seconds to always have two digits
         const hours = String(now.getHours()).padStart(2, "0");
         const minutes = String(now.getMinutes()).padStart(2, "0");
         const seconds = String(now.getSeconds()).padStart(2, "0");
-
-        // Return the formatted time
         return `${hours}:${minutes}:${seconds}`;
     }
-   const handleCheckIn = async () => {
-       const id = localStorage.getItem("employee_id");
-       const time_in = getCurrentTime();
 
-       const payload = { id, time_in };
+    const handleCheckIn = async () => {
+        const id = localStorage.getItem("employee_id");
+        const time_in = getCurrentTime();
 
-       try {
-           await dispatch(checkIn(payload));
-           setStatusCheckIn(true);
+        const payload = { id, time_in };
 
-           // Store status in cookies
-           Cookies.set("statusCheckIn", "true", { expires: 7 }); // cookie will persist for 7 days
-           console.log("Successfully Checked In:", payload);
-       } catch (error) {
-           console.error("Error during Check In:", error);
-       }
-   };
+        try {
+            await dispatch(checkIn(payload));
+            setStatusCheckIn(true);
+            Cookies.set("statusCheckIn", "true", { expires: 7 });
+            console.log("Successfully Checked In:", payload);
+        } catch (error) {
+            console.error("Error during Check In:", error);
+        }
+    };
 
-  const handleCheckOut = async () => {
-      const id = localStorage.getItem("employee_id");
-      const time_out = getCurrentTime();
+    const handleCheckOut = async () => {
+        const id = localStorage.getItem("employee_id");
+        const time_out = getCurrentTime();
 
-      const payload = { id, time_out };
+        const payload = { id, time_out };
 
-      try {
-          await dispatch(checkOut(payload));
-          setStatusCheckIn(false);
-
-          // Store status in cookies
-          Cookies.set("statusCheckIn", "false", { expires: 7 });
-          console.log("Successfully Checked Out:", payload);
-      } catch (error) {
-          console.error("Error during Check Out:", error);
-      }
-  };
-
-useEffect(() => {
-    const savedStatus = Cookies.get("statusCheckIn");
-    if (savedStatus !== undefined) {
-        setStatusCheckIn(savedStatus === "true");
-    }
-}, []);
+        try {
+            await dispatch(checkOut(payload));
+            setStatusCheckIn(false);
+            Cookies.remove("statusCheckIn");
+            console.log("Successfully Checked Out:", payload);
+        } catch (error) {
+            console.error("Error during Check Out:", error);
+        }
+    };
 
     useEffect(() => {
-        // Use async function within useEffect to handle async dispatch
+        const savedStatus = Cookies.get("statusCheckIn");
+        if (savedStatus !== undefined) {
+            setStatusCheckIn(savedStatus === "true");
+        }
+    }, []);
+
+    useEffect(() => {
         const fetchAssignedSchedule = async () => {
             try {
                 const id = localStorage.getItem("employee_id");
                 if (id) {
-                    // Dispatch the action and wait for it to resolve
                     await dispatch(assignedShechule(id));
                 }
             } catch (error) {
@@ -146,10 +136,36 @@ useEffect(() => {
 
             setData(updatedDates);
         } else {
-            // If no data fetched, just display generated dates
             setData(generateDates());
         }
     }, [dataa]);
+
+    // Auto Check Out Effect
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const now = moment();
+
+            data.forEach((record) => {
+                record.schedules.forEach((schedule) => {
+                    const scheduleEndTime = moment(
+                        `${record.date} ${schedule.end_time}`,
+                        "YYYY-MM-DD hh:mm A"
+                    );
+
+                    if (
+                        statusCheckIn &&
+                        now.isSame(scheduleEndTime, "minute")
+                    ) {
+                       
+                        handleCheckOut();
+                         Cookies.remove(statusCheckIn);
+                    }
+                });
+            });
+        }, 60000); // Check every minute
+
+        return () => clearInterval(interval);
+    }, [data, statusCheckIn]);
 
     const columns = [
         {
@@ -175,10 +191,8 @@ useEffect(() => {
             title: "Actions",
             key: "actions",
             render: (text, record) => {
-                // Get current date and time
                 const now = moment();
 
-                // Check if current time falls within any of the schedules
                 const isWithinSchedule = record.schedules.some((schedule) => {
                     const scheduleStartTime = moment(
                         `${record.date} ${schedule.start_time}`,
@@ -191,11 +205,10 @@ useEffect(() => {
                     return now.isBetween(scheduleStartTime, scheduleEndTime);
                 });
 
-                // Render buttons only if within a valid schedule
                 if (record.schedules.length > 0 && isWithinSchedule) {
                     return (
                         <>
-                            {!statusCheckIn  ? (
+                            {!statusCheckIn ? (
                                 <Button
                                     style={{ marginRight: "10px" }}
                                     type="primary"
@@ -212,7 +225,7 @@ useEffect(() => {
                     );
                 }
 
-                return null; // Don't show any buttons if not within schedule
+                return null;
             },
         },
     ];
@@ -221,8 +234,8 @@ useEffect(() => {
         <Table
             columns={columns}
             dataSource={data}
-            pagination={false} // Remove pagination to show all dates in one view
-            loading={loading} // Show loading spinner while fetching data
+            pagination={false}
+            loading={loading}
             style={{
                 minWidth: 800,
                 tableLayout: "fixed",

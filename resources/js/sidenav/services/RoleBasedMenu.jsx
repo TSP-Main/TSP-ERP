@@ -31,19 +31,19 @@ const RoleBasedMenu = () => {
 
     // Default menu items for all roles
     let items = [
-        // getItem(
-        //     <Link to="/profile">Profile</Link>,
-        //     "/profile", // Key should match the path for proper selection
-        //     <MdAirplanemodeActive />
-        // ),
+        getItem(
+            <Link to="/dashboard">Dashboard</Link>,
+            "/dashboard", // Key should match the path for proper selection
+            <MdWork />
+        ),
     ];
 
     // Define menu items based on the user's role
     if (userRole === "super_admin") {
         items.push(
-            getItem("Company", "company", <RiHomeOfficeFill />, [
+            getItem("New Signups", "company", <RiHomeOfficeFill />, [
                 getItem(
-                    <Link to="/onboard">Onboard</Link>,
+                    <Link to="/onboard">Active</Link>,
                     "/onboard", // Key matching the URL path
                     <MdWork />
                 ),

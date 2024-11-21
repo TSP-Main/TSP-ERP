@@ -1,24 +1,30 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { allEmployee } from "../redux/reducers";
-import { Table, Spin, Alert } from "antd"; // Import necessary components from Ant Design
+import { Table, Spin, Alert, Select } from "antd"; // Import necessary components from Ant Design
 
 function Employee() {
     const { error, loading, employeedata } = useSelector(
         (state) => state.employee
-
     );
+    const [selectedRole, setSelectedRole] = useState("employee");
 
-    console.log(employeedata)
-
+    console.log(employeedata);
 
     // Fetch employees if they are not loaded already
     const dispatch = useDispatch();
     useEffect(() => {
-         const code = localStorage.getItem("company_code");
-         const response=dispatch(allEmployee(code)); // Assuming allEmployee fetches employee data
+        try {
+            const code = localStorage.getItem("company_code");
+            const payload = {
+                role: selectedRole,
+                code: code,
+            };
+            const response = dispatch(allEmployee(payload));
+        } catch (error) {
 
-    }, [dispatch]);
+        }
+    }, [dispatch,selectedRole]);
 
     // Show loading state
     if (loading) return <Spin size="large" tip="Loading..." />;
@@ -29,19 +35,43 @@ function Employee() {
 
     // Render the Table with data
     return (
-        <Table
-            columns={columns} // Pass the columns here
-            dataSource={employeedata} // Pass the employee data here
-            // rowKey={(record) => record.employee.company_code}
-            pagination={false}
-        />
+        <>
+            <Select
+                value={selectedRole}
+                placeholder={`Filter by: ${selectedRole}`}
+                style={{
+                    marginBottom: "10px",
+                    width: "15%",
+                }}
+                onChange={(value) => setSelectedRole(value)}
+            >
+                <Select.Option
+                    value="employee"
+                    onChange={(e) => setSelectedRole(e.target.value)}
+                >
+                    Employee
+                </Select.Option>
+                <Select.Option
+                    value="manager"
+                    onChange={(e) => setSelectedRole(e.target.value)}
+                >
+                    Manager
+                </Select.Option>
+            </Select>
+            <Table
+                columns={columns} // Pass the columns here
+                dataSource={employeedata} // Pass the employee data here
+                // rowKey={(record) => record.employee.company_code}
+                pagination={false}
+            />
+        </>
     );
 }
 
 export const columns = [
     {
         title: "Name",
-        dataIndex:"name",
+        dataIndex: "name",
         key: "companyName",
     },
     {

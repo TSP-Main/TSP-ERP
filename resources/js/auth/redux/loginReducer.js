@@ -36,6 +36,7 @@ export const logout = createAsyncThunk(
               localStorage.clear();
               sessionStorage.clear();
             }
+            window.location.reload();
             return response.data.data;
         } catch (error) {
             // console.log("login redux", error);
