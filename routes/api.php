@@ -42,6 +42,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('approve-user/{user}', [StripePaymentController::class, 'approveUser']);
     Route::post('update-profile', [AuthController::class, 'updateProfile']);
     Route::get('/user/details', [AuthController::class, 'loggedInUserDetail']);
+    Route::get('get-all-users', [AuthController::class, 'getAllUsers']);
 });
 
 // Route::get('email/verify/{id}', [VerificationController::class, 'verify'])->name('verification.verify'); // Make sure to keep this as your route name
@@ -68,7 +69,7 @@ Route::middleware('auth:api')->group(function () {
 
     // Schedule routes
     Route::prefix('schedule')->group(function () {
-        Route::get('/{id}', [ScheduleController::class, 'getCompanySchedule']);
+        // Route::get('/{id}', [ScheduleController::class, 'getCompanySchedule']);
         Route::post('create-schedule', [ScheduleController::class, 'create']);
         Route::post('assign-schedule', [ScheduleController::class, 'assignSchedule']);
         Route::get('employee-schedule/{id}', [ScheduleController::class, 'getEmployeeAssignedSchedule']);
@@ -76,6 +77,11 @@ Route::middleware('auth:api')->group(function () {
         Route::post('check-in/{employee}', [ScheduleController::class, 'checkIn']);
         Route::post('check-out/{employee}', [ScheduleController::class, 'checkOut']);
         Route::get('/working-hours', [ScheduleController::class, 'getWorkingHours']);
+        Route::get('/checked-in-employees', [ScheduleController::class, 'getCurrentlyCheckedInEmployees']);
+
+        //temprary store data
+        Route::post('/add-employee-availability', [ScheduleController::class, 'submitAvailability']);
+        Route::get('/employee-availability-dashboard', [ScheduleController::class, 'getAvailabilityDashboard']);
     });
 });
 // stripe payment
