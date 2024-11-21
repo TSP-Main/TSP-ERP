@@ -49,6 +49,7 @@ class RoleSeeder extends Seeder
             'update-schedule',
             'delete-schedule',
             'assign-schedule',
+            'employee-availability',
 
             //attendance
             'add-attendance',
@@ -74,6 +75,7 @@ class RoleSeeder extends Seeder
             'show-employees',
             'assign-schedule',
             'checkedin-employees',
+            'employee-availability',
         ];
         $company->givePermissionTo($companyPermission);
 
@@ -86,6 +88,7 @@ class RoleSeeder extends Seeder
             'assign-schedule',
             'add-attendance',
             'checkedin-employees',
+            'employee-availability',
         ]);
 
         // Assign specific permissions to employee
