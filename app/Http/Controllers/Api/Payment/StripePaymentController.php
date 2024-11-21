@@ -71,22 +71,12 @@ class StripePaymentController extends BaseController
                 return $this->sendResponse('Invalid price ID or price not found.', 400);
             }
 
-            // Retrieve or create the Stripe customer
-            // $user = auth()->user(); // Assuming the user is authenticated
-            // if (!$user) {
-            //     return $this->sendResponse('User not authenticated', 401);
-            // }
-
-            // $stripeCustomer = $user->createOrGetStripeCustomer();
-            // if (!$stripeCustomer) {
-                $stripeCustomer = \Stripe\Customer::create([
-                    'email' => $request->email,
-                    'name' => $request->name,
-                ]);
-                $stripe_id = $stripeCustomer->id;
-                // $user->stripe_id = 
-                // $user->save();
-            // }
+            // Create a Stripe Customer
+            $stripeCustomer = \Stripe\Customer::create([
+                'email' => $request->email,
+                'name' => $request->name,
+            ]);
+            $stripe_id = $stripeCustomer->id;
 
             // Create a PaymentIntent with the price's amount, currency, and customer
             $paymentIntent = PaymentIntent::create([
@@ -99,6 +89,7 @@ class StripePaymentController extends BaseController
             return $this->sendResponse([
                 'priceId' => $priceId,
                 'client_secret' => $paymentIntent->client_secret,
+                'customer_id' => $stripe_id, // Return customer ID to frontend
             ], 'Payment intent created successfully', 200);
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);

@@ -62,41 +62,34 @@ class AuthController extends BaseController
                     'logo' => $logoPath
                 ]);
 
-                Stripe::setApiKey(env('STRIPE_SECRET'));
-
-                // Save payment method ID to the user for future subscription use
-                // $user->createOrGetStripeCustomer();
-                // dd($user->stripe_id, $user->payment_method_id, $user->paymentMethod);
-
-                // Ensure the user has a Stripe customer
-                // if (!$user->stripe_id) {
-                //     $stripeCustomer = \Stripe\Customer::create([
-                //         'email' => $user->email,
-                //         'name' => $user->name,
-                //     ]);
-                //     $user->stripe_id = $stripeCustomer->id;
-                //     $user->save();
-                // }
-                // Attach the payment method to the Stripe customer
                 try {
+                    Stripe::setApiKey(env('STRIPE_SECRET'));
+
+                    // Attach the payment method to the customer
                     $paymentMethod = \Stripe\PaymentMethod::retrieve($request->payment_method_id);
-                    // dd($user->stripe_id, $paymentMethod);
-                    // $aa = $paymentMethod->attach(['customer' => $user->stripe_id]);
-                } catch (Exception $e) {
+                    $paymentMethod->attach(['customer' => $user->stripe_id]);
+
+                    // Update the default payment method
+                    $user->updateDefaultPaymentMethod($request->payment_method_id);
+
+                    // Store package and plan details for reference
+                    $company->update([
+                        'package' => $request->package,
+                        'plan' => $request->plan,
+                    ]);
+
+                    DB::commit();
+
+                    // Reload user with related company and card details
+                    $user->refresh()->load('company');
+                    return $this->sendResponse($user, 'User registered successfully');
+                } catch (\Stripe\Exception\InvalidRequestException $e) {
+                    DB::rollBack();
                     return $this->sendError('Invalid or already used payment method ID.', 400);
+                } catch (Exception $e) {
+                    DB::rollBack();
+                    return $this->sendError('An error occurred during registration.', 500);
                 }
-
-                $user->updateDefaultPaymentMethod($request->payment_method_id);
-
-                // Store package and plan details for reference after admin approval
-                $company->update([
-                    'package' => $request->package,
-                    'plan' => $request->plan,
-                ]);
-                DB::commit();
-                // Reload user with related company and card details
-                $user->refresh()->load('company');
-                return $this->sendResponse($user, 'User register successfully');
             } elseif ($request->role === StatusEnum::EMPLOYEE) {
                 $company = CompanyModel::where('code', $request->company_code)->firstOrFail();
                 // Register employee user
