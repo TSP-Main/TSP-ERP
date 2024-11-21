@@ -47,7 +47,8 @@ const Register = () => {
                   });
                   return;
               }
-
+              console.log("register ", response.payload.data)
+              const customer_id = response.payload.data.customer_id;
               const clientSecret = response.payload.data.client_secret;
               console.log("Client Secret:", clientSecret);
 
@@ -83,6 +84,7 @@ const Register = () => {
                   company_name: values.company_name,
                   package: values.package,
                   plan: values.plan,
+                  customer_id:customer_id,
                   payment_method_id: paymentMethodId,
               };
 

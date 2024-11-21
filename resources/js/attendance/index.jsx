@@ -156,7 +156,9 @@ const Index = () => {
                         statusCheckIn &&
                         now.isSame(scheduleEndTime, "minute")
                     ) {
+                       
                         handleCheckOut();
+                         Cookies.remove(statusCheckIn);
                     }
                 });
             });
