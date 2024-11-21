@@ -30,21 +30,25 @@ const Register = () => {
       if (role === "company" && stripe && elements) {
           try {
               // Step 1: Get price and client_secret
-            //   const response = await dispatch(
-            //       getPrice({ package: values.package, plan: values.plan })
-            //   );
+              const response = await dispatch(
+                  getPrice({
+                      package: values.package,
+                      plan: values.plan,
+                      name: values.name,
+                      email: values.email,
+                  })
+              );
 
-            //   if (!response.payload || !response.payload.data.client_secret) {
-            //       notification.error({
-            //           message: "Error",
-            //           description: "Failed to fetch payment details",
-            //           duration: 3,
-            //       });
-            //       return;
-            //   }
+              if (!response.payload || !response.payload.data.client_secret) {
+                  notification.error({
+                      message: "Error",
+                      description: "Failed to fetch payment details",
+                      duration: 3,
+                  });
+                  return;
+              }
 
-              const clientSecret =
-                  "pi_3QNBozRwCYjkbSmY0V5J2Jd8_secret_U0CXog0bnVJcsILta7y4C2LiA"
+              const clientSecret = response.payload.data.client_secret;
               console.log("Client Secret:", clientSecret);
 
               // Step 2: Confirm payment
