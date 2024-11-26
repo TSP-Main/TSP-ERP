@@ -5,13 +5,20 @@ namespace App\Http\Controllers\Api\Schedule;
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Employee\AssignSchedueRequest;
 use App\Http\Requests\Schedule\CreateScheduleRequest;
+use App\Http\Requests\Schedule\EmployeeAvailabilityRequest;
 use App\Http\Requests\Schedule\GetWorkingHoursRequest;
 use App\Models\Company\EmployeeSchedule;
 use App\Models\Company\Schedule;
 use App\Models\Employee\Attendance;
+use App\Models\Employee\Employee;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+
+use function PHPUnit\Framework\isEmpty;
 
 class ScheduleController extends BaseController
 {
@@ -236,6 +243,99 @@ class ScheduleController extends BaseController
             }
 
             return $this->sendResponse($assignedSchedules, 'Employee schedules successfully displayed');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function getCurrentlyCheckedInEmployees(Request $request)
+    {
+        $this->authorize('checkedin-employees');
+        $companyId = $request->query('company_id'); // Optional company filter
+
+        // Fetch employees with necessary conditions
+        $employees = Employee::whereHas('attendance', function ($query) {
+            $query->whereNotNull('time_in')
+                ->whereNull('time_out');
+        })
+            ->with([
+                'attendance' => function ($query) {
+                    $query->whereNotNull('time_in')
+                        ->whereNull('time_out');
+                },
+                'employeeSchedules.schedule' => function ($query) use ($companyId) {
+                    if ($companyId) {
+                        $query->where('company_id', $companyId);
+                    }
+                },
+                'user' // Include the user relationship
+            ])
+            ->get();
+
+        // Check if no employees are found
+        if ($employees->isEmpty()) {
+            return response()->json(['message' => 'No employees are currently checked in.'], 200);
+        }
+
+        // Format the response data
+        $data = $employees->map(function ($employee) {
+            return [
+                'employee_id' => $employee->id,
+                'employee_name' => $employee->user->name ?? null, // Access the name from the user relationship
+                'time_in' => $employee->attendance->first()?->time_in,
+                'schedule_start_time' => $employee->employeeSchedules->first()?->schedule->start_time,
+                'schedule_end_time' => $employee->employeeSchedules->first()?->schedule->end_time,
+            ];
+        });
+
+        return response()->json(['data' => $data], 200);
+    }
+
+    //Employee avalibility schedule
+    public function submitAvailability(EmployeeAvailabilityRequest $request)
+    {
+        try {
+            // Retrieve existing data from the cache or initialize an empty array
+            $availability = Cache::get('employee_availability', []);
+
+            $availability[] = [
+                'employee_id' => $request->employee_id,
+                'date' => $request->date,
+                'start_time' => $request->start_time,
+                'end_time' => $request->end_time
+            ];
+
+            Cache::put('employee_availability', $availability, now()->addWeeks(1));
+
+            return $this->sendResponse(['message' => 'Availability submitted successfully'], 200);
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function getAvailabilityDashboard()
+    {
+        try {
+            $availability = Cache::get('employee_availability', []);
+            if (empty($availability)) {
+                return response()->json(['message' => 'No availability schedules found'], 200);
+            }
+
+            // Enhance the data for dashboard display (e.g., include employee names)
+            $data = collect($availability)->map(function ($item) {
+                $employee = Employee::with('user')->find($item['employee_id']);
+
+                return [
+                    'employee_id' => $item['employee_id'],
+                    'employee_name' => $employee->user->name ?? '',
+                    'employee_email' => $employee->user->email ?? '',
+                    'date' => $item['date'],
+                    'start_time' => $item['start_time'],
+                    'end_time' => $item['end_time'],
+                ];
+            });
+
+            return $this->sendResponse($data, 'Employee Availability displayed', 200);
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }

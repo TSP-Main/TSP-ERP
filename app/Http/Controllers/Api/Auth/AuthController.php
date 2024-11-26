@@ -9,6 +9,7 @@ use Exception;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterUserRequest;
 use App\Http\Requests\Auth\ForgetPasswordRequest;
+use App\Http\Requests\Auth\GetAllUserRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Http\Requests\Auth\verifyForgetPasswordOtpRequest;
@@ -364,5 +365,16 @@ class AuthController extends BaseController
         } else {
             return $this->sendResponse('User is not authenticated.');
         }
+    }
+
+    public function getAllUsers(GetAllUserRequest $request)
+    {
+        $paginate = $request->per_page ?? 20;
+        $this->authorize('get-all-users');
+        $users = User::paginate($paginate);
+        if (!$users) {
+            return $this->sendResponse('No user found');
+        }
+        return $this->sendResponse($users, 'All users displayed');
     }
 }
