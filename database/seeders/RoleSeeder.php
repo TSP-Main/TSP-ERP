@@ -29,7 +29,7 @@ class RoleSeeder extends Seeder
 
             // all-users
             'get-all-users',
-            
+
             //company
             'delete-company',
             'approve-company',
@@ -42,6 +42,7 @@ class RoleSeeder extends Seeder
             'approve-employee',
             'show-employees',
             'create-employee',
+            'update-employee',
             'checkedin-employees',
 
             //schedule
@@ -61,7 +62,6 @@ class RoleSeeder extends Seeder
         }
 
         // Sync all permissions with super admin role
-        // $superAdmin->syncPermissions(Permission::all());
         $superAdmin->givePermissionTo(Permission::all());
 
         // Assign specific permissions to comapny
@@ -69,6 +69,7 @@ class RoleSeeder extends Seeder
             'approve-manager',
             'approve-employee',
             'create-employee',
+            'update-employee',
             'create-schedule',
             'update-schedule',
             'delete-schedule',
@@ -82,7 +83,7 @@ class RoleSeeder extends Seeder
         // Assign specific permissions to manger
         $manager->syncPermissions([
             'approve-employee',
-            'create-schedule',
+            'update-schedule',
             'update-schedule',
             'show-employees',
             'assign-schedule',

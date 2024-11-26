@@ -221,13 +221,35 @@ class ScheduleController extends BaseController
     public function getCompanySchedule($companyId)
     {
         try {
-            $schedule = Schedule::where('company_id', $companyId)->get();
+            // Fetch schedules for the company with employees and end date filter
+            $schedules = Schedule::where('company_id', $companyId)
+                ->whereHas('employeeSchedules', function ($query) {
+                    $query->whereDate('end_date', '>=', now()->toDateString());
+                })
+                ->with(['employeeSchedules.employee.user']) // Load related employees
+                ->get();
 
-            if ($schedule->isEmpty()) {
-                return $this->sendResponse('Company schedule not found');
+            if ($schedules->isEmpty()) {
+                return $this->sendResponse([], 'No schedules found for this company.');
             }
 
-            return $this->sendResponse($schedule, 'All schedules successfully displayed');
+            // Format the response
+            $data = $schedules->map(function ($schedule) {
+                return [
+                    'schedule_id' => $schedule->id,
+                    'start_time' => $schedule->start_time,
+                    'end_time' => $schedule->end_time,
+                    'employees' => $schedule->employeeSchedules->map(function ($employeeSchedule) {
+                        return [
+                            'employee_id' => $employeeSchedule->employee->id,
+                            'employee_name' => $employeeSchedule->employee->user->name ?? '',
+                            'employee_email' => $employeeSchedule->employee->user->email ?? '',
+                        ];
+                    }),
+                ];
+            });
+
+            return $this->sendResponse($data, 'All schedules successfully displayed.');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }

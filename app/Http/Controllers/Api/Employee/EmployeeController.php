@@ -6,6 +6,7 @@ use App\Classes\StatusEnum;
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Employee\CompanyEmployeeRequest;
 use App\Http\Requests\Employee\CreateEmployeeRequest;
+use App\Http\Requests\Employee\UpdateEmployeeRequest;
 use App\Jobs\Employee\AddEmployeeInvitationJob;
 use App\Models\Company\CompanyModel;
 use App\Models\Employee\Employee;
@@ -46,6 +47,26 @@ class EmployeeController extends BaseController
             return $this->sendResponse($user, 'Employee successfully added, Mail has been dispatched');
         } catch (Exception $e) {
             DB::rollBack();
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function update($id, UpdateEmployeeRequest $request)
+    {
+        DB::beginTransaction();
+        try {
+            $this->authorize('update-employee');
+            $employee = User::where('id', $id)
+                ->whereHas('roles', function ($query) {
+                    $query->whereIn('name', [StatusEnum::EMPLOYEE, StatusEnum::MANAGER]);
+                })
+                ->with('employee', 'roles')
+                ->firstOrFail(); // Throws exception if not found
+
+            $employee->update($request->all());
+            DB::commit();
+            return $this->sendResponse($employee, 'Employee successfully updated');
+        } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
@@ -117,6 +138,17 @@ class EmployeeController extends BaseController
                 ->firstOrFail();
 
             return $this->sendResponse($employee, 'Employee successfully displayed');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function delete(User $user)
+    {
+        try {
+            $this->authorize('create-employee');
+            $user->delete();
+            return $this->sendResponse([], 'Employee successfully deleted');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
