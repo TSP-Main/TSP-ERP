@@ -338,11 +338,11 @@ class AuthController extends BaseController
     {
         try {
             DB::beginTransaction();
-            $data = $request->all();
+            $data = $request->except('email');
             $user = Auth::user();
 
             if (isset($data['password'])) {
-                $data['password'] = bcrypt($data['password']); //password in needed
+                $data['password'] = bcrypt($data['password']); //password is needed
             }
 
             $user->update($data);
