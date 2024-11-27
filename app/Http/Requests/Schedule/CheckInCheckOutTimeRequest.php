@@ -22,7 +22,8 @@ class CheckInCheckOutTimeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'date' => 'required|date',
+            'start_date' => 'nullable|date|before_or_equal:' . now()->toDateString(),
+            'end_date' => 'nullable|date|before_or_equal:' . now()->toDateString(),
         ];
     }
 }

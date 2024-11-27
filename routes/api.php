@@ -43,6 +43,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('update-profile', [AuthController::class, 'updateProfile']);
     Route::get('/user/details', [AuthController::class, 'loggedInUserDetail']);
     Route::get('get-all-users', [AuthController::class, 'getAllUsers']);
+    Route::post('update-status/{id}', [AuthController::class, 'updateIsActiveStatus']);
 });
 
 // Route::get('email/verify/{id}', [VerificationController::class, 'verify'])->name('verification.verify'); // Make sure to keep this as your route name
@@ -83,6 +84,8 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/working-hours', [ScheduleController::class, 'getWorkingHours']);
         Route::get('/checked-in-employees', [ScheduleController::class, 'getCurrentlyCheckedInEmployees']);
         Route::get('/attendance-time/{id}', [ScheduleController::class, 'checkInCheckOutTime']);
+        Route::get('all-assigned-schedule/{id}', [ScheduleController::class, 'getCompanyassignedSchedule']);
+
 
         //temprary store data
         Route::post('/add-employee-availability', [ScheduleController::class, 'submitAvailability']);
