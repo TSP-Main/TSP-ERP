@@ -258,7 +258,7 @@ class ScheduleController extends BaseController
         }
     }
 
-    public function getCompanySchedule($companyId)
+    public function getCompanyassignedSchedule($companyId)
     {
         try {
             // Fetch schedules for the company with employees and end date filter
@@ -294,6 +294,34 @@ class ScheduleController extends BaseController
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
+
+    public function getCompanySchedule($companyId)
+    {
+        try {
+            // Fetch schedules for the company
+            $schedules = Schedule::where('company_id', $companyId)->get();
+
+            if ($schedules->isEmpty()) {
+                return $this->sendResponse([], 'No schedules found for this company.');
+            }
+
+            // Format the response
+            $data = $schedules->map(function ($schedule) {
+                return [
+                    'schedule_id' => $schedule->id,
+                    'name' => $schedule->name,
+                    'start_time' => $schedule->start_time,
+                    'end_time' => $schedule->end_time,
+                    'week_day' => $schedule->week_day,
+                ];
+            });
+
+            return $this->sendResponse($data, 'All schedules successfully displayed.');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
 
     public function getEmployeeAssignedSchedule($employeeId)
     {
@@ -406,13 +434,22 @@ class ScheduleController extends BaseController
     public function checkInCheckOutTime(CheckInCheckOutTimeRequest $request, $id)
     {
         try {
-            // Fetch all attendance records for the employee on the given date
-            $schedules = Attendance::where('employee_id', $id)
-                ->where('date', $request->date)
-                ->get();
+            $query = Attendance::where('employee_id', $id);
+
+            // Check if `start_date` and `end_date` are provided
+            if ($request->filled(['start_date', 'end_date'])) {
+                $query->whereBetween('date', [$request->start_date, $request->end_date]);
+            } else {
+                $weekStart = Carbon::now()->subDays(6); // Calculate week start (7 days ago)
+                $weekEnd = Carbon::now(); // Include today
+                $query->whereBetween('date', [$weekStart->toDateString(), $weekEnd->toDateString()]);
+            }
+
+            // Fetch the attendance records
+            $schedules = $query->get();
 
             if ($schedules->isEmpty()) {
-                return $this->sendError('No attendance records found for the given date', 404);
+                return $this->sendError('No attendance records found for the given criteria', 404);
             }
 
             return $this->sendResponse($schedules, 'Attendance records successfully fetched');
@@ -420,6 +457,7 @@ class ScheduleController extends BaseController
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
+
 
     public function missedSchedule()
     {

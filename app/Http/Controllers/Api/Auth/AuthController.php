@@ -20,6 +20,7 @@ use App\Models\Company\CompanyModel;
 use App\Models\Employee\Employee;
 use App\Models\Otp;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -191,7 +192,7 @@ class AuthController extends BaseController
             //     return $this->sendError(['error' => 'User already logged in.'], 403);
             // }
 
-            if ($user->hasRole(StatusEnum::COMPANY) && $user->is_active != StatusEnum::ACTIVE) {
+            if (($user->hasRole([StatusEnum::COMPANY, StatusEnum::EMPLOYEE])) && $user->is_active != StatusEnum::ACTIVE) {
                 return $this->sendError(['error' => 'Account is not active. Please contact support.'], 403);
             }
 
@@ -204,7 +205,6 @@ class AuthController extends BaseController
                 'email' => $user->email,
             ], 'Successfully logged in');
         } catch (Exception $e) {
-            Log::error('Login error: ' . $e->getMessage());
             return $this->sendError('Something went wrong, error in processing login', 500);
         }
     }
@@ -376,5 +376,35 @@ class AuthController extends BaseController
             return $this->sendResponse('No user found');
         }
         return $this->sendResponse($users, 'All users displayed');
+    }
+
+    public function updateIsActiveStatus($id)
+    {
+        try {
+            $user = User::where('id', $id)
+                ->where('is_active', StatusEnum::ACTIVE)
+                ->whereHas('roles', function ($query) {
+                    $query->where('name', StatusEnum::EMPLOYEE);
+                })
+                ->firstOrFail();
+
+            // Update the user's active status
+            $user->update(['is_active' => StatusEnum::INACTIVE]);
+
+            $employee = Employee::where('user_id', $id)
+                ->where('is_active', StatusEnum::ACTIVE)
+                ->first();
+
+            if ($employee) {
+                $employee->update(['is_active' => StatusEnum::INACTIVE]);
+            }
+
+            return $this->sendResponse([], 'User and employee status updated successfully');
+        } catch (ModelNotFoundException $e) {
+            return $this->sendError('User not found, not active, or does not have the employee role', 404);
+        } catch (Exception $e) {
+            Log::error('Error updating user and employee status: ' . $e->getMessage());
+            return $this->sendError('Something went wrong while updating status', 500);
+        }
     }
 }
