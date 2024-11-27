@@ -4,15 +4,18 @@ namespace App\Http\Controllers\Api\Schedule;
 
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Employee\AssignSchedueRequest;
+use App\Http\Requests\Schedule\CheckInCheckOutTimeRequest;
 use App\Http\Requests\Schedule\CreateScheduleRequest;
 use App\Http\Requests\Schedule\EmployeeAvailabilityRequest;
 use App\Http\Requests\Schedule\GetWorkingHoursRequest;
+use App\Http\Requests\Schedule\UpdateScheduleRequest;
 use App\Models\Company\EmployeeSchedule;
 use App\Models\Company\Schedule;
 use App\Models\Employee\Attendance;
 use App\Models\Employee\Employee;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -42,6 +45,44 @@ class ScheduleController extends BaseController
         return response()->json(['message' => 'Schedule created successfully', 'schedule' => $schedule]);
     }
 
+    public function update(UpdateScheduleRequest $request, $id)
+    {
+        try {
+            $schedule = Schedule::findOrFail($id);
+
+            $ipAddress = $request->ip();
+            $timezone = getUserTimezone($ipAddress);
+
+            // Convert provided time into UTC based on the detected timezone
+            $startTime = Carbon::parse($request->start_time, $timezone);
+            $endTime = Carbon::parse($request->end_time, $timezone);
+
+            $schedule->update([
+                // 'company_id' => $request->company_id,
+                'name' => $request->name,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'week_day' => $request->week_day,
+            ]);
+
+            return $this->sendResponse($schedule, 'Schedule updated successfully');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function delete($id)
+    {
+        try {
+            $schedule = Schedule::findOrFail($id);
+            $schedule->delete();
+            return $this->sendResponse([], 'Schedule successfully deleted');
+        } catch (ModelNotFoundException $e) {
+            return $this->sendResponse([], 'Schedule not found');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
 
     public function assignSchedule(AssignSchedueRequest $request)
     {
@@ -71,7 +112,6 @@ class ScheduleController extends BaseController
             return $this->sendError($e->getMessage(), $e->getCode());
         }
     }
-
 
     public function checkIn($employeeId)
     {
@@ -358,6 +398,32 @@ class ScheduleController extends BaseController
             });
 
             return $this->sendResponse($data, 'Employee Availability displayed', 200);
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function checkInCheckOutTime(CheckInCheckOutTimeRequest $request, $id)
+    {
+        try {
+            // Fetch all attendance records for the employee on the given date
+            $schedules = Attendance::where('employee_id', $id)
+                ->where('date', $request->date)
+                ->get();
+
+            if ($schedules->isEmpty()) {
+                return $this->sendError('No attendance records found for the given date', 404);
+            }
+
+            return $this->sendResponse($schedules, 'Attendance records successfully fetched');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function missedSchedule()
+    {
+        try {
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }

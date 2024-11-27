@@ -73,6 +73,8 @@ Route::middleware('auth:api')->group(function () {
     Route::get('company-schedule/{id}', [ScheduleController::class, 'getCompanySchedule']);
     Route::prefix('schedule')->group(function () {
         Route::post('create-schedule', [ScheduleController::class, 'create']);
+        Route::post('update-schedule/{id}', [ScheduleController::class, 'update']);
+        Route::post('delete-schedule/{id}', [ScheduleController::class, 'delete']);
         Route::post('assign-schedule', [ScheduleController::class, 'assignSchedule']);
         Route::get('employee-schedule/{id}', [ScheduleController::class, 'getEmployeeAssignedSchedule']);
         // Route::post('attendance', [ScheduleController::class, 'attendance']);
@@ -80,6 +82,7 @@ Route::middleware('auth:api')->group(function () {
         Route::post('check-out/{employee}', [ScheduleController::class, 'checkOut']);
         Route::get('/working-hours', [ScheduleController::class, 'getWorkingHours']);
         Route::get('/checked-in-employees', [ScheduleController::class, 'getCurrentlyCheckedInEmployees']);
+        Route::get('/attendance-time/{id}', [ScheduleController::class, 'checkInCheckOutTime']);
 
         //temprary store data
         Route::post('/add-employee-availability', [ScheduleController::class, 'submitAvailability']);
