@@ -106,7 +106,6 @@ class EmployeeController extends BaseController
         }
     }
 
-
     public function inActiveEmployees(Request $request, $companyCode)
     {
         try {

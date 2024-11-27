@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Api\Schedule;
 
+use App\Classes\StatusEnum;
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Employee\AssignSchedueRequest;
 use App\Http\Requests\Schedule\CheckInCheckOutTimeRequest;
 use App\Http\Requests\Schedule\CreateScheduleRequest;
 use App\Http\Requests\Schedule\EmployeeAvailabilityRequest;
 use App\Http\Requests\Schedule\GetWorkingHoursRequest;
+use App\Http\Requests\Schedule\MissedAndAttendedScheduleScheduleRequest;
 use App\Http\Requests\Schedule\UpdateScheduleRequest;
 use App\Models\Company\EmployeeSchedule;
 use App\Models\Company\Schedule;
@@ -146,7 +148,7 @@ class ScheduleController extends BaseController
                 'employee_schedule_id' => $employeeSchedule->id,
                 'date' => $today->toDateString(),
                 'time_in' => Carbon::now('UTC')->format('H:i:s'), //->toTimeString()
-                'status' => 'Present',
+                'status' => StatusEnum::PRESENT,
             ]);
 
             return response()->json(['message' => 'Checked in successfully', 'attendance' => $attendance]);
@@ -459,9 +461,43 @@ class ScheduleController extends BaseController
     }
 
 
-    public function missedSchedule()
+    public function missedAndAttendedSchedule(MissedAndAttendedScheduleScheduleRequest $request, $id)
     {
         try {
+            $startDate = $request->input('start_date');
+            $endDate = $request->input('end_date');
+
+            if ($startDate && $endDate) {
+                // Validate dates are not in the future
+                $today = Carbon::today('UTC');
+                if (Carbon::parse($startDate)->greaterThan($today) || Carbon::parse($endDate)->greaterThan($today)) {
+                    return $this->sendError('Start date and end date must not be in the future', 422);
+                }
+            } else {
+                // Default to one week before today, including today
+                $endDate = Carbon::today('UTC')->toDateString();
+                $startDate = Carbon::today('UTC')->subWeek()->toDateString();
+            }
+
+            // Fetch attended schedules
+            $attendedSchedules = Attendance::where('employee_id', $id)
+                ->whereBetween('date', [$startDate, $endDate])
+                ->where('status', StatusEnum::PRESENT)
+                ->get();
+
+            // Fetch missed schedules
+            $missedSchedules = Attendance::where('employee_id', $id)
+                ->whereBetween('date', [$startDate, $endDate])
+                ->where('status', StatusEnum::ABSENT)
+                ->get();
+
+            // Prepare response
+            $data = [
+                'attended_schedules' => $attendedSchedules,
+                'missed_schedules' => $missedSchedules,
+            ];
+
+            return $this->sendResponse($data, 'Schedules successfully displayed');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
