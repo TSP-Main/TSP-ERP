@@ -29,7 +29,11 @@ class StatusEnum
 
     public const DATE_FORMAT = 'Y-m-d';
     public const TIME_FORMAT = 'H:i';
+    public const DATE_TIME_FORMAT = 'Y-m-d_H-i-s';
 
     public const SCHEDULE_ACTIVE = 1;
     public const SCHEDULE_INACTIVE = 0;
+
+    public const PRESENT = 'present';
+    public const ABSENT = 'absent';
 }

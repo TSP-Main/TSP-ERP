@@ -85,6 +85,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/checked-in-employees', [ScheduleController::class, 'getCurrentlyCheckedInEmployees']);
         Route::get('/attendance-time/{id}', [ScheduleController::class, 'checkInCheckOutTime']);
         Route::get('all-assigned-schedule/{id}', [ScheduleController::class, 'getCompanyassignedSchedule']);
+        Route::get('missed-attended-schedule/{id}', [ScheduleController::class, 'missedAndAttendedSchedule']);
 
 
         //temprary store data

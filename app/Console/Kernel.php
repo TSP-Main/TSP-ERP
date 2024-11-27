@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Classes\StatusEnum;
 use App\Http\Controllers\Api\Schedule\ScheduleController;
 use Carbon\Carbon;
 use Illuminate\Console\Scheduling\Schedule;
@@ -29,12 +30,13 @@ class Kernel extends ConsoleKernel
         $commands = [
             'inactivate-expired-schedules' => 'daily',
             'activate-schedules' => 'daily',
-            'user-logout' => 'hourly'
+            'user-logout' => 'hourly',
+            'attendance:mark-absent' => 'daily',
         ];
 
         foreach ($commands as $command => $scheduleMethod) {
             // Generate a unique filename for each command
-            $filename = $command . '-' . Carbon::now()->format('Y-m-d_H-i-s') . '.txt';
+            $filename = $command . '-' . Carbon::now()->format(StatusEnum::DATE_TIME_FORMAT) . '.txt';
             $filePath = $directoryPath . '/' . $filename;
 
             // Schedule the command with a dynamically generated filename
