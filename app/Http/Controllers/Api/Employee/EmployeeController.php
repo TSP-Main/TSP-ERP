@@ -32,12 +32,14 @@ class EmployeeController extends BaseController
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => bcrypt($plainPassword), // Auto-generated 8-character password
-                'is_active' => StatusEnum::ACTIVE
+                'is_active' => StatusEnum::ACTIVE,
+                'status' => StatusEnum::INVITED
             ]);
             Employee::create([
                 'user_id' => $user->id,
                 'company_code' => $companyCode,
-                'is_active' => StatusEnum::ACTIVE
+                'is_active' => StatusEnum::ACTIVE,
+                'status' => StatusEnum::INVITED
             ]);
             $user->assignRole($request->role);
 

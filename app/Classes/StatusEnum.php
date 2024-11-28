@@ -36,4 +36,10 @@ class StatusEnum
 
     public const PRESENT = 'present';
     public const ABSENT = 'absent';
+
+    public const NOT_APPROVED = 'not_approved';
+    public const APPROVED = 'approved';
+    public const INVITED = 'invited';
+    public const CANCELLED = 'cancelled';
+    public const REJECTED = 'rejected';
 }

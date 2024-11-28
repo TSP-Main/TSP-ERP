@@ -18,7 +18,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
             $table->boolean('is_active')->default(0)->comment('0 for in_active, 1 for active');
-            $table->boolean('status')->nullable();
+            $table->string('status')->nullable();
             $table->boolean('otp_verified')->default(0);
             $table->longText('message')->nullable();
             $table->rememberToken();
