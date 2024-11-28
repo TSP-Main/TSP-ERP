@@ -68,9 +68,23 @@ class AuthController extends BaseController
                 try {
                     Stripe::setApiKey(env('STRIPE_SECRET'));
 
+                    // Ensure the customer is created (if not already done in your system)
+                    if (empty($user->stripe_id)) {
+                        $stripeCustomer = \Stripe\Customer::create([
+                            'email' => $request->email,
+                            'name' => $request->company_name,
+                        ]);
+                        $user->update(['stripe_id' => $stripeCustomer->id]);
+                    }
+
                     // Attach the payment method to the customer
                     $paymentMethod = \Stripe\PaymentMethod::retrieve($request->payment_method_id);
-                    $paymentMethod->attach(['customer' => $user->stripe_id]);
+                    // $paymentMethod->attach(['customer' => $user->stripe_id]);
+
+                    // Check if the payment method is already attached to the customer
+                    if ($paymentMethod->customer !== $user->stripe_id) {
+                        $paymentMethod->attach(['customer' => $user->stripe_id]);
+                    }
 
                     // Update the default payment method
                     $user->updateDefaultPaymentMethod($request->payment_method_id);
@@ -205,7 +219,7 @@ class AuthController extends BaseController
             if ($user->status === StatusEnum::INVITED) {
                 event(new Authenticated('api', $user));
             }
-            
+
             // Create a new token
             $token = $user->createToken(User::AUTH_TOKEN)->accessToken;
 
