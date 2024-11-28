@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Companies\CompanyController;
 use App\Http\Controllers\Api\Employee\EmployeeController;
 use App\Http\Controllers\Api\Payment\StripePaymentController;
 use App\Http\Controllers\Api\Schedule\ScheduleController;
+use Illuminate\Auth\Events\Authenticated;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,9 +19,6 @@ use App\Http\Controllers\Api\Schedule\ScheduleController;
 |
 */
 
-Route::get('test', function () {
-    return response()->json(['message' => 'Test successful']);
-});
 // Handle OPTIONS requests
 Route::options('{any}', function () {
     return response()->json([], 204);
@@ -44,6 +42,9 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/user/details', [AuthController::class, 'loggedInUserDetail']);
     Route::get('get-all-users', [AuthController::class, 'getAllUsers']);
     Route::post('update-status/{id}', [AuthController::class, 'updateIsActiveStatus']);
+    Route::post('user-reject/{user}', [AuthController::class, 'userReject']);
+    Route::post('cancel-invitation/{user}', [AuthController::class, 'useInviteCancel']);
+    Route::get('rejected-user', [AuthController::class, 'rejectedUser']);
 });
 
 // Route::get('email/verify/{id}', [VerificationController::class, 'verify'])->name('verification.verify'); // Make sure to keep this as your route name
