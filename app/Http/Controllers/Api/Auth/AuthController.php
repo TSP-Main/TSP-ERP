@@ -79,10 +79,10 @@ class AuthController extends BaseController
 
                     // Attach the payment method to the customer
                     $paymentMethod = \Stripe\PaymentMethod::retrieve($request->payment_method_id);
-                    // $paymentMethod->attach(['customer' => $user->stripe_id]);
+                    $paymentMethod->attach(['customer' => $stripeCustomer->id]);
 
                     // Check if the payment method is already attached to the customer
-                    if ($paymentMethod->customer !== $user->stripe_id) {
+                    if ($paymentMethod->customer == $user->stripe_id) {
                         $paymentMethod->attach(['customer' => $user->stripe_id]);
                     }
 
