@@ -20,8 +20,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Event::listen(\Illuminate\Auth\Events\Authenticated::class, function ($event) {
-            logger('Authenticated event fired for user ID: ' . $event->user->id);
-        });
+        //
     }
 }
