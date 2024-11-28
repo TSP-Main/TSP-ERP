@@ -10,7 +10,7 @@ import EmployeeRoutes from "./routes/EmployeeRoutes.jsx";
 import { userData } from "./dashboard/redux/reducer.js";
 import DefaultLayout from "./defaultLayout/DefaultLayout.jsx";
 import Dashboard from "./Profile/Profile.jsx";
-
+import Profile from "./dashboard/Dashboard.jsx"
 const RoutesComponent = () => {
     const { userdata } = useSelector((state) => state.user);
     const dispatch = useDispatch();
@@ -41,6 +41,7 @@ const RoutesComponent = () => {
             {/* Protected Routes */}
             <Route path="/" element={<DefaultLayout />}>
                 <Route path="dashboard" element={<Dashboard />} />
+                <Route path="/profile" element={<Profile />} />
             </Route>
 
             {/* Role-Based Private Routes */}

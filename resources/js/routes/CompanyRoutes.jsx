@@ -10,6 +10,7 @@ import InvitedEmployee from "../employee/InvitedEmployee.jsx";
 import RejectedEmployee from "../employee/RejectedEmployee.jsx";
 import ChangeShift from "../shift/ChangeShift.jsx";
 import CheckedIn from "../employee/CheckedIn.jsx";
+import InvitCancel from "../employee/InviteCancel.jsx";
 const CompanyRoutes = () => {
     return (
         <Routes>
@@ -22,6 +23,8 @@ const CompanyRoutes = () => {
                 <Route path="assign-shift" element={<AssignShift />} />
                 <Route path="new-registration" element={<NewRegistration />} />
                 <Route path="invites" element={<InvitedEmployee />} />
+                <Route path="invite-cancel" element={<InvitCancel />} />
+
                 <Route
                     path="rejected-employee"
                     element={<RejectedEmployee />}
