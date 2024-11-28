@@ -8,6 +8,7 @@ const initialState = {
     loading: false,
     error: false,
 };
+
 export const assignedShechule = createAsyncThunk(
     "employee/assignedShechule",
     async (id, { rejectWithValue }) => {
@@ -43,6 +44,8 @@ export const assignSchedule = createAsyncThunk(
                 apiRoutes.schedule.assignSchedule,
                 schedulePayload
             );
+            // console.log("res: ", response);
+            
             return response.data;
         } catch (error) {
             return rejectWithValue(
@@ -130,7 +133,7 @@ const assigendScheduleSlice = createSlice({
             .addCase(assignedShechule.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload || action.error.message;
-            });
+            })
     },
 });
 
