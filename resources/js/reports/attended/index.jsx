@@ -33,7 +33,8 @@ const Attended = () => {
             start_date: startDate.format("YYYY-MM-DD"),
             end_date: endDate.format("YYYY-MM-DD"),
         };
-        dispatch(attendedSchedule({ id, payload }));
+       dispatch(attendedSchedule({ id, payload })).unwrap();
+      
     };
 
     useEffect(() => {
@@ -113,8 +114,17 @@ const Attended = () => {
 
     // Submit the filter (optional)
     const handleSubmit = () => {
-        console.log("Start Date: ", startDate?.format("YYYY-MM-DD"));
-        console.log("End Date: ", endDate?.format("YYYY-MM-DD"));
+        const sDate= startDate?.format("YYYY-MM-DD");
+        const eDate= endDate?.format("YYYY-MM-DD");
+
+         const id = localStorage.getItem("employee_id");
+         const payload = {
+             start_date: sDate,
+             end_date: eDate,
+         };
+         console.log("payload", payload);
+        dispatch(attendedSchedule({ id, payload })).unwrap();
+         console.log("empploye data",employeedata.attended_schedules)
     };
 
     return (

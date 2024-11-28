@@ -37,7 +37,6 @@ const Login = () => {
 
             console.log("user data", user_data);
             notification.success({
-                message: "Success",
                 description: "Logged in successfully!",
                 duration: 3,
             });
@@ -49,7 +48,6 @@ const Login = () => {
         } catch (err) {
             console.error("Login error:", err);
             notification.error({
-                message: "Error",
                 description: err || "Login failed",
                 duration: 3,
             });

@@ -1,7 +1,7 @@
 // SideNav.jsx
 import React, { useState,useEffect } from "react";
 import { Layout, Menu, Drawer, Button, Dropdown, notification } from "antd";
-import { Link,useNavigate } from "react-router-dom";
+import { Link,Outlet,useNavigate } from "react-router-dom";
 import { IoLogOut } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
 import {
@@ -14,13 +14,13 @@ import RoleBasedMenu from "../services/RoleBasedMenu"; // Import RoleBasedMenu c
 import useResponsive from "../../hooks/useResponsive";
 import logo from "../../assests/tms_logo.png";
 import placeholder from "../../assests/placeholder-image.jpg";
-import "../styles/SideNav.css";
+// import "../styles/SideNav.css";
 import apiRoutes from "../../routes/apiRoutes";
 import axios from "../../services/axiosService";
 import { useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "../../auth/redux/loginReducer";
-const { Header, Sider } = Layout;
+const { Header, Sider,Content,Footer } = Layout;
 
 
 const SideNav = () => {
@@ -70,49 +70,55 @@ const SideNav = () => {
     return (
         <Layout style={{ minHeight: "100vh", backgroundColor: "#F5F5F58A" }}>
             {!isSmallScreen && (
-                <Sider
-                    style={{
-                        backgroundColor: "#F5F5F58A",
-                        // overflow: "auto",
-                        // height: "100vh",
-                        // position: "fixed",
-                        // insetInlineStart: 0,
-                        // top: 0,
-                        // bottom: 0,
-                        // scrollbarWidth: "thin",
-                        // scrollbarGutter: "stable",
-                        // borderRight: "1px solid #00000033",
-                    }}
-                    trigger={null}
-                    collapsible
-                    collapsed={collapsed}
-                    theme="light"
-                >
-                    <div className="demo-logo-vertical">
-                        <img
-                            src={logo}
-                            alt="Logo"
-                            style={{
-                                paddingLeft: collapsed ? "20px" : "70px",
-                                paddingTop: "20px",
-                                paddingBottom: "10px",
-                                width: collapsed ? "70px" : "130px",
-                            }}
-                        />
-                    </div>
-                    <Menu
+                <div>
+                    <Sider
                         style={{
                             backgroundColor: "#F5F5F58A",
-                            color: "black",
-                            // position: "fixed",
+                            height: "100vh",
+                            position: "fixed",
+                            left: 0,
+                            top: 0,
+                            bottom: 0,
+                            display: "flex",
+                            flexDirection: "column", // Use flexbox to structure the sidebar
+                            justifyContent: "space-between", // Space between items to push footer to the bottom
                         }}
+                        trigger={null}
+                        collapsible
+                        collapsed={collapsed}
                         theme="light"
-                        mode="inline"
-                        selectedKeys={[currentPath]}
-                        items={RoleBasedMenu()} // Use RoleBasedMenu directly
-                        onClick={handleDrawerClose}
-                    />
-                </Sider>
+                    >
+                        <div>
+                            <div className="demo-logo-vertical">
+                                <img
+                                    src={logo}
+                                    alt="Logo"
+                                    style={{
+                                        paddingLeft: collapsed
+                                            ? "20px"
+                                            : "70px",
+                                        paddingTop: "20px",
+                                        paddingBottom: "10px",
+                                        width: collapsed ? "70px" : "130px",
+                                    }}
+                                />
+                            </div>
+                            <Menu
+                                style={{
+                                    backgroundColor: "#F5F5F58A",
+                                    color: "black",
+                                    border: "none",
+                                }}
+                                theme="light"
+                                mode="inline"
+                                selectedKeys={[currentPath]}
+                                items={RoleBasedMenu()}
+                                onClick={handleDrawerClose}
+                            />
+                        </div>
+                       
+                    </Sider>
+                </div>
             )}
 
             {isSmallScreen && (
@@ -140,7 +146,6 @@ const SideNav = () => {
                             backgroundColor: "#F5F5F58A",
                             color: "black",
                             width: "100%",
-                            position: "fixed",
                         }}
                         theme="light"
                         mode="inline"
@@ -151,20 +156,26 @@ const SideNav = () => {
                 </Drawer>
             )}
 
-            <Layout>
+            <Layout
+                style={{
+                    marginLeft: isSmallScreen ? 0 : collapsed ? 80 : 200,
+                }}
+            >
                 <Header
                     style={{
                         padding: 0,
-                        background: "#fff",
+                        background: "white",
                         position: "fixed",
                         left: isSmallScreen ? 0 : collapsed ? 90 : 210,
                         right: 0,
                         top: 0,
                         zIndex: 2,
+                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        padding: "0 16px",
+                        paddingLeft: isSmallScreen ? "8px" : "16px",
+                        paddingRight: isSmallScreen ? "8px" : "16px",
                     }}
                 >
                     {isSmallScreen ? (
@@ -246,6 +257,25 @@ const SideNav = () => {
                         </Dropdown>
                     </div>
                 </Header>
+                <Content style={{ margin: "64px 16px", overflow: "auto" }}>
+                    {/* Your content goes here */}
+                </Content>
+
+                {/* <Content
+                    style={{
+                        margin: "24px 16px 0",
+                        overflow: "initial",
+                    }}
+                >
+                    <div
+                        style={{
+                            padding: 24,
+                            textAlign: "center",
+                        }}
+                    >
+                        <Outlet />
+                    </div>
+                </Content> */}
             </Layout>
         </Layout>
     );

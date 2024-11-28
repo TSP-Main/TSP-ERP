@@ -35,7 +35,8 @@ const CheckedIn = () => {
                 code: code,
             };
             const response = await dispatch(allEmployee(payload)).unwrap();
-            setEmployees(response.data || []);
+            console.log("response", response);
+            setEmployees(response || []);
         } catch (error) {
             notification.error({
                 message: "Error",
@@ -55,9 +56,11 @@ const CheckedIn = () => {
                 const response = await dispatch(
                     checkedinEmployee(payload)
                 ).unwrap();
+                console.log("response", response);
                 const checkedInEmployeeIds =
-                    response.data?.data.map((emp) => emp.id) || [];
+                    response?.map((emp) => emp.employee_id) || [];
                 setCheckedInIds(checkedInEmployeeIds);
+                console.log("checkedInEmployeeIds", checkedInEmployeeIds);
             }
         } catch (error) {
             notification.error({
@@ -75,8 +78,9 @@ const CheckedIn = () => {
 
     // Set row class for checked-in employees
     const rowClassName = (record) => {
-        return checkedInIds.includes(record.id) ? "checked-in-row" : "";
+        return checkedInIds.includes(record.employee.id) ? "checked-in-row" : "";
     };
+    
 
     return (
         <>
@@ -86,10 +90,11 @@ const CheckedIn = () => {
                 dataSource={employees}
                 rowKey={(record) => record.id}
                 rowClassName={rowClassName}
+                pagination={true}
             />
             <style jsx>{`
                 .checked-in-row {
-                    background-color: #d4edda !important; /* Light green background */
+                    background-color: #a8cd89 !important; /* Light green background */
                 }
             `}</style>
         </>

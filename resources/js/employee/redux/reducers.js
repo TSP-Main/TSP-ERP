@@ -63,13 +63,14 @@ export const checkedinEmployee = createAsyncThunk(
     "user/employee",
     async ( payload, { rejectWithValue }) => {
         try {
-            console.log("Users", code, role);
-            console.log("Employeeseses", { role });
-            const response = await axios.get(apiRoutes.employee.checkIn, {
-              payload
-            });
-            console.log("employee", response.data.data.data);
-            return response.data.data.data;
+            // console.log("Users", code, role);
+            // console.log("Employeeseses", { role });
+            const response = await axios.get(
+                apiRoutes.employee.checkedin,
+                payload
+            );
+            console.log("ched in employee", response.data.data);
+            return response.data.data;
         } catch (error) {
             console.log("redux error: " + error);
             return rejectWithValue(

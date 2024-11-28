@@ -31,9 +31,9 @@ export const attendedSchedule = createAsyncThunk(
              console.log("id", id, payload);
             const response = await axios.get(
                 apiRoutes.schedule.missedAttended(id),
-                payload
+                { params: payload }
             );
-            console.log(response.data.data);
+            console.log("employee data from API",response.data.data);
             return response.data.data;
         } catch (error) {
             console.log("redux error: " + error.response.errors);

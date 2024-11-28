@@ -1,6 +1,5 @@
 .layoutContainer {
     height: 100vh;
-    overflow: auto;
     /* Full viewport height */
 }
 
@@ -19,6 +18,4 @@
     /* Allow the content to take up the remaining space */
     padding: 16px;
     /* Add some padding if desired */
-    overflow: auto;
-    scroll-behavior: smooth;
 }
