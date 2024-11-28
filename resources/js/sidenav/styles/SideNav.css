@@ -28,7 +28,7 @@
 .container {
     display: flex;
     height: 100vh;
-    overflow: hidden;
+    /* overflow: hidden; */
     background-color:'#5F5F58A' ;
 }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button, Form, notification } from "antd";
 import CustomInput from "../../components/CustomInput";
 import WelcomePage from "../../components/WelcomePage";
@@ -8,53 +8,53 @@ import { useDispatch, useSelector } from "react-redux";
 import { login } from "../redux/loginReducer";
 import { userData } from "../../dashboard/redux/reducer";
 import { getDefaultPage } from "../../services/defaultPage";
+import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 
 const Login = () => {
+    const [visible, setVisible] = useState(false);
     const dispatch = useDispatch();
     const { error, loading } = useSelector((state) => state.auth); // Assuming user is available here
     const { userdata } = useSelector((state) => state.user);
     const navigate = useNavigate();
     const [rememberMe, setRememberMe] = useState(false);
-    //  const user = userdata?.data?.roles?.[0]?.name;
 
- const handleLoginClick = async (values) => {
-     try {
-         // Unwrap the response to check for errors explicitly
-         const response = await dispatch(login(values)).unwrap();
+    const handleLoginClick = async (values) => {
+        try {
+            // Unwrap the response to check for errors explicitly
+            const response = await dispatch(login(values)).unwrap();
 
-         const user_data = await dispatch(userData()).unwrap();
+            const user_data = await dispatch(userData()).unwrap();
 
-         const accessToken = response?.access_token;
+            const accessToken = response?.access_token;
 
-         if (accessToken) {
-             if (rememberMe) {
-                 localStorage.setItem("access_token", accessToken);
-             } else {
-                 sessionStorage.setItem("access_token", accessToken);
-             }
-         }
+            if (accessToken) {
+                if (rememberMe) {
+                    localStorage.setItem("access_token", accessToken);
+                } else {
+                    sessionStorage.setItem("access_token", accessToken);
+                }
+            }
 
-         console.log("user data", user_data);
-         notification.success({
-             message: "Success",
-             description: "Logged in successfully!",
-             duration: 3,
-         });
+            console.log("user data", user_data);
+            notification.success({
+                message: "Success",
+                description: "Logged in successfully!",
+                duration: 3,
+            });
 
-         // Get the default page based on the user's role
-         const defaultPage = getDefaultPage(user_data); // Pass the user data to get the default page
-         console.log("defaultPage", defaultPage);
-         navigate(defaultPage); // Navigate to the default page
-     } catch (err) {
-         console.error("Login error:", err);
-         notification.error({
-             message: "Error",
-             description: err || "Login failed",
-             duration: 3,
-         });
-     }
- };
-
+            // Get the default page based on the user's role
+            // const defaultPage = getDefaultPage(user_data); // Pass the user data to get the default page
+            // console.log("defaultPage", defaultPage);
+            navigate('/dashboard'); // Navigate to the default page
+        } catch (err) {
+            console.error("Login error:", err);
+            notification.error({
+                message: "Error",
+                description: err || "Login failed",
+                duration: 3,
+            });
+        }
+    };
 
     return (
         <div className={styles.loginContainer}>
@@ -134,8 +134,8 @@ const Login = () => {
                 containerStyle={{
                     borderRadius: "0px 8px 8px 0px",
                 }}
-                title="Hello Friend"
-                description="Sign Up to access your personalized dashboard and features."
+                title="Workforce Management Made Easier!"
+                description="Sign up to effortlessly track attendance, manage shifts, and maintain work hours."
                 buttonText="Sign Up"
                 linkPath="/register"
             />

@@ -8,17 +8,65 @@ const initialState = {
     loading: false,
     employeedata: null,
 };
+export const deleteEmployee = createAsyncThunk(
+    "employee/delete",
+    async (id, { rejectWithValue }) => {
+        try {
+            console.log("inside inactive api");
+            const response = await axios.post(apiRoutes.employee.delete(id));
+            console.log(response.data.data);
+            return response.data.data;
+        } catch (error) {
+            console.log("redux error: " + error);
+            return rejectWithValue(error.response || "Failed to fetch data");
+        }
+    }
+);
 
+export const updateEmployee = createAsyncThunk(
+    "employee/update",
+    async ({id,payload}, { rejectWithValue }) => {
+        try {
+            console.log("inside inactive api");
+            const response = await axios.post(apiRoutes.employee.update(id),payload);
+            console.log(response.data.data);
+            return response.data.data;
+        } catch (error) {
+            console.log("redux error: " + error.response.errors);
+
+            return rejectWithValue(error.response || "Failed to fetch data");
+        }
+    }
+);
 export const allEmployee = createAsyncThunk(
     "user/employee",
     async ({ code, role }, { rejectWithValue }) => {
         try {
             console.log("Users", code, role);
-            console.log("Employeeseses",{role})
+            console.log("Employeeseses", { role });
             const response = await axios.get(apiRoutes.employee.all(code), {
                 params: {
                     role: role,
                 },
+            });
+            console.log("employee", response.data.data.data);
+            return response.data.data.data;
+        } catch (error) {
+            console.log("redux error: " + error);
+            return rejectWithValue(
+                error.response?.errors || "Failed to fetch data"
+            );
+        }
+    }
+);
+export const checkedinEmployee = createAsyncThunk(
+    "user/employee",
+    async ( payload, { rejectWithValue }) => {
+        try {
+            console.log("Users", code, role);
+            console.log("Employeeseses", { role });
+            const response = await axios.get(apiRoutes.employee.checkIn, {
+              payload
             });
             console.log("employee", response.data.data.data);
             return response.data.data.data;
@@ -76,7 +124,7 @@ const employeeSlice = createSlice({
             })
             .addCase(allEmployee.rejected, (state, action) => {
                 state.loading = false;
-                state.error = true;
+                state.error = action.error;
             });
     },
 });

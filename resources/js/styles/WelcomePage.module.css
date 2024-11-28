@@ -50,6 +50,12 @@
     background-color: rgba(17, 34, 103, 1) !important;
     color: #ffffff;
 }
+.title {
+    text-align: center;
+    margin: 0 auto;
+    font-size: 24px; /* Adjust as needed */
+    font-weight: bold; /* Optional for better emphasis */
+}
 
 @media (max-width: 674px) {
     .box2 {

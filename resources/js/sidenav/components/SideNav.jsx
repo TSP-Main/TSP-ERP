@@ -37,9 +37,9 @@ const SideNav = () => {
     const handleLogout = async () => {
         try {
             setLoading(true)
-            dispatch(logout())
+           await dispatch(logout())
             navigate('/login')
-            // window.location.reload();
+            window.location.reload();
             
         } catch (error) {
             setLoading(false);

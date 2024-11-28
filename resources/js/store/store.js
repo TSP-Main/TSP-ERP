@@ -6,6 +6,7 @@ import employeeReducer from '../employee/redux/reducers'
 import inactiveESlice from '../new_registration/redux/reducer'
 import scheduleReducer from '../shift/redux/reducer'
 import  assignedShechuleSlice  from "../attendance/redux/reducer";
+import scheduleEmployeeSlice from '../reports/attended/reducer'
 // import { assigendScheduleSlice } from '../attendance/redux/reducer';
 const store = configureStore({
     reducer: {
@@ -16,6 +17,7 @@ const store = configureStore({
         schedule: scheduleReducer,
         inactive: inactiveESlice,
         assignedShechule: assignedShechuleSlice,
+        scheduleEmployee: scheduleEmployeeSlice,
     },
 });
 

@@ -20,7 +20,7 @@ export const userData = createAsyncThunk(
                 response.data.data.company?.code
             );
             localStorage.setItem("company_id", response?.data?.data?.company?.id)
-            localStorage.setItem("employee_id", response?.data?.data?.id)
+            localStorage.setItem("employee_id", response?.data?.data?.employee?.id)
             return response.data;
         } catch (error) {
             console.log("redux error: " + error);
