@@ -3,7 +3,7 @@ import { Table, Spin, Button, Select } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { allEmployee } from "../employee/redux/reducers";
 import ShiftDropdown from "./components/ShiftDropdown";
-import { showSchedule } from "../shift/redux/reducer";
+import { showSchedule, getAssignedSchedules } from "../shift/redux/reducer";
 import { assignSchedule } from "../attendance/redux/reducer";
 import { FaArrowRight } from "react-icons/fa";
 
@@ -20,8 +20,8 @@ function RowHeaderTable() {
     const { scheduledata, loading: scheduleLoading } = useSelector(
         (state) => state.schedule
     );
+    const { assignedSchedules } = useSelector((state) => state.schedule);
 
-    
     const getDatesForWeek = () => {
         const currentDate = new Date();
         const next7Days = [];
@@ -53,12 +53,15 @@ function RowHeaderTable() {
             },
         }));
     };
-    
 
     // Fetch employee data
     useEffect(() => {
-        console.log("query");
-        dispatch(allEmployee(localStorage.getItem("company_code")));
+        const code = localStorage.getItem("company_code");
+        const payload = {
+            role: "employee",
+            code: code,
+        };
+        dispatch(allEmployee(payload));
     }, [dispatch]);
 
     // Fetch schedule data once (on component mount)
@@ -85,14 +88,44 @@ function RowHeaderTable() {
         }
     }, [employeedata]);
 
+    // Populate selectedShiftsState once assignedSchedules is fetched
+    useEffect(() => {
+        if (assignedSchedules && assignedSchedules.length > 0) {
+            const shiftsState = {};
+
+            // Iterate through each schedule and map employees to shifts
+            assignedSchedules.forEach((schedule) => {
+                // Iterate through the employees assigned to the current schedule
+                schedule.employees.forEach((employee) => {
+                    const employeeId = employee.employee_id;
+                    const shiftId = schedule.schedule_id;
+
+                    // Check if the employee already has an entry in shiftsState
+                    if (!shiftsState[employeeId]) {
+                        shiftsState[employeeId] = {}; // Initialize if not present
+                    }
+
+                    // For each employee, assign the shift to the appropriate column (col1, col2, ...)
+                    const shiftColumn = schedule.schedule_id; // Using the schedule_id as the column number
+
+                    // Map the schedule_id (shift) to the column for the specific employee
+                    shiftsState[employeeId][`col${shiftColumn}`] = shiftId;
+                });
+            });
+
+            // Update the selectedShiftsState with the mapped shifts
+            setSelectedShiftsState(shiftsState);
+        }
+    }, [assignedSchedules]);
+
     const handleSubmit = () => {
         const payload = [];
         const employeeIds = Object.keys(selectedShiftsState);
-    
+
         employeeIds.forEach((employeeId) => {
             const shifts = selectedShiftsState[employeeId];
             const groupedShifts = {};
-    
+
             // Group shifts by schedule ID
             Object.entries(shifts).forEach(([column, scheduleId]) => {
                 if (!groupedShifts[scheduleId]) {
@@ -100,18 +133,26 @@ function RowHeaderTable() {
                 }
                 groupedShifts[scheduleId].push(column); // Collect column names (e.g., col1, col2)
             });
-    
+
             // Create payload entries for each group
             Object.entries(groupedShifts).forEach(([scheduleId, columns]) => {
                 if (scheduleId === null) return; // Skip if no shift is assigned
-    
-                const columnDates = columns.map((col) => reorderedDays[parseInt(col.replace("col", "")) - 1]?.date);
-    
+
+                const columnDates = columns.map(
+                    (col) =>
+                        reorderedDays[parseInt(col.replace("col", "")) - 1]
+                            ?.date
+                );
+
                 // Sort dates and create start and end dates
-                const sortedDates = columnDates.sort((a, b) => new Date(a) - new Date(b));
+                const sortedDates = columnDates.sort(
+                    (a, b) => new Date(a) - new Date(b)
+                );
                 const startDate = sortedDates[0]?.toISOString().split("T")[0];
-                const endDate = sortedDates[sortedDates.length - 1]?.toISOString().split("T")[0];
-    
+                const endDate = sortedDates[sortedDates.length - 1]
+                    ?.toISOString()
+                    .split("T")[0];
+
                 payload.push({
                     employee_id: parseInt(employeeId),
                     schedule_id: parseInt(scheduleId),
@@ -121,20 +162,23 @@ function RowHeaderTable() {
             });
         });
 
-        dispatch(assignSchedule(payload))
-    
+        dispatch(assignSchedule(payload));
+
         console.log("Generated Payload:", payload);
     };
 
     const handleAssignShiftToAllDays = (employeeId, currentShifts) => {
         // Find the first non-null shift in currentShifts
-        const firstNonNullShift = Object.keys(currentShifts).reduce((acc, key) => {
-            if (currentShifts[key] !== null && !acc) {
-                return currentShifts[key]; // Return the first valid shift ID
-            }
-            return acc;
-        }, null); // Default to null if no non-null value found
-    
+        const firstNonNullShift = Object.keys(currentShifts).reduce(
+            (acc, key) => {
+                if (currentShifts[key] !== null && !acc) {
+                    return currentShifts[key]; // Return the first valid shift ID
+                }
+                return acc;
+            },
+            null
+        ); // Default to null if no non-null value found
+
         // If a non-null shift exists, apply it to all columns for the given employee
         if (firstNonNullShift !== null) {
             setSelectedShiftsState((prevState) => ({
@@ -149,13 +193,6 @@ function RowHeaderTable() {
             }));
         }
     };
-    
-    
-    
-    
-
-    // console.log("SelectedShiftsState", selectedShiftsState);
-    // console.log("dataSource", dataSource);
 
     const columns = [
         {
@@ -176,7 +213,12 @@ function RowHeaderTable() {
                     <div>
                         <FaArrowRight
                             type="link"
-                            onClick={() => handleAssignShiftToAllDays(record.key, selectedShiftsState[record.key] || {})}
+                            onClick={() =>
+                                handleAssignShiftToAllDays(
+                                    record.key,
+                                    selectedShiftsState[record.key] || {}
+                                )
+                            }
                             style={{ cursor: "pointer" }}
                         />
                     </div>
@@ -196,21 +238,29 @@ function RowHeaderTable() {
             width: 200,
             render: (text, record) => {
                 // Get the shift ID from selectedShiftsState for this employee (record.key) and column (colN)
-                const shiftId = selectedShiftsState[record.key]?.[`col${dayIndex + 1}`];
+                const shiftId =
+                    selectedShiftsState[record.key]?.[`col${dayIndex + 1}`];
                 return (
                     <Select
                         placeholder="Select shift"
                         style={{ width: "100%" }}
-                        value={shiftId || text}  // If shiftId exists, use it, otherwise show default value
+                        value={shiftId}
                         onChange={(value) =>
-                            handleShiftChange(record.key, `col${dayIndex + 1}`, value)
+                            handleShiftChange(
+                                record.key,
+                                `col${dayIndex + 1}`,
+                                value
+                            )
                         }
                     >
                         <Select.Option value={null} style={{ color: "gray" }}>
                             No Schedule
                         </Select.Option>
                         {scheduledata.map((data) => (
-                            <Select.Option key={data.id} value={data.id}>
+                            <Select.Option
+                                key={data.schedule_id}
+                                value={data.schedule_id}
+                            >
                                 {`${data.start_time}-${data.end_time}`}
                             </Select.Option>
                         ))}
@@ -219,7 +269,13 @@ function RowHeaderTable() {
             },
         })),
     ];
-    
+
+    useEffect(() => {
+        const companyId = localStorage.getItem("company_id");
+        if (companyId) {
+            dispatch(getAssignedSchedules(companyId));
+        }
+    }, [dispatch]);
 
     // if (scheduleLoading || loading) {
     //     return <Spin />;
@@ -229,9 +285,11 @@ function RowHeaderTable() {
         return <Spin />;
     }
 
-    // console.log("data source: ", dataSource);
-    // console.log("employee data: ", employeedata);
+    console.log("data source: ", dataSource);
+    console.log("employee data: ", employeedata);
     // console.log("schedule data: ", scheduledata);
+    // console.log("assigned schedules: ", assignedSchedules);
+    // console.log("shift state: ", selectedShiftsState);
 
     return (
         <>

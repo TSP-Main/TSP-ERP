@@ -22,12 +22,13 @@ const apiRoutes = {
     },
     schedule: {
         create: "/schedule/create-schedule",
-        show: (id) => `/schedule/${id}`,
+        show: (id) => `/company-schedule/${id}`,
         assignSchedule: `/schedule/assign-schedule`,
         delete: (id) => `/schedule/delete/${id}`,
         update: (id) => `/schedule/update/${id}`,
         missedAttended: (id) => `/schedule/missed-attended-schedule/${id}`,
         change: "/schedule/employee-availability-dashboard",
+        assignedSchedules: (companyId) => `/schedule/all-assigned-schedule/${companyId}`
     },
     forgotpassword: {
         email: "/forgot-password",

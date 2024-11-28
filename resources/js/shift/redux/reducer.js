@@ -7,7 +7,21 @@ const initialState = {
     loading: false,
     scheduledata: [], // Initialize as an empty array
     changeRequestData: [],
+    assignedSchedules: []
 };
+
+export const getAssignedSchedules = createAsyncThunk('employee/getAssignedSchedules', async (companyId, { rejectWithValue }) => {
+    try {
+       const res = await axios.get(apiRoutes.schedule.assignedSchedules(companyId))
+       
+    //    console.log("res of assignedSchedules:", res);
+       return res.data.data
+    } catch (error) {
+        return rejectWithValue(
+            error.response?.data?.message || "Failed to fetch data"
+        );
+    }
+})
 
 export const createSchedule = createAsyncThunk(
     "schedule/create",
@@ -114,6 +128,19 @@ const scheduleSlice = createSlice({
             .addCase(getChangeRequest.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload; // Handle error if needed
+            })
+            .addCase(getAssignedSchedules.pending, (state) => {
+                state.loading = true;
+                state.error = false;
+            })
+            .addCase(getAssignedSchedules.fulfilled, (state, action) => {
+                state.assignedSchedules = action.payload;
+                state.loading = false;
+                state.error = false;
+            })
+            .addCase(getAssignedSchedules.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || action.error.message;
             });
     },
 });
