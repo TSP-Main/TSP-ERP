@@ -1,26 +1,26 @@
-import React from 'react'
-import { Table,Button } from 'antd';
+import React from "react";
+import { Table, Button } from "antd";
 import { MdCancelPresentation } from "react-icons/md";
-const InvitedEmployee = () => {
-    const data=[
+const InvitCancel = () => {
+    const data = [
         {
-            name:"Test",
-            email:"test",
-            employee:{company_code:"12345"}
-        }
-    ]
-  return (
-      <>
-      <h1>Invited Employee</h1>
-          <Table
-              columns={columns} // Pass the columns here
-              dataSource={data} // Pass the employee data here
-              // rowKey={(record) => record.employee.company_code}
-              pagination={false}
-          />
-      </>
-  );
-}
+            name: "Test",
+            email: "test",
+            employee: { company_code: "12345" },
+        },
+    ];
+    return (
+        <>
+          <h1>Invite Cancel Employee</h1>
+            <Table
+                columns={columns} // Pass the columns here
+                dataSource={data} // Pass the employee data here
+                // rowKey={(record) => record.employee.company_code}
+                pagination={false}
+            />
+        </>
+    );
+};
 export const columns = [
     {
         title: "Name",
@@ -44,8 +44,8 @@ export const columns = [
             <div style={{ display: "flex", gap: "8px" }}>
                 <Button
                     style={{
-                        border:'none',
-                        color:'red'
+                        border: "none",
+                        color: "red",
                     }}
                     // onClick={() => onView(record.id)}
                     icon={<MdCancelPresentation />}
@@ -56,4 +56,4 @@ export const columns = [
     },
 ];
 
-export default InvitedEmployee
+export default InvitCancel;

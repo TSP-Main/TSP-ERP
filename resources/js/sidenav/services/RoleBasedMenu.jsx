@@ -92,10 +92,8 @@ const RoleBasedMenu = () => {
                     <MdCancel />
                 ),
                 getItem(
-                    <Link to="/cancel-invited-employee">
-                        Invite Canceled Employee
-                    </Link>,
-                    "/cancel-invited-employee", // Key matching the URL path
+                    <Link to="/invite-cancel">Invite Canceled Employee</Link>,
+                    "/invite-cancel", // Key matching the URL path
                     <MdCancel />
                 ),
             ]),

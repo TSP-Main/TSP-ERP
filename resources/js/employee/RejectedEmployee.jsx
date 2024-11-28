@@ -10,12 +10,15 @@ const RejectedEmployee = () => {
         },
     ];
     return (
+        <>
+        <h1>Rejected Employees</h1>
         <Table
             columns={columns} // Pass the columns here
             dataSource={data} // Pass the employee data here
             // rowKey={(record) => record.employee.company_code}
             pagination={false}
         />
+        </>
     );
 };
 export const columns = [
