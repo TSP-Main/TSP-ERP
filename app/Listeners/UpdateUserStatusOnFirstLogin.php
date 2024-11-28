@@ -13,7 +13,7 @@ class UpdateUserStatusOnFirstLogin
     /**
      * Create the event listener.
      */
-    // public function __construct()
+    // public function __construct(string $guard, $user)
     // {
     //     //
     // }
@@ -23,15 +23,12 @@ class UpdateUserStatusOnFirstLogin
      */
     public function handle(Authenticated $event): void
     {
-        dd('here1');
-        logger('Authenticated event triggered');
-        Log::info('Authenticated event triggereds');
+        // Access the user and guard from the event
         $user = $event->user;
-        // dd($user);
+        $guard = $event->guard;
 
-        // Check if the user's status is 'invited' and update it to 'approved'
+        // Update the user's status if it's 'INVITED'
         if ($user->status === StatusEnum::INVITED) {
-            dd('here');
             $user->update(['status' => StatusEnum::APPROVED]);
             $user->employee()->update(['status' => StatusEnum::APPROVED]);
         }

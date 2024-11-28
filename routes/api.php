@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Companies\CompanyController;
 use App\Http\Controllers\Api\Employee\EmployeeController;
 use App\Http\Controllers\Api\Payment\StripePaymentController;
 use App\Http\Controllers\Api\Schedule\ScheduleController;
+use Illuminate\Auth\Events\Authenticated;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,9 +19,6 @@ use App\Http\Controllers\Api\Schedule\ScheduleController;
 |
 */
 
-Route::get('test', function () {
-    return response()->json(['message' => 'Test successful']);
-});
 // Handle OPTIONS requests
 Route::options('{any}', function () {
     return response()->json([], 204);

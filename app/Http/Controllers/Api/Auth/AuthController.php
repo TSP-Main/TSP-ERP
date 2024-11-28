@@ -20,6 +20,7 @@ use App\Models\Company\CompanyModel;
 use App\Models\Employee\Employee;
 use App\Models\Otp;
 use App\Models\User;
+use Illuminate\Auth\Events\Authenticated;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -200,6 +201,11 @@ class AuthController extends BaseController
                 return $this->sendError(['error' => 'Account is not active. Please contact support.'], 403);
             }
 
+            // Fire the Authenticated event manually
+            if ($user->status === StatusEnum::INVITED) {
+                event(new Authenticated('api', $user));
+            }
+            
             // Create a new token
             $token = $user->createToken(User::AUTH_TOKEN)->accessToken;
 
