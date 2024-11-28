@@ -1,16 +1,78 @@
-import { Table, Button } from "antd";
+import {
+    Table,
+    Button,
+    Modal,
+    Form,
+    Input,
+    DatePicker,
+    notification,
+    TimePicker,
+} from "antd";
 import React, { useState, useEffect } from "react";
 import moment from "moment";
 import { useDispatch, useSelector } from "react-redux";
-import { assignedShechule, checkIn, checkOut } from "./redux/reducer";
+import { assignedShechule, checkIn, checkOut, postEmployeeAvailability } from "./redux/reducer";
 import Cookies from "js-cookie";
 
 const Index = () => {
+    console.log("attendance");
     const dispatch = useDispatch();
     const { dataa, loading } = useSelector((state) => state.assignedShechule);
     const [data, setData] = useState([]);
     const [statusCheckIn, setStatusCheckIn] = useState(false);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [form] = Form.useForm();
 
+    // Handle modal open
+    const handleOpenModal = (record) => {
+        const selectedDate = moment(record.date, "YYYY-MM-DD").format(
+            "YYYY-MM-DD"
+        );
+        console.log(selectedDate);
+        setIsModalVisible(true);
+    };
+
+    // Handle modal close
+    const handleCloseModal = () => {
+        setIsModalVisible(false);
+        form.resetFields(); // Reset form fields when the modal is closed
+    };
+
+    // Handle form submission
+    const handleFormSubmit =async (values) => {
+        const id = localStorage.getItem("employee_id");
+        const formattedData = {
+            employee_id: id,
+            date: values.date.format("YYYY-MM-DD"),
+            start_time: values.start_time.format("HH:mm"),
+            end_time: values.end_time.format("HH:mm"),
+        };
+
+        console.log("Submitted Data:", formattedData);
+         try {
+             const response = await dispatch(
+                 postEmployeeAvailability(formattedData)
+             ).unwrap(); // Use `.unwrap()` for cleaner error handling
+             notification.success({
+                 description:
+                     response?.message || "Schedule created successfully",
+                 duration: 3,
+             });
+             handleCloseModal(); // Close modal on success
+         } catch (error) {
+            console.log(error)
+             notification.error({
+                 description:
+                     error || "Something went wrong. Please try again.",
+                 duration: 3,
+             });
+         }
+
+        // Perform API call here
+        // Example: await dispatch(changeSchedule(formattedData));
+
+       // Close the modal after submission
+    };
     // Generate dates starting from yesterday towards the next 7 days
     const generateDates = () => {
         const dates = [];
@@ -156,9 +218,8 @@ const Index = () => {
                         statusCheckIn &&
                         now.isSame(scheduleEndTime, "minute")
                     ) {
-                       
                         handleCheckOut();
-                         Cookies.remove(statusCheckIn);
+                        Cookies.remove(statusCheckIn);
                     }
                 });
             });
@@ -192,7 +253,9 @@ const Index = () => {
             key: "actions",
             render: (text, record) => {
                 const now = moment();
+                // const today = moment().format("YYYY-MM-DD") === record.date;
 
+                // Check if any schedule is active
                 const isWithinSchedule = record.schedules.some((schedule) => {
                     const scheduleStartTime = moment(
                         `${record.date} ${schedule.start_time}`,
@@ -202,10 +265,14 @@ const Index = () => {
                         `${record.date} ${schedule.end_time}`,
                         "YYYY-MM-DD hh:mm A"
                     );
+
                     return now.isBetween(scheduleStartTime, scheduleEndTime);
                 });
 
-                if (record.schedules.length > 0 && isWithinSchedule) {
+                // Disable button if not within the schedule time or not today
+                const shouldDisableButton = !isWithinSchedule;
+
+                if (record.schedules.length > 0) {
                     return (
                         <>
                             {!statusCheckIn ? (
@@ -213,14 +280,27 @@ const Index = () => {
                                     style={{ marginRight: "10px" }}
                                     type="primary"
                                     onClick={handleCheckIn}
+                                    disabled={shouldDisableButton}
+                                    title="Can only CheckIn/Out in assigned Schedule Time"
                                 >
                                     Check In
                                 </Button>
                             ) : (
-                                <Button type="primary" onClick={handleCheckOut}>
+                                <Button
+                                    type="primary"
+                                    onClick={handleCheckOut}
+                                    disabled={shouldDisableButton}
+                                    title="Can only CheckIn/Out in assigned Schedule Time"
+                                >
                                     Check Out
                                 </Button>
                             )}
+                            <Button
+                                type="primary"
+                                onClick={() => handleOpenModal(record)}
+                            >
+                                Change Schedule
+                            </Button>
                         </>
                     );
                 }
@@ -231,19 +311,95 @@ const Index = () => {
     ];
 
     return (
-        <Table
-            columns={columns}
-            dataSource={data}
-            pagination={false}
-            loading={loading}
-            style={{
-                minWidth: 800,
-                tableLayout: "fixed",
-                overflowX: "auto",
-                overflowY: "auto",
-            }}
-            scroll={{ x: "max-content", y: 500 }}
-        />
+        <>
+            <Table
+                columns={columns}
+                dataSource={data}
+                pagination={false}
+                loading={loading}
+                // scroll={{ x: 0, y: 0}}
+                // style={{
+                //     minWidth: 800,
+                //     tableLayout: "fixed",
+                //     overflowX: "auto",
+                //     overflowY: "auto",
+                // }}
+                // scroll={{ x: "max-content", y: 500 }}
+            />
+            <Modal
+                title="Change Schedule"
+                visible={isModalVisible}
+                onCancel={handleCloseModal}
+                footer={null} // Use the form's submit button for actions
+            >
+                <Form
+                    form={form}
+                    layout="vertical"
+                    onFinish={handleFormSubmit}
+                    initialValues={{
+                        employee_id: 1, // Default employee ID
+                        date: moment(), // Default date to today
+                        start_time: moment("09:00", "HH:mm"),
+                        end_time: moment("17:00", "HH:mm"),
+                    }}
+                >
+                    <Form.Item
+                        label="Date"
+                        name="date"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please select the date!",
+                            },
+                        ]}
+                    >
+                        <DatePicker
+                            style={{ width: "100%" }}
+                            disabledDate={(current) =>
+                                current && current < moment().startOf("day")
+                            }
+                        />
+                    </Form.Item>
+
+                    <Form.Item
+                        label="Start Time"
+                        name="start_time"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please select the start time!",
+                            },
+                        ]}
+                    >
+                        <TimePicker style={{ width: "100%" }} format="HH:mm" />
+                    </Form.Item>
+
+                    <Form.Item
+                        label="End Time"
+                        name="end_time"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please select the end time!",
+                            },
+                        ]}
+                    >
+                        <TimePicker style={{ width: "100%" }} format="HH:mm" />
+                    </Form.Item>
+
+                    <Form.Item>
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            style={{ marginRight: "8px" }}
+                        >
+                            Submit
+                        </Button>
+                        <Button onClick={handleCloseModal}>Cancel</Button>
+                    </Form.Item>
+                </Form>
+            </Modal>
+        </>
     );
 };
 

@@ -2,8 +2,14 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { userData } from "./redux/reducer";
 import "./styles/Dashboard.css"; // Importing the CSS file
-import { MailOutlined, UserOutlined, IdcardOutlined,BarcodeOutlined } from "@ant-design/icons";
-import { Button } from "antd";
+import {
+    MailOutlined,
+    UserOutlined,
+    IdcardOutlined,
+    BarcodeOutlined,
+    CopyOutlined,
+} from "@ant-design/icons";
+import { Button, notification } from "antd";
 import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
@@ -22,6 +28,44 @@ const Dashboard = () => {
         sessionStorage.clear();
         navigate("/login");
     };
+
+    // Copy Company Code to Clipboard
+    const handleCopyCompanyCode = () => {
+        const companyCode = userdata?.data?.company?.code;
+        if (companyCode) {
+            navigator.clipboard
+                .writeText(companyCode)
+                .then(() => {
+                    notification.success({
+                        message: "Copied to Clipboard!",
+                        description: `Company code "${companyCode}" has been copied.`,
+                        duration: 2,
+                    });
+                })
+                .catch((err) => {
+                    console.error("Failed to copy text: ", err);
+                    notification.error({
+                        message: "Copy Failed",
+                        description: "Unable to copy the company code.",
+                        duration: 2,
+                    });
+                });
+        } else {
+            notification.warning({
+                message: "No Company Code",
+                description: "No company code is available to copy.",
+                duration: 2,
+            });
+        }
+    };
+
+    if (!userdata) {
+        return (
+            <div className="dashboard-container">
+                <p>Loading profile...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="dashboard-container">
@@ -72,9 +116,27 @@ const Dashboard = () => {
                                 <BarcodeOutlined className="icon" />
                                 <div>
                                     <h3>Company Code</h3>
-                                    <p>
-                                        {userdata?.data?.company?.code || "N/A"}
-                                    </p>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexDirection: "row",
+                                            flexGrow: 1,
+                                            alignContent:'center',
+                                            alignItems:'center'
+                                        }}
+                                    >
+                                        <p>
+                                            {userdata?.data?.company?.code ||
+                                                "N/A"}
+                                        </p>
+
+                                        <Button
+                                            type="link"
+                                            icon={<CopyOutlined />}
+                                            onClick={handleCopyCompanyCode}
+                                        />
+                                            
+                                    </div>
                                 </div>
                             </div>
                         )}

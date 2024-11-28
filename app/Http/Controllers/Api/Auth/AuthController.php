@@ -9,6 +9,7 @@ use Exception;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterUserRequest;
 use App\Http\Requests\Auth\ForgetPasswordRequest;
+use App\Http\Requests\Auth\GetAllUserRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Http\Requests\Auth\verifyForgetPasswordOtpRequest;
@@ -19,6 +20,8 @@ use App\Models\Company\CompanyModel;
 use App\Models\Employee\Employee;
 use App\Models\Otp;
 use App\Models\User;
+use Illuminate\Auth\Events\Authenticated;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -26,10 +29,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Request;
 use Stripe\Stripe;
 use Stripe\SetupIntent;
 use Illuminate\Support\Str;
-
 
 
 class AuthController extends BaseController
@@ -65,9 +68,23 @@ class AuthController extends BaseController
                 try {
                     Stripe::setApiKey(env('STRIPE_SECRET'));
 
+                    // Ensure the customer is created (if not already done in your system)
+                    if (empty($user->stripe_id)) {
+                        $stripeCustomer = \Stripe\Customer::create([
+                            'email' => $request->email,
+                            'name' => $request->company_name,
+                        ]);
+                        $user->update(['stripe_id' => $stripeCustomer->id]);
+                    }
+
                     // Attach the payment method to the customer
                     $paymentMethod = \Stripe\PaymentMethod::retrieve($request->payment_method_id);
-                    $paymentMethod->attach(['customer' => $user->stripe_id]);
+                    // $paymentMethod->attach(['customer' => $user->stripe_id]);
+
+                    // Check if the payment method is already attached to the customer
+                    if ($paymentMethod->customer !== $user->stripe_id) {
+                        $paymentMethod->attach(['customer' => $user->stripe_id]);
+                    }
 
                     // Update the default payment method
                     $user->updateDefaultPaymentMethod($request->payment_method_id);
@@ -97,11 +114,13 @@ class AuthController extends BaseController
                     'name' => $request->name,
                     'email' => $request->email,
                     'password' => Hash::make($request->password),
+                    'status' => StatusEnum::NOT_APPROVED
                 ]);
                 $user->assignRole(StatusEnum::EMPLOYEE);
                 Employee::create([
                     'user_id' => $user->id,
                     'company_code' => $company->code,
+                    'status' => StatusEnum::NOT_APPROVED
                 ]);
                 DB::commit();
                 return $this->sendResponse(['user' => $user], 'User register successfully');
@@ -148,7 +167,7 @@ class AuthController extends BaseController
                     $user->newSubscription('default', $priceId)->create($user->defaultPaymentMethod()->id);
 
                     CompanyApprovedEmailJob::dispatch($user, $companyCode);
-                    $user->update(['is_active' => StatusEnum::ACTIVE]);
+                    $user->update(['is_active' => StatusEnum::ACTIVE, 'status' => StatusEnum::APPROVED]);
                     break;
 
                 case StatusEnum::EMPLOYEE:
@@ -160,7 +179,9 @@ class AuthController extends BaseController
                     $user->update([
                         'is_active' => StatusEnum::ACTIVE,
                         'otp_verified' => StatusEnum::OTP_VERIFIED,
+                        'status' => StatusEnum::APPROVED
                     ]);
+                    $user->employee()->update(['is_active' => StatusEnum::ACTIVE, 'status' => StatusEnum::APPROVED]);
                     break;
 
                 default:
@@ -190,8 +211,13 @@ class AuthController extends BaseController
             //     return $this->sendError(['error' => 'User already logged in.'], 403);
             // }
 
-            if ($user->hasRole(StatusEnum::COMPANY) && $user->is_active != StatusEnum::ACTIVE) {
+            if (($user->hasRole([StatusEnum::COMPANY, StatusEnum::EMPLOYEE])) && $user->is_active != StatusEnum::ACTIVE) {
                 return $this->sendError(['error' => 'Account is not active. Please contact support.'], 403);
+            }
+
+            // Fire the Authenticated event manually
+            if ($user->status === StatusEnum::INVITED) {
+                event(new Authenticated('api', $user));
             }
 
             // Create a new token
@@ -203,7 +229,6 @@ class AuthController extends BaseController
                 'email' => $user->email,
             ], 'Successfully logged in');
         } catch (Exception $e) {
-            Log::error('Login error: ' . $e->getMessage());
             return $this->sendError('Something went wrong, error in processing login', 500);
         }
     }
@@ -337,11 +362,11 @@ class AuthController extends BaseController
     {
         try {
             DB::beginTransaction();
-            $data = $request->all();
+            $data = $request->except('email');
             $user = Auth::user();
 
             if (isset($data['password'])) {
-                $data['password'] = bcrypt($data['password']); //password in needed
+                $data['password'] = bcrypt($data['password']); //password is needed
             }
 
             $user->update($data);
@@ -363,6 +388,112 @@ class AuthController extends BaseController
             return $this->sendResponse($user, 'User details retrieved successfully.');
         } else {
             return $this->sendResponse('User is not authenticated.');
+        }
+    }
+
+    public function getAllUsers(GetAllUserRequest $request)
+    {
+        $paginate = $request->per_page ?? 20;
+        $this->authorize('get-all-users');
+        $users = User::paginate($paginate);
+        if (!$users) {
+            return $this->sendResponse('No user found');
+        }
+        return $this->sendResponse($users, 'All users displayed');
+    }
+
+    public function updateIsActiveStatus($id)
+    {
+        try {
+            $user = User::where('id', $id)
+                ->where('is_active', StatusEnum::ACTIVE)
+                ->whereHas('roles', function ($query) {
+                    $query->where('name', StatusEnum::EMPLOYEE);
+                })
+                ->firstOrFail();
+
+            // Update the user's active status
+            $user->update(['is_active' => StatusEnum::INACTIVE]);
+
+            $employee = Employee::where('user_id', $id)
+                ->where('is_active', StatusEnum::ACTIVE)
+                ->first();
+
+            if ($employee) {
+                $employee->update(['is_active' => StatusEnum::INACTIVE]);
+            }
+
+            return $this->sendResponse([], 'User and employee status updated successfully');
+        } catch (ModelNotFoundException $e) {
+            return $this->sendError('User not found, not active, or does not have the employee role', 404);
+        } catch (Exception $e) {
+            Log::error('Error updating user and employee status: ' . $e->getMessage());
+            return $this->sendError('Something went wrong while updating status', 500);
+        }
+    }
+
+    public function userReject(User $user)
+    {
+        if (!$user) {
+            return $this->sendResponse([], 'User not found');
+        }
+        $roleName = $user->roles->first()->name;
+
+        switch ($roleName) {
+            case StatusEnum::COMPANY;
+                $this->authorize('reject-company');
+                $user->update(['is_active' => StatusEnum::INACTIVE, 'status' => StatusEnum::REJECTED]);
+                break;
+
+            case StatusEnum::EMPLOYEE;
+                $this->authorize('reject-employee');
+                $user->update(['is_active' => StatusEnum::INACTIVE, 'status' => StatusEnum::REJECTED]);
+                $user->employee->update(['is_active' => StatusEnum::INACTIVE, 'status' => StatusEnum::REJECTED]);
+                break;
+        }
+        return $this->sendResponse(ucfirst($roleName) . 'rejected', 200);
+    }
+
+    public function useInviteCancel(User $user)
+    {
+        if (!$user) {
+            return $this->sendResponse([], 'User not found');
+        }
+
+        $role = $user->roles->first();
+        if (!$role) {
+            return $this->sendResponse([], 'User role not found');
+        }
+
+        if ($role->name === StatusEnum::EMPLOYEE) {
+            // Check if the user is invited
+            if ($user->status !== StatusEnum::INVITED) {
+                return $this->sendResponse([], 'Action not allowed. User is not in invited status.');
+            }
+
+            $this->authorize('reject-employee');
+
+            // Collect attributes to update
+            $updateData = [
+                'is_active' => StatusEnum::INACTIVE,
+                'status' => StatusEnum::CANCELLED
+            ];
+
+            $user->update($updateData);
+            $user->employee->update($updateData);
+        }
+
+        return $this->sendResponse(ucfirst($role->name) . ' invite cancelled', 200);
+    }
+
+    public function rejectedUser(Request $request)
+    {
+        try {
+            $paginate = $request->per_page ?? 20;
+            $user = User::where('status', StatusEnum::REJECTED)->paginate($paginate);
+            return $this->sendResponse($user, 'Rejected user successfully displayed');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
 }

@@ -3,11 +3,12 @@ import apiRoutes from "../../routes/apiRoutes";
 import axios from "../../services/axiosService";
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialState={
-    dataa:[],
-    loading:false,
-    error:false
-}
+const initialState = {
+    dataa: [],
+    loading: false,
+    error: false,
+};
+
 export const assignedShechule = createAsyncThunk(
     "employee/assignedShechule",
     async (id, { rejectWithValue }) => {
@@ -35,27 +36,42 @@ export const assignedShechule = createAsyncThunk(
     }
 );
 
-export const assignSchedule = createAsyncThunk('employee/assignSchedule', async (schedulePayload, { rejectWithValue }) => {
-
-
-    try {
-        
-        const response = await axios.post(apiRoutes.schedule.assignSchedule, schedulePayload)
-
-        console.log('===============Assign schedule response=====================');
-        console.log(response);
-        console.log('====================================');
-
-    } catch (error) {
-        return rejectWithValue(
-            error.response?.data?.message || "Failed to assign schedule"
-        );
+export const assignSchedule = createAsyncThunk(
+    "employee/assignSchedule",
+    async (schedulePayload, { rejectWithValue }) => {
+        try {
+            const response = await axios.post(
+                apiRoutes.schedule.assignSchedule,
+                schedulePayload
+            );
+            // console.log("res: ", response);
+            
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || "Failed to assign schedule"
+            );
+        }
     }
+);
 
-
-})
-
-
+export const postEmployeeAvailability = createAsyncThunk(
+    "employee/postEmployeeAvailability",
+    async (availabilityPayload, { rejectWithValue }) => {
+        try{
+          const response=await axios.post(apiRoutes.employee.postAvail,availabilityPayload); 
+          return response; 
+        }catch(error){
+            console.log(
+                "================================",
+                error.response?.data?.message
+            );
+            return rejectWithValue(
+                error.response?.data?.message || "Failed to Add Availability"
+            );
+        }
+    }
+);
 export const checkIn = createAsyncThunk(
     "employee/checkIn",
     async ({ id, time_in }, { rejectWithValue }) => {
@@ -100,8 +116,6 @@ export const checkOut = createAsyncThunk(
     }
 );
 
-
-
 const assigendScheduleSlice = createSlice({
     name: "schedule",
     initialState,
@@ -119,7 +133,7 @@ const assigendScheduleSlice = createSlice({
             .addCase(assignedShechule.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload || action.error.message;
-            });
+            })
     },
 });
 

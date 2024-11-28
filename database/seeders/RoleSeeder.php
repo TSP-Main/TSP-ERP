@@ -27,10 +27,14 @@ class RoleSeeder extends Seeder
             'home',
             'dashboard',
 
+            // all-users
+            'get-all-users',
+
             //company
             'delete-company',
             'approve-company',
             'show-companies',
+            'reject-company',
 
             //manager
             'approve-manager',
@@ -39,12 +43,16 @@ class RoleSeeder extends Seeder
             'approve-employee',
             'show-employees',
             'create-employee',
+            'update-employee',
+            'checkedin-employees',
+            'reject-employee',
 
             //schedule
             'create-schedule',
             'update-schedule',
             'delete-schedule',
             'assign-schedule',
+            'employee-availability',
 
             //attendance
             'add-attendance',
@@ -56,7 +64,6 @@ class RoleSeeder extends Seeder
         }
 
         // Sync all permissions with super admin role
-        // $superAdmin->syncPermissions(Permission::all());
         $superAdmin->givePermissionTo(Permission::all());
 
         // Assign specific permissions to comapny
@@ -64,22 +71,29 @@ class RoleSeeder extends Seeder
             'approve-manager',
             'approve-employee',
             'create-employee',
+            'update-employee',
             'create-schedule',
             'update-schedule',
             'delete-schedule',
             'show-employees',
             'assign-schedule',
+            'checkedin-employees',
+            'employee-availability',
+            'reject-employee',
         ];
         $company->givePermissionTo($companyPermission);
 
         // Assign specific permissions to manger
         $manager->syncPermissions([
             'approve-employee',
-            'create-schedule',
+            'update-schedule',
             'update-schedule',
             'show-employees',
             'assign-schedule',
             'add-attendance',
+            'checkedin-employees',
+            'employee-availability',
+            'reject-employee',
         ]);
 
         // Assign specific permissions to employee

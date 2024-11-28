@@ -4,7 +4,6 @@ import { useSelector, useDispatch } from "react-redux";
 import Login from "./auth/components/Login.jsx";
 import Register from "./Register/Register.jsx";
 import ForgotPassword from "./forgetpassword/ForgotPassword.jsx";
-import PrivateRoute from "./PrivateRoute.jsx";
 import AdminRoutes from "./routes/AdminRoutes.jsx";
 import CompanyRoutes from "./routes/CompanyRoutes.jsx";
 import EmployeeRoutes from "./routes/EmployeeRoutes.jsx";
@@ -24,25 +23,23 @@ const RoutesComponent = () => {
     const token =
         localStorage.getItem("access_token") ||
         sessionStorage.getItem("access_token");
+    
 
     return (
         <Routes>
             {/* Public Routes */}
             <Route
                 path="/"
-                index
-                element={token ? <Navigate to="/dashboard" /> : <Login />}
+                element={
+                    token ? <Navigate to="/dashboard" replace /> : <Login />
+                }
             />
-            <Route
-                path="/login"
-                element={token ? <Navigate to="/dashboard" /> : <Login />}
-            />
+            <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forget-password" element={<ForgotPassword />} />
-              <Route
-                path="/"
-                element={<PrivateRoute element={<DefaultLayout />} />}
-            >
+
+            {/* Protected Routes */}
+            <Route path="/" element={<DefaultLayout />}>
                 <Route path="dashboard" element={<Dashboard />} />
             </Route>
 
@@ -58,12 +55,12 @@ const RoutesComponent = () => {
             )}
 
             {/* Fallback Route */}
-            <Route
+            {/* <Route
                 path="*"
                 element={
                     <Navigate to={token ? "/dashboard" : "/login"} replace />
                 }
-            />
+            /> */}
         </Routes>
     );
 };

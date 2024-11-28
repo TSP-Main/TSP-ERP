@@ -12,7 +12,9 @@ const WelcomePage = ({
 }) => {
     return (
         <div className={styles.box2} style={containerStyle}>
-            <h1>{title}</h1>
+            <h1 className={styles.title} style={{ textAlign: "center" }}>
+                {title}
+            </h1>
             <p className={styles.paragraph}>{description}</p>
             <Link to={linkPath} style={{ textDecoration: "none" }}>
                 <Button

@@ -2,18 +2,19 @@ import React from "react";
 import { Routes, Route } from "react-router-dom";
 import DefaultLayout from "../defaultLayout/DefaultLayout.jsx";
 import Attendance from "../attendance/index.jsx";
-import Profile from "../dashboard/Dashboard.jsx";
-import PrivateRoute from "../PrivateRoute.jsx";
+import { Outlet } from "react-router-dom";
+import Missed from '../reports/missed/index.jsx'
+import Attended from '../reports/attended/index.jsx'
 
 const EmployeeRoutes = () => {
     return (
         <Routes>
-            <Route
-                path="/"
-                element={<PrivateRoute element={<DefaultLayout />} />}
-            >
-                <Route path="profile" element={<Profile />} />
+            <Route path="/" element={<DefaultLayout />}>
+                {/* Render child routes inside DefaultLayout */}
                 <Route path="attendance" element={<Attendance />} />
+                <Route path="missed" element={<Missed />} />
+                <Route path="attended" element={<Attended />} />
+              
                 {/* Add other employee-specific routes here */}
             </Route>
         </Routes>

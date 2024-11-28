@@ -9,7 +9,7 @@ const loginService = {
             const response = await axios.post(apiRoutes.login, values);
             if (response.data.status === 200) {
                 notification.success({
-                    message: "Success",
+                   
                     description: response.data.message,
                     duration: 3,
                 });
@@ -21,7 +21,7 @@ const loginService = {
             return response;
         } catch (error) {
             notification.error({
-                message: "Error",
+                
                 description: error.response?.data?.message || "Login failed",
                 duration: 3,
             });
