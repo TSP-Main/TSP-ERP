@@ -1,7 +1,7 @@
 {
     "private": true,
     "type": "module",
-    "proxy": "http://rota.tspsolution.com/",
+    "proxy": "https://rota.tspsolutions.com/",
     "scripts": {
         "dev": "vite",
         "build": "vite build"
