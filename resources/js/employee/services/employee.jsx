@@ -150,7 +150,7 @@ const refetchEmployees = async () => {
                     />
                     <Button
                         icon={<MdDelete />}
-                        onClick={() => showDeleteModal(record.id)}
+                        onClick={() => showDeleteModal(record?.user_id)}
                     />
                 </div>
             ),

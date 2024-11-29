@@ -11,7 +11,7 @@ import RejectedEmployee from "../employee/RejectedEmployee.jsx";
 import ChangeShift from "../shift/ChangeShift.jsx";
 import CheckedIn from "../employee/CheckedIn.jsx";
 import InvitCancel from "../employee/InviteCancel.jsx";
-import InActive from "../new_registration/index.jsx";
+import InActive from "../employee/InaActiveEmployee.jsx";
 const CompanyRoutes = () => {
     return (
         <Routes>

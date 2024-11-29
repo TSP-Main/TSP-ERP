@@ -43,6 +43,7 @@ class AuthController extends BaseController
     {
         try {
             DB::beginTransaction();
+
             if ($request->role === StatusEnum::COMPANY) {
                 $user = User::create([
                     'name' => $request->company_name,
@@ -67,33 +68,22 @@ class AuthController extends BaseController
 
                 try {
                     Stripe::setApiKey(env('STRIPE_SECRET'));
-
-                    // Ensure the customer is created (if not already done in your system)
-                    if (empty($user->stripe_id)) {
-                        $stripeCustomer = \Stripe\Customer::create([
-                            'email' => $request->email,
-                            'name' => $request->company_name,
-                        ]);
-                        $user->update(['stripe_id' => $stripeCustomer->id]);
-                    }
+                    $stripeCustomer = \Stripe\Customer::create([
+                        'email' => $request->email,
+                        'name' => $request->company_name,
+                    ]);
+                    $user->update(['stripe_id' => $stripeCustomer->id]);
 
                     // Attach the payment method to the customer
                     $paymentMethod = \Stripe\PaymentMethod::retrieve($request->payment_method_id);
-                    $paymentMethod->attach(['customer' => $stripeCustomer->id]);
 
-                    // Check if the payment method is already attached to the customer
-                    if ($paymentMethod->customer == $user->stripe_id) {
-                        $paymentMethod->attach(['customer' => $user->stripe_id]);
+                    // Check if the payment method is already attached
+                    if (!$paymentMethod->customer) {
+                        $paymentMethod->attach(['customer' => $stripeCustomer->id]);
                     }
 
                     // Update the default payment method
                     $user->updateDefaultPaymentMethod($request->payment_method_id);
-
-                    // Store package and plan details for reference
-                    $company->update([
-                        'package' => $request->package,
-                        'plan' => $request->plan,
-                    ]);
 
                     DB::commit();
 
@@ -454,7 +444,7 @@ class AuthController extends BaseController
         return $this->sendResponse(ucfirst($roleName) . 'rejected', 200);
     }
 
-    public function useInviteCancel(User $user)
+    public function userInviteCancel(User $user)
     {
         if (!$user) {
             return $this->sendResponse([], 'User not found');
@@ -486,22 +476,28 @@ class AuthController extends BaseController
         return $this->sendResponse(ucfirst($role->name) . ' invite cancelled', 200);
     }
 
-    public function rejectedUser(Request $request)
+    public function rejectedUser(Request $request, $companyCode)
     {
         try {
             $paginate = $request->per_page ?? 20;
-            $user = User::where('status', StatusEnum::REJECTED)->paginate($paginate);
+            $user = Employee::where('company_code', $companyCode)
+                ->where('status', StatusEnum::REJECTED)->with('user')->paginate($paginate);
+            if ($user->isEmpty()) {
+                return $this->sendResponse([], 'No rejected users found');
+            }
             return $this->sendResponse($user, 'Rejected user successfully displayed');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
 
-    public function invitedUser(Request $request)
+    public function invitedUser(Request $request, $companyCode)
     {
         try {
             $paginate = $request->per_page ?? 20;
-            $user = User::where('status', StatusEnum::INVITED)->paginate($paginate);
+            $user = Employee::where('company_code', $companyCode)
+                ->where('status', StatusEnum::INVITED)
+                ->with('user')->paginate($paginate);
             if ($user->isEmpty()) {
                 return $this->sendResponse([], 'No invited users found');
             }
@@ -511,15 +507,37 @@ class AuthController extends BaseController
         }
     }
 
-    public function inviteCancelUser(Request $request)
+    public function inviteCancelledUser(Request $request, $companyCode)
     {
         try {
             $paginate = $request->per_page ?? 20;
-            $user = User::where('status', StatusEnum::CANCELLED)->paginate($paginate);
+            $user = Employee::where('company_code', $companyCode)
+                ->where('status', StatusEnum::CANCELLED)
+                ->with('user')->paginate($paginate);
             if ($user->isEmpty()) {
                 return $this->sendResponse([], 'No cancelled invitation users found');
             }
             return $this->sendResponse($user, 'Cancelled invitation user successfully displayed');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function newSignUps(Request $request, $companyCode)
+    {
+        try {
+            $paginate = $request->paginate ?? 20;
+
+            $employees = Employee::where('company_code', $companyCode)
+                ->where(['is_active' => StatusEnum::INACTIVE, 'status' => StatusEnum::NOT_APPROVED])
+                ->with('user')
+                ->paginate($paginate);
+
+            if ($employees->isEmpty()) {
+                return $this->sendResponse([], 'No new employees found for this company code', 200);
+            }
+
+            return $this->sendResponse($employees, 'New registered employees displayed successfully');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }

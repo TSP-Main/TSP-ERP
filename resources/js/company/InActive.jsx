@@ -70,7 +70,7 @@ const InActive = () => {
             title: "Actions",
             key: "actions",
             render: (text, record) => (
-                <Button type="primary" onClick={() => handleApprove(record.id)}>
+                <Button type="primary" onClick={() => handleApprove(record?.user_id)}>
                     Approve
                 </Button>
             ),
@@ -97,7 +97,7 @@ const InActive = () => {
             <Table
                 columns={columns}
                 dataSource={inactivedata}
-                rowKey={(record) => record.id} // Use 'company.code' as unique key
+                rowKey={(record) => record.user_id} // Use 'company.code' as unique key
                
               
             />

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Table, Spin, Button, Select } from "antd";
+import { Table, Spin, Button, Select,Alert } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { allEmployee } from "../employee/redux/reducers";
 import ShiftDropdown from "./components/ShiftDropdown";
 import { showSchedule, getAssignedSchedules } from "../shift/redux/reducer";
 import { assignSchedule } from "../attendance/redux/reducer";
 import { FaArrowRight } from "react-icons/fa";
-import "../shift/styles/table.css";
+
 function RowHeaderTable() {
     const [dataSource, setDataSource] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -290,44 +290,48 @@ function RowHeaderTable() {
     // console.log("schedule data: ", scheduledata);
     // console.log("assigned schedules: ", assignedSchedules);
     // console.log("shift state: ", selectedShiftsState);
+   if (loading) return <Spin size="large" tip="Loading..." />;
+
+   // Show error state
+   if (error) return <Alert message="Error" description={error} type="error" />;
 
     return (
         <>
-            <div className="layoutt">
-                <div className="sidenavv"></div>
-                <div className="contentt">
-                    <Table
-                        columns={columns}
-                        dataSource={dataSource}
-                        pagination={false}
-                        bordered
-                        scroll={{ x: "max-content", y: 500 }}
-                        rowKey="key"
-                        style={{
-                            tableLayout: "fixed",
-                            width: "100%", // Ensure table takes full width of container
-                        }}
-                        locale={{
-                            emptyText: "No employees or shifts available.",
-                        }}
-                    />
-                    <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "row",
-                            justifyContent: "flex-end",
-                            marginTop: 16,
-                        }}
-                    >
-                        <Button
-                            type="primary"
-                            style={{ backgroundColor: "black" }}
-                            onClick={handleSubmit}
-                        >
-                            Submit
-                        </Button>
-                    </div>
-                </div>
+            <Table
+                key={JSON.stringify(dataSource)}
+                size="middle"
+                columns={columns}
+                dataSource={dataSource}
+                pagination={false}
+                bordered
+                scroll={{ x: "max-content", y: 500 }}
+                rowKey="key"
+                style={{
+                    minWidth: 800,
+                    tableLayout: "fixed",
+                    overflowX: "auto",
+                    overflowY: "auto",
+                }}
+                locale={{
+                    emptyText: "No employees or shifts available.",
+                }}
+            />
+
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    justifyContent: "flex-end",
+                    marginTop: 16,
+                }}
+            >
+                <Button
+                    type="primary"
+                    style={{ backgroundColor: "black" }}
+                    onClick={handleSubmit}
+                >
+                    Submit
+                </Button>
             </div>
         </>
     );

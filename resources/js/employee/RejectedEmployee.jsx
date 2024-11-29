@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Table, Button } from "antd";
+import { Table, Button,Spin,Alert } from "antd";
 import { TiTick } from "react-icons/ti";
 import { useDispatch,useSelector } from "react-redux";
 import { getRejectedUser } from "./redux/reducers";
@@ -22,6 +22,12 @@ const RejectedEmployee = () => {
     //         employee: { company_code: "12345" },
     //     },
     // ];
+       if (loading) return <Spin size="large" tip="Loading..." />;
+
+       // Show error state
+       if (error)
+           return <Alert message="Error" description={error} type="error" />;
+
     return (
         <>
         <h1>Rejected Employees</h1>
@@ -50,25 +56,25 @@ export const columns = [
     //     dataIndex: ["employee", "company_code"],
     //     key: "companyCode",
     // },
-    {
-        title: "Actions",
-        key: "actions",
-        render: (text, record) => (
-            <div style={{ display: "flex", gap: "8px" }}>
-                <Button
+    // {
+    //     title: "Actions",
+    //     key: "actions",
+    //     render: (text, record) => (
+    //         <div style={{ display: "flex", gap: "8px" }}>
+    //             <Button
                    
-                    style={{
-                        border: "none",
-                        background: "green",
-                        color: "white",
-                    }}
-                    // onClick={() => onView(record.id)}
-                    icon={<TiTick />}
-                />
-                {/* <Button icon={<MdDelete />} /> */}
-            </div>
-        ),
-    },
+    //                 style={{
+    //                     border: "none",
+    //                     background: "green",
+    //                     color: "white",
+    //                 }}
+    //                 // onClick={() => onView(record.id)}
+    //                 icon={<TiTick />}
+    //             />
+    //             {/* <Button icon={<MdDelete />} /> */}
+    //         </div>
+    //     ),
+    // },
 ];
 
 export default RejectedEmployee;

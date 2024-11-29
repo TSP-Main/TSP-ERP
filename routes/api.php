@@ -29,7 +29,7 @@ Route::options('{any}', function () {
  */
 
 Route::post('verify-password-otp', [AuthController::class, 'verifyForgetPasswordOtp']);
-Route::post('register', [AuthController::class, 'register']);
+
 Route::post('login', [AuthController::class, 'login'])->name('login');
 Route::post('forgot-password', [AuthController::class, 'forgotPassword'])->name('forgot-password');
 Route::match(['get', 'post'], 'reset-password', [AuthController::class, 'resetPassword'])->name('password.reset');
@@ -43,10 +43,11 @@ Route::middleware('auth:api')->group(function () {
     Route::get('get-all-users', [AuthController::class, 'getAllUsers']);
     Route::post('update-status/{id}', [AuthController::class, 'updateIsActiveStatus']);
     Route::post('user-reject/{user}', [AuthController::class, 'userReject']);
-    Route::post('cancel-invitation/{user}', [AuthController::class, 'useInviteCancel']);
-    Route::get('rejected-user', [AuthController::class, 'rejectedUser']);
-    Route::get('invited-user', [AuthController::class, 'invitedUser']);
-    Route::get('cancelled-user', [AuthController::class, 'inviteCancelUser']);
+    Route::post('cancel-invitation/{user}', [AuthController::class, 'userInviteCancel']);
+    Route::get('rejected-user/{companyCode}', [AuthController::class, 'rejectedUser']);
+    Route::get('invited-user/{companyCode}', [AuthController::class, 'invitedUser']);
+    Route::get('cancelled-user/{companyCode}', [AuthController::class, 'inviteCancelledUser']);
+    Route::get('new-registered-user/{companyCode}', [AuthController::class, 'newSignUps']);
 });
 
 // Route::get('email/verify/{id}', [VerificationController::class, 'verify'])->name('verification.verify'); // Make sure to keep this as your route name
@@ -98,5 +99,7 @@ Route::middleware('auth:api')->group(function () {
     });
 });
 // stripe payment
-Route::post('/create-payment-intent', [StripePaymentController::class, 'createSubscriptionPaymentIntent']);
-Route::post('/handle-payment', [StripePaymentController::class, 'handlePayment']);
+Route::middleware(['api', 'web'])->group(function () {
+    Route::post('/create-payment-intent', [StripePaymentController::class, 'createSubscriptionPaymentIntent']);
+    Route::post('register', [AuthController::class, 'register']);
+});

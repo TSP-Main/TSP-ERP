@@ -1,60 +1,102 @@
-import React from 'react'
-import { Table,Button } from 'antd';
+import React, { useEffect } from "react";
+import { Table, Button, notification, Tooltip,Spin,Alert } from "antd";
 import { MdCancelPresentation } from "react-icons/md";
+import { useDispatch } from "react-redux";
+import { getInvitedUsers, cancelInvite } from "./redux/reducers";
+import { useSelector } from "react-redux";
 const InvitedEmployee = () => {
-    const data=[
-        {
-            name:"Test",
-            email:"test",
-            employee:{company_code:"12345"}
+    const { error, loading, InvitedUsers } = useSelector(
+        (state) => state.employee
+    );
+    console.log("invited", InvitedUsers);
+    const dispatch = useDispatch();
+    const handleCancelnvite = async (id) => {
+        try {
+            console.log("id cancel", id);
+            const response = await dispatch(cancelInvite(id));
+            console.log("response", response);
+            if (!response.error) {
+                notification.success({
+                    description: "Invite Cancelled Successfully",
+                    duration: 1.5,
+                });
+                invitedEmployee();
+            }
+        } catch (error) {
+            notification.error({
+                description: error || "Failed to Cancel Invite",
+                duration: 1.5,
+            });
         }
-    ]
-  return (
-      <>
-      <h1>Invited Employee</h1>
-          <Table
-              columns={columns} // Pass the columns here
-              dataSource={data} // Pass the employee data here
-              // rowKey={(record) => record.employee.company_code}
-              pagination={false}
-          />
-      </>
-  );
-}
-export const columns = [
-    {
-        title: "Name",
-        dataIndex: "name",
-        key: "companyName",
-    },
-    {
-        title: "Email",
-        dataIndex: "email",
-        key: "companyEmail",
-    },
-    {
-        title: "Company Code",
-        dataIndex: ["employee", "company_code"],
-        key: "companyCode",
-    },
-    {
-        title: "Actions",
-        key: "actions",
-        render: (text, record) => (
-            <div style={{ display: "flex", gap: "8px" }}>
-                <Button
-                    style={{
-                        border:'none',
-                        background:'red',
-                        color:'white',
-                    }}
-                    // onClick={() => onView(record.id)}
-                    icon={<MdCancelPresentation />}
-                />
-                {/* <Button icon={<MdDelete />} /> */}
-            </div>
-        ),
-    },
-];
+    };
+    const invitedEmployee = async () => {
+        try {
+            const response = await dispatch(getInvitedUsers());
+        } catch (error) {
+            notification.error({
+                description: error || "Failed to get users",
+                duration: 1.5,
+            });
+        }
+    };
+    useEffect(() => {
+        invitedEmployee();
+    }, []);
+    const columns = [
+        {
+            title: "Name",
+            dataIndex: "name",
+            key: "companyName",
+        },
+        {
+            title: "Email",
+            dataIndex: "email",
+            key: "companyEmail",
+        },
+        // {
+        //     title: "Company Code",
+        //     dataIndex: ["employee", "company_code"],
+        //     key: "companyCode",
+        // },
+        {
+            title: "Actions",
+            key: "actions",
+            render: (text, record) => (
+                <div style={{ display: "flex", gap: "8px" }}>
+                    <Tooltip title="Cancel Invite">
+                        <Button
+                            style={{
+                                border: "none",
+                                background: "red",
+                                color: "white",
+                            }}
+                            onClick={() => handleCancelnvite(record?.user_id)}
+                            icon={<MdCancelPresentation />}
+                        />
+                    </Tooltip>
+                    {/* <Button icon={<MdDelete />} /> */}
+                </div>
+            ),
+        },
+    ];
+    if (loading) return <Spin size="large" tip="Loading..." />;
 
-export default InvitedEmployee
+    // Show error state
+    if (error)
+        return <Alert message="Error" description={error} type="error" />;
+
+    return (
+        <>
+            <h1>Invited Employee</h1>
+            <Table
+                columns={columns} // Pass the columns here
+                dataSource={InvitedUsers} // Pass the employee data here
+                // rowKey={(record) => record.employee.company_code}
+                pagination={false}
+            />
+        </>
+    );
+};
+
+
+export default InvitedEmployee;

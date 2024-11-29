@@ -15,6 +15,7 @@ use Stripe\PaymentIntent;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Stripe\Price;
+use App\Services\StripeService;
 
 class StripePaymentController extends BaseController
 
@@ -45,7 +46,7 @@ class StripePaymentController extends BaseController
     // }
 
 
-    public function createSubscriptionPaymentIntent(GetStripePriceIdRequest $request)
+    public function createSubscriptionPaymentIntent(GetStripePriceIdRequest $request, StripeService $stripeService)
     {
         try {
             // Retrieve package and plan from request
@@ -72,11 +73,11 @@ class StripePaymentController extends BaseController
             }
 
             // Create a Stripe Customer
-            $stripeCustomer = \Stripe\Customer::create([
-                'email' => $request->email,
-                'name' => $request->name,
-            ]);
-            $stripe_id = $stripeCustomer->id;
+            // $stripeCustomer = \Stripe\Customer::create([
+            //     'email' => $request->email,
+            //     'name' => $request->name,
+            // ]);
+            // $stripe_id = $stripeCustomer->id;
 
             // Create a PaymentIntent with the price's amount, currency, and customer
             $paymentIntent = PaymentIntent::create([
@@ -84,7 +85,7 @@ class StripePaymentController extends BaseController
                 'currency' => $price->currency,
                 'payment_method_types' => ['card'],
                 // 'customer' => $stripe_id, // Associate with Stripe customer
-                'captured_method' => 'manual',
+                'capture_method' => 'manual',
             ]);
 
             return $this->sendResponse([

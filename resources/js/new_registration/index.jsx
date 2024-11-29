@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { Table, Spin, Alert, Button, notification } from "antd";
+import { Table, Spin, Alert, Button, notification, Tooltip } from "antd";
 import { inactiveEmployee, userReject } from "./redux/reducer";
 import { approveUserAction,inactiveUsersData } from "../company/redux/reducer";
 import { SiTicktick } from "react-icons/si";
@@ -89,26 +89,29 @@ const InActive = () => {
             key: "actions",
             render: (text, record) => (
                 <>
-                    <Button
-                        style={{
-                            marginRight: "10px",
-                        background:"green",
-                        color: "white",
-                        }}
-                      
-                        onClick={() => handleApprove(record?.id)}
-                    >
-                        <SiTicktick />
-                    </Button>
-                    <Button
-                       style={{
-                            background:"red",
-                            color:"white"
-                       }}
-                        onClick={() => handleRejected(record?.id)}
-                    >
-                        <RxCross1 />
-                    </Button>
+                    <Tooltip title="Approve User">
+                        <Button
+                            style={{
+                                marginRight: "10px",
+                                background: "green",
+                                color: "white",
+                            }}
+                            onClick={() => handleApprove(record?.user_id)}
+                        >
+                            <SiTicktick />
+                        </Button>
+                    </Tooltip>
+                    <Tooltip title="Reject User">
+                        <Button
+                            style={{
+                                background: "red",
+                                color: "white",
+                            }}
+                            onClick={() => handleRejected(record?.user_id)}
+                        >
+                            <RxCross1 />
+                        </Button>
+                    </Tooltip>
                 </>
             ),
         },
@@ -132,7 +135,7 @@ const InActive = () => {
 
     return (
         <div>
-            <h1>New Request</h1>
+            <h1>New Registrations</h1>
             <Table
                 columns={columns}
                  dataSource={data}
