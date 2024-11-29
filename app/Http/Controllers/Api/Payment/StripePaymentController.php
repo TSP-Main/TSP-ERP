@@ -84,6 +84,7 @@ class StripePaymentController extends BaseController
                 'currency' => $price->currency,
                 'payment_method_types' => ['card'],
                 // 'customer' => $stripe_id, // Associate with Stripe customer
+                // 'captured_method' => 'manual',
             ]);
 
             return $this->sendResponse([
