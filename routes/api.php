@@ -69,6 +69,7 @@ Route::middleware('auth:api')->group(function () {
         Route::post('add-employee', [EmployeeController::class, 'create']);
         Route::get('show-employee/{user}', [EmployeeController::class, 'show']);
         Route::get('in-active-employee/{companyCode}', [EmployeeController::class, 'inActiveEmployees']);
+        Route::get('active-employee/{companyCode}', [EmployeeController::class, 'activeEmployees']);
         Route::post('update/{id}', [EmployeeController::class, 'update']);
         Route::post('delete/{user}', [EmployeeController::class, 'delete']);
     });

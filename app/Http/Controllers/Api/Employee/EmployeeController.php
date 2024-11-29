@@ -128,6 +128,26 @@ class EmployeeController extends BaseController
         }
     }
 
+    public function activeEmployees(Request $request, $companyCode)
+    {
+        try {
+            $paginate = $request->paginate ?? 20;
+
+            $employees = Employee::where('company_code', $companyCode)
+                ->where(['is_active' => StatusEnum::ACTIVE, 'status' => StatusEnum::APPROVED])
+                ->with('user')
+                ->paginate($paginate);
+
+            if ($employees->isEmpty()) {
+                return $this->sendResponse([], 'no Active employees found for this company code', 200);
+            }
+
+            return $this->sendResponse($employees, 'Active employees displayed successfully');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
     public function show($user)
     {
         try {
