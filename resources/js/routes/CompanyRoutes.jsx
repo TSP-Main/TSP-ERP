@@ -11,6 +11,7 @@ import RejectedEmployee from "../employee/RejectedEmployee.jsx";
 import ChangeShift from "../shift/ChangeShift.jsx";
 import CheckedIn from "../employee/CheckedIn.jsx";
 import InvitCancel from "../employee/InviteCancel.jsx";
+import InActive from "../new_registration/index.jsx";
 const CompanyRoutes = () => {
     return (
         <Routes>
@@ -19,6 +20,7 @@ const CompanyRoutes = () => {
                 <Route path="profile" element={<Profile />} />
                 <Route path="rota" element={<CheckedIn />} />
                 <Route path="employee" element={<Employee />} />
+                <Route path="in-active" element={<InActive />} />
                 <Route path="shift" element={<Shift />} />
                 <Route path="assign-shift" element={<AssignShift />} />
                 <Route path="new-registration" element={<NewRegistration />} />

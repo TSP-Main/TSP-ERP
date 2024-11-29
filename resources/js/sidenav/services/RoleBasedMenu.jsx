@@ -77,6 +77,12 @@ const RoleBasedMenu = () => {
                     <IoTimeOutline />
                 ),
                 getItem(
+                    <Link to="/in-active">In Active Employees</Link>,
+                    "/in-active", // Key matching the URL path
+                    <IoTimeOutline />
+                ),
+
+                getItem(
                     <Link to="/new-registration">New Sign Ups</Link>,
                     "/new-registration", // Key matching the URL path
                     <IoMdNotificationsOutline />

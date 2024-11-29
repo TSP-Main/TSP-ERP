@@ -3,6 +3,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { Table, Spin, Alert, Button, notification } from "antd";
 import { inactiveEmployee } from "./redux/reducer";
 import { approveUserAction,inactiveUsersData } from "../company/redux/reducer";
+import { SiTicktick } from "react-icons/si";
+import { RxCross1 } from "react-icons/rx";
 // import { useDispatch } from "react-redux";
 // import { inactiveUsersData, approveUserAction } from "./redux/reducer";
 
@@ -66,9 +68,26 @@ const InActive = () => {
             title: "Actions",
             key: "actions",
             render: (text, record) => (
-                <Button type="primary" onClick={() => handleApprove(record?.user_id)}>
-                    Approve
-                </Button>
+                <>
+                    <Button
+                        style={{
+                            marginRight: "10px",
+                        color:"green",
+                        }}
+                      
+                        onClick={() => handleApprove(record?.user_id)}
+                    >
+                        <SiTicktick />
+                    </Button>
+                    <Button
+                       style={{
+                            color:"red"
+                       }}
+                        onClick={() => handleApprove(record?.user_id)}
+                    >
+                        <RxCross1 />
+                    </Button>
+                </>
             ),
         },
     ];

@@ -1,0 +1,17 @@
+.layoutt {
+    display: flex;
+    height: 100vh;
+    overflow: hidden; /* Prevent overflow */
+}
+
+.sidenavv {
+    width: 200px; /* Sidebar width */
+    flex-shrink: 0; /* Prevent sidebar from shrinking */
+    background-color: #f4f4f4; /* Example background */
+}
+
+.contentt {
+    flex: 1; /* Allow main content to take the remaining space */
+    overflow: auto; /* Allow scrolling within the content */
+    padding: 16px; /* Optional padding for spacing */
+}

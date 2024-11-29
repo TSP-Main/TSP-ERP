@@ -18,7 +18,8 @@ const apiRoutes = {
         delete: (id) => `/employee/delete/${id}`,
         update: (id) => `/employee/update/${id}`,
         postAvail: "/schedule/add-employee-availability",
-        checkedin:"/schedule/checked-in-employees"
+        checkedin: "/schedule/checked-in-employees",
+        reject: (id) => `/user-reject/${id}`,
     },
     schedule: {
         create: "/schedule/create-schedule",
@@ -28,7 +29,8 @@ const apiRoutes = {
         update: (id) => `/schedule/update/${id}`,
         missedAttended: (id) => `/schedule/missed-attended-schedule/${id}`,
         change: "/schedule/employee-availability-dashboard",
-        assignedSchedules: (companyId) => `/schedule/all-assigned-schedule/${companyId}`
+        assignedSchedules: (companyId) =>
+            `/schedule/all-assigned-schedule/${companyId}`,
     },
     forgotpassword: {
         email: "/forgot-password",
