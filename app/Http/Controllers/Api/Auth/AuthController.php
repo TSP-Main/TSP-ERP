@@ -43,94 +43,92 @@ class AuthController extends BaseController
     {
         try {
             DB::beginTransaction();
+
             if ($request->role === StatusEnum::COMPANY) {
+                // Step 1: Create user with company role
                 $user = User::create([
                     'name' => $request->company_name,
                     'email' => $request->email,
                     'password' => Hash::make($request->password),
                 ]);
                 $user->assignRole(StatusEnum::COMPANY);
-                // Generate unique company code
+
+                // Step 2: Generate company details
                 $companyCode = 'CPM-' . strtoupper(uniqid());
-                $slug = generateCompanySlug($request->company_name); // Use the helper function to generate a unique slug
+                $slug = generateCompanySlug($request->company_name);
                 $logoPath = null;
+
                 if ($request->hasFile('logo')) {
-                    $logoPath = $request->file('logo')->store('logos', 'public'); // Store in the 'logos' directory
+                    $logoPath = $request->file('logo')->store('logos', 'public');
                 }
+
                 $company = $user->company()->create([
-                    'user_id' => $user->id,
                     'name' => $request->company_name,
                     'slug' => $slug,
                     'code' => $companyCode,
-                    'logo' => $logoPath
+                    'logo' => $logoPath,
+                    'package' => $request->package,
+                    'plan' => $request->plan,
                 ]);
 
                 try {
+                    // Step 3: Create Stripe customer
                     Stripe::setApiKey(env('STRIPE_SECRET'));
+                    $stripeCustomer = \Stripe\Customer::create([
+                        'email' => $request->email,
+                        'name' => $request->company_name,
+                    ]);
+                    $user->update(['stripe_id' => $stripeCustomer->id]);
 
-                    // Ensure the customer is created (if not already done in your system)
-                    if (empty($user->stripe_id)) {
-                        $stripeCustomer = \Stripe\Customer::create([
-                            'email' => $request->email,
-                            'name' => $request->company_name,
-                        ]);
-                        $user->update(['stripe_id' => $stripeCustomer->id]);
-                    }
-
-                    // Attach the payment method to the customer
+                    // Step 4: Retrieve and attach payment method to customer
                     $paymentMethod = \Stripe\PaymentMethod::retrieve($request->payment_method_id);
-                    $paymentMethod->attach(['customer' => $stripeCustomer->id]);
 
-                    // Check if the payment method is already attached to the customer
-                    if ($paymentMethod->customer == $user->stripe_id) {
-                        $paymentMethod->attach(['customer' => $user->stripe_id]);
+                    // Check if the payment method is already attached
+                    if (!$paymentMethod->customer) {
+                        $paymentMethod->attach(['customer' => $stripeCustomer->id]);
                     }
 
-                    // Update the default payment method
+                    // Step 5: Set the payment method as default
                     $user->updateDefaultPaymentMethod($request->payment_method_id);
 
-                    // Store package and plan details for reference
-                    $company->update([
-                        'package' => $request->package,
-                        'plan' => $request->plan,
-                    ]);
-
                     DB::commit();
-
-                    // Reload user with related company and card details
-                    $user->refresh()->load('company');
-                    return $this->sendResponse($user, 'User registered successfully');
+                    return $this->sendResponse($user->refresh()->load('company'), 'Company registered successfully.');
                 } catch (\Stripe\Exception\InvalidRequestException $e) {
                     DB::rollBack();
-                    return $this->sendError('Invalid or already used payment method ID.', 400);
-                } catch (Exception $e) {
-                    DB::rollBack();
-                    return $this->sendError('An error occurred during registration.', 500);
+                    return $this->sendError($e->getMessage(), 400);
                 }
             } elseif ($request->role === StatusEnum::EMPLOYEE) {
+                // Step 1: Fetch company details
                 $company = CompanyModel::where('code', $request->company_code)->firstOrFail();
-                // Register employee user
+
+                // Step 2: Create employee user
                 $user = User::create([
                     'name' => $request->name,
                     'email' => $request->email,
                     'password' => Hash::make($request->password),
-                    'status' => StatusEnum::NOT_APPROVED
+                    'status' => StatusEnum::NOT_APPROVED,
                 ]);
                 $user->assignRole(StatusEnum::EMPLOYEE);
+
+                // Step 3: Create employee record
                 Employee::create([
                     'user_id' => $user->id,
                     'company_code' => $company->code,
-                    'status' => StatusEnum::NOT_APPROVED
+                    'status' => StatusEnum::NOT_APPROVED,
                 ]);
+
                 DB::commit();
-                return $this->sendResponse(['user' => $user], 'User register successfully');
+                return $this->sendResponse($user, 'Employee registered successfully.');
             }
-        } catch (\Exception $e) {
+
+            return $this->sendError('Invalid role.', 400);
+        } catch (Exception $e) {
             DB::rollBack();
-            Log::error('Error creating employee user: ' . $e->getMessage());
-            return $this->sendError($e->getMessage(), $e->getCode());
+            Log::error('Registration Error: ' . $e->getMessage());
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
+
 
     public function approveUser(User $user)
     {
