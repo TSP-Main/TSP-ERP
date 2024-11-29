@@ -449,7 +449,7 @@ class AuthController extends BaseController
                 $user->employee->update(['is_active' => StatusEnum::INACTIVE, 'status' => StatusEnum::REJECTED]);
                 break;
         }
-        return $this->sendResponse(ucfirst($roleName) . 'rejected', 200);
+        return $this->sendResponse([], ucfirst($roleName) . ' rejected', 200);
     }
 
     public function useInviteCancel(User $user)
