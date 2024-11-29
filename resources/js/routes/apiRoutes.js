@@ -20,6 +20,7 @@ const apiRoutes = {
         postAvail: "/schedule/add-employee-availability",
         checkedin: "/schedule/checked-in-employees",
         reject: (id) => `/user-reject/${id}`,
+        getRejectedUsers:"/rejected-user"
     },
     schedule: {
         create: "/schedule/create-schedule",

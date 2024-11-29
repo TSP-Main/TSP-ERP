@@ -5,14 +5,29 @@ import axios from "../../services/axiosService";
 const initialState={
    data:null,
    loading:false,
-   error:false
+   error:false,
+   getrejectuser:[]
 }
+export const userReject=createAsyncThunk("user/reject",
+    async(id,{rejectWithValue})=>{
+        try{
+            const response=await axios.post(apiRoutes.employee.reject(id));
+            console.log("response data",response.data.data);
+            return response.data.data;
+        }catch(error){
+            return rejectWithValue(
+                error.response?.errors || "Failed to Reject this user"
+            );
+        }
+    }
+)
+
 export const inactiveEmployee=createAsyncThunk(
     "employee/inactive",
     async(code,{rejectWithValue})=>{
         try{
             console.log(
-                "inactive employee API/",
+                "inactive employee API",
                 apiRoutes.employee.inactive(code)
             );
             

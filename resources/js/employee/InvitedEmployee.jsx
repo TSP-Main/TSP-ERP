@@ -45,7 +45,8 @@ export const columns = [
                 <Button
                     style={{
                         border:'none',
-                        color:'red'
+                        background:'red',
+                        color:'white',
                     }}
                     // onClick={() => onView(record.id)}
                     icon={<MdCancelPresentation />}

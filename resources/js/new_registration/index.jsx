@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Table, Spin, Alert, Button, notification } from "antd";
-import { inactiveEmployee } from "./redux/reducer";
+import { inactiveEmployee, userReject } from "./redux/reducer";
 import { approveUserAction,inactiveUsersData } from "../company/redux/reducer";
 import { SiTicktick } from "react-icons/si";
 import { RxCross1 } from "react-icons/rx";
@@ -28,7 +28,7 @@ const InActive = () => {
                 description: "User approved successfully.",
                 duration: 3,
             });
-            window.location.reload();
+            fetchEmployees();
 
             // Optionally refresh the inactive users data
             dispatched(inactiveUsersData());
@@ -40,12 +40,32 @@ const InActive = () => {
             });
         }
     };
+    const handleRejected=(id)=>{
+            try{
+                const response=dispatched(userReject(id));
+                if(!response.error){
+                    notification.success({
+                        description: "User rejected successfully.",
+                        duration: 1.5,
+                    });
+                    fetchEmployees();
+                }
+            }catch(error){
+                notification.error({
+                    description: error || "Failed to reject user.",
+                    duration: 1.5,
+                });
+            }
+    }
+    const fetchEmployees=()=>{
+         const code = localStorage.getItem("company_code");
+         const response = dispatched(inactiveEmployee(code));
+         console.log("In active employee dispatch", response);
+    }
     useEffect(()=>{
-        const code = localStorage.getItem("company_code");
-      const response=dispatched(inactiveEmployee(code))
-      console.log("In active employee dispatch",response)
-
-    },[dispatched])
+       
+        fetchEmployees();
+    },[])
 
     // Define table columns
     const columns = [
@@ -72,18 +92,20 @@ const InActive = () => {
                     <Button
                         style={{
                             marginRight: "10px",
-                        color:"green",
+                        background:"green",
+                        color: "white",
                         }}
                       
-                        onClick={() => handleApprove(record?.user_id)}
+                        onClick={() => handleApprove(record?.id)}
                     >
                         <SiTicktick />
                     </Button>
                     <Button
                        style={{
-                            color:"red"
+                            background:"red",
+                            color:"white"
                        }}
-                        onClick={() => handleApprove(record?.user_id)}
+                        onClick={() => handleRejected(record?.id)}
                     >
                         <RxCross1 />
                     </Button>

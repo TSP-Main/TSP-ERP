@@ -1,20 +1,33 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Table, Button } from "antd";
 import { TiTick } from "react-icons/ti";
+import { useDispatch,useSelector } from "react-redux";
+import { getRejectedUser } from "./redux/reducers";
 const RejectedEmployee = () => {
-    const data = [
-        {
-            name: "Test",
-            email: "test",
-            employee: { company_code: "12345" },
-        },
-    ];
+     const { error, loading, rejecteddata } = useSelector(
+         (state) => state.employee
+     );
+     console.log("Employee data", rejecteddata);
+    const dispatch=useDispatch();
+        const getRejectedEmployees = () => {
+            dispatch(getRejectedUser())
+        }
+    useEffect(()=>{
+        getRejectedEmployees();
+    },[])
+    // const data = [
+    //     {
+    //         name: "Test",
+    //         email: "test",
+    //         employee: { company_code: "12345" },
+    //     },
+    // ];
     return (
         <>
         <h1>Rejected Employees</h1>
         <Table
             columns={columns} // Pass the columns here
-            dataSource={data} // Pass the employee data here
+            dataSource={rejecteddata} // Pass the employee data here
             // rowKey={(record) => record.employee.company_code}
             pagination={false}
         />
@@ -32,11 +45,11 @@ export const columns = [
         dataIndex: "email",
         key: "companyEmail",
     },
-    {
-        title: "Company Code",
-        dataIndex: ["employee", "company_code"],
-        key: "companyCode",
-    },
+    // {
+    //     title: "Company Code",
+    //     dataIndex: ["employee", "company_code"],
+    //     key: "companyCode",
+    // },
     {
         title: "Actions",
         key: "actions",
@@ -46,7 +59,8 @@ export const columns = [
                    
                     style={{
                         border: "none",
-                        color: "green",
+                        background: "green",
+                        color: "white",
                     }}
                     // onClick={() => onView(record.id)}
                     icon={<TiTick />}
