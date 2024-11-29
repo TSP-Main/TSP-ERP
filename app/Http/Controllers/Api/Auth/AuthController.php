@@ -494,4 +494,32 @@ class AuthController extends BaseController
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
+
+    public function invitedUser(Request $request)
+    {
+        try {
+            $paginate = $request->per_page ?? 20;
+            $user = User::where('status', StatusEnum::INVITED)->paginate($paginate);
+            if ($user->isEmpty()) {
+                return $this->sendResponse([], 'No invited users found');
+            }
+            return $this->sendResponse($user, 'Invited user successfully displayed');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function inviteCancelUser(Request $request)
+    {
+        try {
+            $paginate = $request->per_page ?? 20;
+            $user = User::where('status', StatusEnum::CANCELLED)->paginate($paginate);
+            if ($user->isEmpty()) {
+                return $this->sendResponse([], 'No cancelled invitation users found');
+            }
+            return $this->sendResponse($user, 'Cancelled invitation user successfully displayed');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
 }
