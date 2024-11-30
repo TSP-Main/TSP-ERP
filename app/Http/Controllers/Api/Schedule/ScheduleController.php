@@ -387,16 +387,22 @@ class ScheduleController extends BaseController
     public function submitAvailability(EmployeeAvailabilityRequest $request)
     {
         try {
+            $employee = Employee::where('id', $request->employee_id)->first();
+            if (!$employee) {
+                return $this->sendError('Employee not found', 404);
+            }
+
             // Retrieve existing data from the cache or initialize an empty array
             $availability = Cache::get('employee_availability', []);
-
             $availability[] = [
                 'employee_id' => $request->employee_id,
+                'company_code' => $employee->company_code, // Fetch company code from the employee record
                 'date' => $request->date,
                 'start_time' => $request->start_time,
-                'end_time' => $request->end_time
+                'end_time' => $request->end_time,
             ];
 
+            // Store the updated availability back in the cache
             Cache::put('employee_availability', $availability, now()->addWeeks(1));
 
             return $this->sendResponse(['message' => 'Availability submitted successfully'], 200);
@@ -405,20 +411,32 @@ class ScheduleController extends BaseController
         }
     }
 
-    public function getAvailabilityDashboard()
+
+    public function getAvailabilityDashboard($companyCode)
     {
         try {
             $availability = Cache::get('employee_availability', []);
+
             if (empty($availability)) {
                 return response()->json(['message' => 'No availability schedules found'], 200);
             }
 
+            // Filter the availability by company code
+            $filteredAvailability = collect($availability)->filter(function ($item) use ($companyCode) {
+                return $item['company_code'] === $companyCode;
+            });
+
+            if ($filteredAvailability->isEmpty()) {
+                return response()->json(['message' => 'No availability schedules found for the specified company code'], 200);
+            }
+
             // Enhance the data for dashboard display (e.g., include employee names)
-            $data = collect($availability)->map(function ($item) {
+            $data = $filteredAvailability->map(function ($item) {
                 $employee = Employee::with('user')->find($item['employee_id']);
 
                 return [
                     'employee_id' => $item['employee_id'],
+                    'company_code' => $item['company_code'],
                     'employee_name' => $employee->user->name ?? '',
                     'employee_email' => $employee->user->email ?? '',
                     'date' => $item['date'],
