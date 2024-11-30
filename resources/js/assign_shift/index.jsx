@@ -9,7 +9,7 @@ import { FaArrowRight } from "react-icons/fa";
 
 function RowHeaderTable() {
     const [dataSource, setDataSource] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [selectedShiftsState, setSelectedShiftsState] = useState({});
 
     const dispatch = useDispatch();
@@ -20,6 +20,8 @@ function RowHeaderTable() {
     const { scheduledata, loading: scheduleLoading } = useSelector(
         (state) => state.schedule
     );
+    console.log("schedule data", scheduledata)
+    console.log("Employess",employeedata);
     const { assignedSchedules } = useSelector((state) => state.schedule);
 
     const getDatesForWeek = () => {
@@ -72,22 +74,23 @@ function RowHeaderTable() {
         }
     }, [dispatch]);
 
-    // Format data for the table once employee data is available
-    useEffect(() => {
-        if (employeedata && employeedata.length > 0) {
-            const formattedData = employeedata.map((employee) => ({
-                key: employee.id,
-                rowHeader: employee.name,
-                ...reorderedDays.reduce((acc, day, index) => {
-                    acc[`col${index + 1}`] = null;
-                    return acc;
-                }, {}),
-            }));
-            setDataSource(formattedData);
-            setLoading(false);
-        }
-    }, [employeedata]);
-
+  useEffect(() => {
+      if (!loading && !employeedata?.length) {
+          console.log("No employees found or error occurred.");
+          setLoading(false); // Ensure loading ends even if data is empty
+      } else if (employeedata?.length > 0) {
+          const formattedData = employeedata.map((employee) => ({
+              key: employee.id,
+              rowHeader: employee.name,
+              ...reorderedDays.reduce((acc, day, index) => {
+                  acc[`col${index + 1}`] = null;
+                  return acc;
+              }, {}),
+          }));
+          setDataSource(formattedData);
+          setLoading(false);
+      }
+  }, [employeedata, loading, reorderedDays]);
     // Populate selectedShiftsState once assignedSchedules is fetched
     useEffect(() => {
         if (assignedSchedules && assignedSchedules.length > 0) {
@@ -281,60 +284,68 @@ function RowHeaderTable() {
     //     return <Spin />;
     // }
 
-    if (scheduleLoading) {
-        return <Spin />;
+    if (loading) {
+        console.log("Loading is true; waiting for data...");
+        return <Spin size="large" tip="Loading..." />;
     }
 
-    console.log("data source: ", dataSource);
-    console.log("employee data: ", employeedata);
-    // console.log("schedule data: ", scheduledata);
-    // console.log("assigned schedules: ", assignedSchedules);
-    // console.log("shift state: ", selectedShiftsState);
-   if (loading) return <Spin size="large" tip="Loading..." />;
+    // Error or Empty Employee Data
+    // if (error) {
+    //     console.error("Error:", error);
+    //     return <Alert message="Error" description={error} type="error" />;
+    // }
 
-   // Show error state
-   if (error) return <Alert message="Error" description={error} type="error" />;
-
-    return (
-        <>
-            <Table
-                key={JSON.stringify(dataSource)}
-                size="middle"
-                columns={columns}
-                dataSource={dataSource}
-                pagination={false}
-                bordered
-                scroll={{ x: "max-content", y: 500 }}
-                rowKey="key"
-                style={{
-                    minWidth: 800,
-                    tableLayout: "fixed",
-                    overflowX: "auto",
-                    overflowY: "auto",
-                }}
-                locale={{
-                    emptyText: "No employees or shifts available.",
-                }}
+    if (!employeedata || employeedata.length === 0) {
+        console.log("Employee data is empty.");
+        return (
+            <Alert
+                message="No Employees Found"
+                description="There are no employees available to display. Please add employees and try again."
+                type="info"
+                showIcon
             />
+        );
+    }
+        return (
+    <>
+        <Table
+            key={JSON.stringify(dataSource)}
+            size="middle"
+            columns={columns}
+            dataSource={dataSource}
+            pagination={false}
+            bordered
+            scroll={{ x: "max-content", y: 500 }}
+            rowKey="key"
+            style={{
+                minWidth: 800,
+                tableLayout: "fixed",
+                overflowX: "auto",
+                overflowY: "auto",
+            }}
+            locale={{
+                emptyText: "No employees or shifts available.",
+            }}
+        />
 
-            <div
-                style={{
-                    display: "flex",
-                    flexDirection: "row",
-                    justifyContent: "flex-end",
-                    marginTop: 16,
-                }}
+        <div
+            style={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "flex-end",
+                marginTop: 16,
+            }}
+        >
+            <Button
+                type="primary"
+                style={{ backgroundColor: "black" }}
+                onClick={handleSubmit}
             >
-                <Button
-                    type="primary"
-                    style={{ backgroundColor: "black" }}
-                    onClick={handleSubmit}
-                >
-                    Submit
-                </Button>
-            </div>
-        </>
-    );
+                Submit
+            </Button>
+        </div>
+    </>
+);
 }
 
 export default RowHeaderTable;

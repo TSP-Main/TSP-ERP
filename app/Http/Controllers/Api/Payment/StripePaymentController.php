@@ -20,32 +20,6 @@ use App\Services\StripeService;
 class StripePaymentController extends BaseController
 
 {
-    // public function createPaymentIntent(Request $request)
-    // {
-    //     try {
-    //         // Set Stripe secret key
-    //         Stripe::setApiKey(env('STRIPE_SECRET'));
-
-    //         //send price id to stripe and get amount of that price is and send that amount below
-
-    //         // Create a PaymentIntent with the specified amount and currency
-    //         $paymentIntent = PaymentIntent::create([
-    //             'amount' => $request->amount * 100, // Amount in cents
-    //             'currency' => 'usd',
-    //             // 'automatic_payment_methods' => ['enabled' => true],
-    //             'payment_method_types' => ['card'],
-    //         ]);
-
-    //         return response()->json([
-    //             'client_secret' => $paymentIntent->client_secret,
-    //             'message' => 'Payment intent created successfully'
-    //         ], 200);
-    //     } catch (Exception $e) {
-    //         return response()->json(['error' => $e->getMessage()], 500);
-    //     }
-    // }
-
-
     public function createSubscriptionPaymentIntent(GetStripePriceIdRequest $request, StripeService $stripeService)
     {
         try {
@@ -145,10 +119,10 @@ class StripePaymentController extends BaseController
                     EmployeeApproveEmailJob::dispatch($user->email);
                     $user->update([
                         'is_active' => StatusEnum::ACTIVE,
+                        'otp_verified' => StatusEnum::OTP_VERIFIED,
+                        'status' => StatusEnum::APPROVED
                     ]);
-                    $user->employee()->update([
-                        'is_active' => StatusEnum::ACTIVE,
-                    ]);
+                    $user->employee()->update(['is_active' => StatusEnum::ACTIVE, 'status' => StatusEnum::APPROVED]);
                     break;
 
                 default:

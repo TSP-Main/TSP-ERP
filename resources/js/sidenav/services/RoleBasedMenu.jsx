@@ -23,6 +23,7 @@ function getItem(label, key, icon, children) {
         icon,
         children,
         label,
+    
     };
 }
 
@@ -70,6 +71,24 @@ const RoleBasedMenu = () => {
                 "/rota", // Key matching the URL path
                 <FiUsers />
             ),
+            
+            getItem("Shift", "shift", <IoIosTimer />, [
+                getItem(
+                    <Link to="/shift">Shifts</Link>,
+                    "/shift", // Key matching the URL path
+                    <IoTimeOutline />
+                ),
+                getItem(
+                    <Link to="/assign-shift">Assign Shift</Link>,
+                    "/assign-shift", // Key matching the URL path
+                    <MdTimer />
+                ),
+                getItem(
+                    <Link to="/change-shift">Change Shift</Link>,
+                    "/change-shift", // Key matching the URL path
+                    <MdTimer />
+                ),
+            ]),
             getItem("Employee", "employee", <FiUsers />, [
                 getItem(
                     <Link to="/employee">Active Employees</Link>,
@@ -103,23 +122,6 @@ const RoleBasedMenu = () => {
                     <MdCancel />
                 ),
             ]),
-            getItem("Shift", "shift", <IoIosTimer />, [
-                getItem(
-                    <Link to="/shift">Shifts</Link>,
-                    "/shift", // Key matching the URL path
-                    <IoTimeOutline />
-                ),
-                getItem(
-                    <Link to="/assign-shift">Assign Shift</Link>,
-                    "/assign-shift", // Key matching the URL path
-                    <MdTimer />
-                ),
-                getItem(
-                    <Link to="/change-shift">Change Shift</Link>,
-                    "/change-shift", // Key matching the URL path
-                    <MdTimer />
-                ),
-            ])
         );
     } else if (userRole === "employee") {
         items.push(

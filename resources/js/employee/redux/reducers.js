@@ -11,6 +11,7 @@ const initialState = {
     InvitedUsers: null,
     inactivedata:null,
     getCancelInvitedUsers:null,
+    newsignupsdata: null,
 };
 export const deleteEmployee = createAsyncThunk(
     "employee/delete",
@@ -58,7 +59,13 @@ export const allEmployee = createAsyncThunk(
                 },
             });
             console.log("employee", response.data.data.data);
-            return response.data.data.data;
+            if(response?.data?.data.length==0){
+                return [];
+            }
+            else{
+                return response.data.data.data;
+            }
+          
         } catch (error) {
             console.log("redux error: " + error);
             return rejectWithValue(
@@ -67,6 +74,21 @@ export const allEmployee = createAsyncThunk(
         }
     }
 );
+
+export const newSignups=createAsyncThunk("signups",
+    async(code,{rejectWithValue})=>{
+        try{
+            const response=await axios.get(apiRoutes.employee.newSignups(code))
+            console.log("response",response.data.data.data);
+            return response.data.data.data;
+        }catch(error){
+            console.log("redux error: " + error);
+            return rejectWithValue(
+                error.response?.errors || "Failed to fetch data"
+            ); 
+        }
+    }
+)
 
 export const inActiveEmployee = createAsyncThunk(
     "user/inacticeemployee",
@@ -106,10 +128,10 @@ export const checkedinEmployee = createAsyncThunk(
 );
 export const getInvitedUsers = createAsyncThunk(
     "user/getInvitedUsers",
-    async (_, { rejectWithValue }) => {
+    async (code, { rejectWithValue }) => {
         try {
             const response = await axios.get(
-                apiRoutes.employee.getInvitedUsers
+                apiRoutes.employee.getInvitedUsers(code)
             );
             console.log("invited data", response.data.data.data);
             return response.data.data.data;
@@ -139,14 +161,15 @@ export const cancelInvite = createAsyncThunk(
 
 export const getRejectedUser = createAsyncThunk(
     "user/getreject",
-    async (_, { rejectWithValue }) => {
+    async (code, { rejectWithValue }) => {
         try {
             const response = await axios.get(
-                apiRoutes.employee.getRejectedUsers
+                apiRoutes.employee.getRejectedUsers(code)
             );
             console.log("response data reject", response.data.data.data);
             return response.data.data.data;
         } catch (error) {
+            console.log("redux error: " + error);
             return rejectWithValue(
                 error.response?.errors || "Failed to fetch data"
             );
@@ -171,10 +194,10 @@ export const approveUserAction = createAsyncThunk(
 
 export const cancelInvitedEmloyee=createAsyncThunk(
     "cancelInvitedEmloyee",
-    async(_,{rejectWithValue})=>{
+    async(code,{rejectWithValue})=>{
         try{
             const response = await axios.get(
-                apiRoutes.employee.getCancelInvited
+                apiRoutes.employee.getCancelInvited(code)
             );
             return response.data.data.data;
         }catch(error){
@@ -281,6 +304,19 @@ const employeeSlice = createSlice({
                 state.error = false;
             })
             .addCase(cancelInvitedEmloyee.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            .addCase(newSignups.pending, (state, action) => {
+                state.loading = true;
+                state.error = false;
+            })
+            .addCase(newSignups.fulfilled, (state, action) => {
+                state.newsignupsdata = action.payload;
+                state.loading = false;
+                state.error = false;
+            })
+            .addCase(newSignups.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;
             });

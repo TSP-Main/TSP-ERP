@@ -13,7 +13,7 @@ const DefaultLayout = () => {
                     
                 </Col>
 
-                <Col className="contentCol" style={{ paddingTop: "80px" }}>
+                <Col className="contentCol" style={{ paddingTop: "80px"}}>
                     <Outlet />
                 </Col>
             </Row>

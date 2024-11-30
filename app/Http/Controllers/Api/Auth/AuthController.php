@@ -43,7 +43,6 @@ class AuthController extends BaseController
     {
         try {
             DB::beginTransaction();
-
             if ($request->role === StatusEnum::COMPANY) {
                 $user = User::create([
                     'name' => $request->company_name,
@@ -76,13 +75,21 @@ class AuthController extends BaseController
 
                     // Attach the payment method to the customer
                     $paymentMethod = \Stripe\PaymentMethod::retrieve($request->payment_method_id);
+                    $stripeId = session('stripe_id');
 
+                    if (!$stripeId) {
+                        Log::error('Stripe ID not found in session.');
+                        return response()->json(['error' => 'Stripe customer ID is missing from session.'], 400);
+                    }
+
+                    Log::info('strip_id is ' . $stripeId);
                     // Check if the payment method is already attached
                     if (!$paymentMethod->customer) {
                         $paymentMethod->attach(['customer' => $stripeCustomer->id]);
                     }
 
-                    // Update the default payment method
+                    Log::info('strip_id is ' . $stripeId . ' passed');
+                    // Step 5: Set the payment method as default
                     $user->updateDefaultPaymentMethod($request->payment_method_id);
 
                     DB::commit();
@@ -119,71 +126,6 @@ class AuthController extends BaseController
             DB::rollBack();
             Log::error('Error creating employee user: ' . $e->getMessage());
             return $this->sendError($e->getMessage(), $e->getCode());
-        }
-    }
-
-    public function approveUser(User $user)
-    {
-        try {
-            DB::beginTransaction();
-            $authUser = auth()->user();
-            $roleName = $user->roles->first()->name;
-            $companyCode = optional($user->company)->code; // Safely access company code
-
-            switch ($roleName) {
-                case StatusEnum::COMPANY:
-                    // if ($authUser->cannot('approve-company')) {
-                    //     return $this->sendError('Unauthorized access', 403);
-                    // }
-
-                    if (!$user->hasStripeId()) {
-                        $user->createAsStripeCustomer();
-                    }
-
-                    // Retrieve package and plan from the user's company details
-                    $company = $user->company;
-                    $package = $company->package;
-                    $plan = $company->plan;
-
-                    // Get Stripe price ID based on the package and plan
-                    $priceId = getStripePriceId($package, $plan);
-
-                    if (!$priceId) {
-                        DB::rollBack();
-                        return $this->sendError('Invalid subscription plan or package', 400);
-                    }
-
-                    // Create a new subscription with the default payment method
-                    $user->newSubscription('default', $priceId)->create($user->defaultPaymentMethod()->id);
-
-                    CompanyApprovedEmailJob::dispatch($user, $companyCode);
-                    $user->update(['is_active' => StatusEnum::ACTIVE, 'status' => StatusEnum::APPROVED]);
-                    break;
-
-                case StatusEnum::EMPLOYEE:
-                    // if ($authUser->cannot('approve-employee')) {
-                    //     return $this->sendError('Unauthorized access', 403);
-                    // }
-
-                    EmployeeApproveEmailJob::dispatch($user->email);
-                    $user->update([
-                        'is_active' => StatusEnum::ACTIVE,
-                        'otp_verified' => StatusEnum::OTP_VERIFIED,
-                        'status' => StatusEnum::APPROVED
-                    ]);
-                    $user->employee()->update(['is_active' => StatusEnum::ACTIVE, 'status' => StatusEnum::APPROVED]);
-                    break;
-
-                default:
-                    DB::rollBack();
-                    return $this->sendError('Invalid user role', 400);
-            }
-
-            DB::commit();
-            return $this->sendResponse(ucfirst($roleName) . ' approved successfully, email dispatched.', 200);
-        } catch (Exception $e) {
-            DB::rollBack();
-            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
 

@@ -10,7 +10,15 @@
 
 .sidebarCol {
     flex: 0 0 auto;
+   
+
     /* Prevent the sidebar from stretching */
+}
+.footer-sidenav{
+    display: flex;
+    flex-direction: column-reverse;
+    /* justify-content: space-between; */
+
 }
 
 .contentCol {
@@ -18,4 +26,9 @@
     /* Allow the content to take up the remaining space */
     padding: 16px;
     /* Add some padding if desired */
+}
+@media screen and (min-width: 760px) {
+    .contentCol{
+        padding-left:90px !important;
+    }
 }

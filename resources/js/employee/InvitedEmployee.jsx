@@ -31,7 +31,7 @@ const InvitedEmployee = () => {
     };
     const invitedEmployee = async () => {
         try {
-            const response = await dispatch(getInvitedUsers());
+            const response = await dispatch(getInvitedUsers(localStorage.getItem("company_code")));
         } catch (error) {
             notification.error({
                 description: error || "Failed to get users",
@@ -45,12 +45,12 @@ const InvitedEmployee = () => {
     const columns = [
         {
             title: "Name",
-            dataIndex: "name",
+            dataIndex: ["user", "name"],
             key: "companyName",
         },
         {
             title: "Email",
-            dataIndex: "email",
+            dataIndex: ["user", "email"],
             key: "companyEmail",
         },
         // {

@@ -92,14 +92,13 @@ Route::middleware('auth:api')->group(function () {
         Route::get('all-assigned-schedule/{id}', [ScheduleController::class, 'getCompanyassignedSchedule']);
         Route::get('missed-attended-schedule/{id}', [ScheduleController::class, 'missedAndAttendedSchedule']);
 
-
         //temprary store data
         Route::post('/add-employee-availability', [ScheduleController::class, 'submitAvailability']);
-        Route::get('/employee-availability-dashboard', [ScheduleController::class, 'getAvailabilityDashboard']);
+        Route::get('/employee-availability-dashboard/{companyCode}', [ScheduleController::class, 'getAvailabilityDashboard']);
     });
 });
 // stripe payment
-Route::middleware(['api', 'web'])->group(function () {
+Route::middleware(['api'])->group(function () {
     Route::post('/create-payment-intent', [StripePaymentController::class, 'createSubscriptionPaymentIntent']);
     Route::post('register', [AuthController::class, 'register']);
 });

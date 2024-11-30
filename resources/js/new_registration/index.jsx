@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { Table, Spin, Alert, Button, notification, Tooltip } from "antd";
 import { inactiveEmployee, userReject } from "./redux/reducer";
 import { approveUserAction,inactiveUsersData } from "../company/redux/reducer";
+import { newSignups } from "../employee/redux/reducers";
 import { SiTicktick } from "react-icons/si";
 import { RxCross1 } from "react-icons/rx";
 // import { useDispatch } from "react-redux";
@@ -10,11 +11,11 @@ import { RxCross1 } from "react-icons/rx";
 
 const InActive = () => {
      const dispatched = useDispatch();
-    const { error, loading, data } = useSelector(
-        (state) => state.inactive
-    );
-
-    console.log("inactive seeee", data);
+    // const { error, loading, data } = useSelector(
+    //     (state) => state.inactive
+    // );
+   const { error, loading,newsignupsdata } = useSelector((state) => state.employee)
+    console.log("inactive seeee", newsignupsdata);
     const handleApprove = async (id) => {
         console.log("user id",id);
         try {
@@ -59,7 +60,7 @@ const InActive = () => {
     }
     const fetchEmployees=()=>{
          const code = localStorage.getItem("company_code");
-         const response = dispatched(inactiveEmployee(code));
+         const response = dispatched(newSignups(code));
          console.log("In active employee dispatch", response);
     }
     useEffect(()=>{
@@ -138,7 +139,7 @@ const InActive = () => {
             <h1>New Registrations</h1>
             <Table
                 columns={columns}
-                 dataSource={data}
+                 dataSource={newsignupsdata}
                 rowKey={(record) => record.id} // Use 'company.code' as unique key
                 pagination={{ pageSize: 10 }}
             />

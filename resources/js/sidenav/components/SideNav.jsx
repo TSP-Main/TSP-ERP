@@ -1,7 +1,7 @@
 // SideNav.jsx
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout, Menu, Drawer, Button, Dropdown, notification } from "antd";
-import { Link,Outlet,useNavigate } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import { IoLogOut } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
 import {
@@ -20,27 +20,25 @@ import axios from "../../services/axiosService";
 import { useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "../../auth/redux/loginReducer";
-const { Header, Sider,Content,Footer } = Layout;
-
+const { Header, Sider, Content, Footer } = Layout;
 
 const SideNav = () => {
     const navigate = useNavigate();
-    const location = useLocation(); 
-    const dispatch=useDispatch()
+    const location = useLocation();
+    const dispatch = useDispatch();
     const [collapsed, setCollapsed] = useState(false);
     const [drawerVisible, setDrawerVisible] = useState(false);
     const isSmallScreen = useResponsive();
-    const  [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
     const handleDrawerOpen = () => setDrawerVisible(true);
     const handleDrawerClose = () => setDrawerVisible(false);
-     const currentPath = location.pathname;
+    const currentPath = location.pathname;
     const handleLogout = async () => {
         try {
-            setLoading(true)
-           await dispatch(logout())
-            navigate('/login')
+            setLoading(true);
+            await dispatch(logout());
+            navigate("/login");
             window.location.reload();
-            
         } catch (error) {
             setLoading(false);
             notification.error({
@@ -58,7 +56,7 @@ const SideNav = () => {
                     Profile
                 </Link>
             </Menu.Item>
-            <Menu.Item key='/logout'>
+            <Menu.Item key="/logout">
                 <Link to="/logout" onClick={handleLogout}>
                     <IoLogOut style={{ marginRight: "5px" }} />
                     Logout
@@ -82,41 +80,78 @@ const SideNav = () => {
                             display: "flex",
                             flexDirection: "column", // Use flexbox to structure the sidebar
                             justifyContent: "space-between", // Space between items to push footer to the bottom
+                            alignItems: "center",
+                            overflowY: "auto",
                         }}
+                        width={290}
+                        collapsedWidth={80}
                         trigger={null}
                         collapsible
                         collapsed={collapsed}
                         theme="light"
                     >
-                        <div>
-                            <div className="demo-logo-vertical">
-                                <img
-                                    src={logo}
-                                    alt="Logo"
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                justifyContent: "space-between",
+                                backgroundColor: "#F5F5F58A",
+                            }}
+                        >
+                            <div className="Content Nav">
+                                <div className="demo-logo-vertical">
+                                    <img
+                                        src={logo}
+                                        alt="Logo"
+                                        style={{
+                                            paddingLeft: collapsed
+                                                ? "20px"
+                                                : "70px",
+                                            paddingTop: "20px",
+                                            paddingBottom: "10px",
+                                            width: collapsed ? "70px" : "130px",
+                                        }}
+                                    />
+                                </div>
+                                <Menu
                                     style={{
-                                        paddingLeft: collapsed
-                                            ? "20px"
-                                            : "70px",
-                                        paddingTop: "20px",
-                                        paddingBottom: "10px",
-                                        width: collapsed ? "70px" : "130px",
+                                        backgroundColor: "#F5F5F58A",
+                                        color: "black",
+                                        border: "none",
                                     }}
+                                    theme="light"
+                                    mode="inline"
+                                    selectedKeys={[currentPath]}
+                                    items={RoleBasedMenu()}
+                                    onClick={handleDrawerClose}
                                 />
                             </div>
-                            <Menu
-                                style={{
-                                    backgroundColor: "#F5F5F58A",
-                                    color: "black",
-                                    border: "none",
-                                }}
-                                theme="light"
-                                mode="inline"
-                                selectedKeys={[currentPath]}
-                                items={RoleBasedMenu()}
-                                onClick={handleDrawerClose}
-                            />
+                            <div>
+                                <footer
+                                    style={{
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                        backgroundColor: "#F5F5F58A",
+                                        color: "black",
+                                        padding: "10px",
+                                        textAlign: "center",
+                                    }}
+                                >
+                                    © 2024{" "}
+                                    <span
+                                        style={{
+                                            fontWeight: "bold",
+                                            color: "#00a8a8;",
+                                        }}
+                                    >
+                                        <a href="https://techsolutionspro.co.uk/">
+                                            Tech Solutions Pro
+                                        </a>
+                                    </span>{" "}
+                                    All Rights Reserved
+                                </footer>
+                            </div>
                         </div>
-                       
                     </Sider>
                 </div>
             )}
@@ -166,7 +201,7 @@ const SideNav = () => {
                         padding: 0,
                         background: "white",
                         position: "fixed",
-                        left: isSmallScreen ? 0 : collapsed ? 90 : 210,
+                        left: isSmallScreen ? 0 : collapsed ? 80 : 290,
                         right: 0,
                         top: 0,
                         zIndex: 2,

@@ -10,7 +10,7 @@ const RejectedEmployee = () => {
      console.log("Employee data", rejecteddata);
     const dispatch=useDispatch();
         const getRejectedEmployees = () => {
-            dispatch(getRejectedUser())
+            dispatch(getRejectedUser(localStorage.getItem('company_code')));
         }
     useEffect(()=>{
         getRejectedEmployees();
@@ -43,12 +43,12 @@ const RejectedEmployee = () => {
 export const columns = [
     {
         title: "Name",
-        dataIndex: "name",
+        dataIndex: ["user","name"],
         key: "companyName",
     },
     {
         title: "Email",
-        dataIndex: "email",
+        dataIndex: ["user","email"],
         key: "companyEmail",
     },
     // {

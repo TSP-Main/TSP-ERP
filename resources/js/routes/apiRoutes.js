@@ -1,3 +1,5 @@
+import { newSignups } from "../employee/redux/reducers";
+
 const apiRoutes = {
     register: "/register",
     login: "/login",
@@ -20,11 +22,12 @@ const apiRoutes = {
         postAvail: "/schedule/add-employee-availability",
         checkedin: "/schedule/checked-in-employees",
         reject: (id) => `/user-reject/${id}`,
-        getRejectedUsers: "/rejected-user",
-        getInvitedUsers: "/invited-user",
+        getRejectedUsers: (code) => `/rejected-user/${code}`,
+        getInvitedUsers: (code) => `/invited-user/${code}`,
         cancelInvite: (id) => `/cancel-invitation/${id}`,
         inactive: (code) => `/employee/in-active-employee/${code}`,
-        getCancelInvited: "/cancelled-user",
+        getCancelInvited: (code) => `/cancelled-user/${code}`,
+        newSignups: (code) => `/new-registered-user/${code}`,
     },
     schedule: {
         create: "/schedule/create-schedule",

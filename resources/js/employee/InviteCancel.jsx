@@ -13,7 +13,7 @@ const InvitCancel = () => {
     console.log("Invited sbbwhs", getCancelInvitedUsers);
     const fetchCancelInvitedEmployees =async () =>{
         try{
-            await dispatch(cancelInvitedEmloyee());
+            await dispatch(cancelInvitedEmloyee(localStorage.getItem("company_code")));
         }catch(error){
             notification.error({
                 description: error || "Failed to get users",
@@ -46,12 +46,12 @@ const InvitCancel = () => {
 export const columns = [
     {
         title: "Name",
-        dataIndex: "name",
+        dataIndex: ["user","name"],
         key: "companyName",
     },
     {
         title: "Email",
-        dataIndex: "email",
+        dataIndex: ["user","email"],
         key: "companyEmail",
     },
     
