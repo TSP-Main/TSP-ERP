@@ -11,19 +11,14 @@ const CheckedIn = () => {
     const columns = [
         {
             title: "Name",
-            dataIndex: "name",
+            dataIndex: ["user","name"],
             key: "name",
         },
         {
             title: "Email",
-            dataIndex: "email",
+            dataIndex: ["user","email"],
             key: "email",
-        },
-        {
-            title: "Role",
-            dataIndex: "role",
-            key: "role",
-        },
+        }
     ];
 
     // Fetch all employees
@@ -60,7 +55,7 @@ const CheckedIn = () => {
                 const checkedInEmployeeIds =
                     response?.map((emp) => emp.employee_id) || [];
                 setCheckedInIds(checkedInEmployeeIds);
-                console.log("checkedInEmployeeIds", checkedInEmployeeIds);
+                console.log("checkedInEmployeeIds", checkedInEmployeeIds || []);
             }
         } catch (error) {
             notification.error({
@@ -78,7 +73,7 @@ const CheckedIn = () => {
 
     // Set row class for checked-in employees
     const rowClassName = (record) => {
-        return checkedInIds.includes(record.employee.id) ? "checked-in-row" : "";
+        return checkedInIds.includes(record.user.id) ? "checked-in-row" : "";
     };
     
 

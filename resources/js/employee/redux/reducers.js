@@ -116,7 +116,10 @@ export const checkedinEmployee = createAsyncThunk(
                 apiRoutes.employee.checkedin,
                 payload
             );
-            console.log("ched in employee", response.data.data);
+            console.log("ched in employee", response.data);
+            if(response.data.length==0|| !response.data){
+                return []
+            }
             return response.data.data;
         } catch (error) {
             console.log("redux error: " + error);

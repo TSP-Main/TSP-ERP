@@ -30,40 +30,41 @@ const Register = () => {
       if (role === "company" && stripe && elements) {
           try {
               // Step 1: Get price and client_secret
-              const response = await dispatch(
-                  getPrice({
-                      package: values.package,
-                      plan: values.plan,
-                      name: values.name,
-                      email: values.email,
-                  })
-              );
+            //   const response = await dispatch(
+            //       getPrice({
+            //           package: values.package,
+            //           plan: values.plan,
+            //           name: values.name,
+            //           email: values.email,
+            //       })
+            //   );
 
-              if (!response.payload || !response.payload.data.client_secret) {
-                  notification.error({
-                      message: "Error",
-                      description: "Failed to fetch payment details",
-                      duration: 3,
-                  });
-                  return;
-              }
-              console.log("register ", response.payload.data)
-              const customer_id = response.payload.data.customer_id;
-              const clientSecret = response.payload.data.client_secret;
-              console.log("Client Secret:", clientSecret);
+            //   if (!response.payload || !response.payload.data.client_secret) {
+            //       notification.error({
+            //           message: "Error",
+            //           description: "Failed to fetch payment details",
+            //           duration: 3,
+            //       });
+            //       return;
+            //   }
+            //   console.log("register ", response.payload.data)
+            //   const customer_id = response.payload.data.customer_id;
+            //   const clientSecret = response.payload.data.client_secret;
+            //   console.log("Client Secret:", clientSecret);
 
-              // Step 2: Confirm payment
-              const result = await stripe.confirmCardPayment(clientSecret, {
-                  payment_method: {
-                      card: elements.getElement(CardElement),
-                      billing_details: {
-                          name: values.name,
-                          email: values.email,
-                      },
-                  },
-              });
+           console.log("Step 2: Confirm payment"); 
+             const cardElement = elements.getElement(CardElement);
+             const responsestripe = await stripe.createPaymentMethod({
+                 type: "card",
+                 card: cardElement,
+                 billing_details: {
+                     name: values.name,
+                     email: values.email,
+                 },
+             });
+             
 
-              if (result.error) {
+              if (responsestripe.error) {
                   notification.error({
                       message: "Payment Error",
                       description: result.error.message,
@@ -73,7 +74,12 @@ const Register = () => {
               }
 
               // Step 3: Use payment method ID for registration
-              const paymentMethodId = result.paymentIntent.payment_method;
+              const paymentMethodId = responsestripe.paymentMethod.id;
+             
+              console.log(
+                  "Payment Method ID:",
+                  responsestripe.paymentMethod.id
+              );
 
               const registrationData = {
                   role: values.role,
@@ -84,7 +90,7 @@ const Register = () => {
                   company_name: values.company_name,
                   package: values.package,
                   plan: values.plan,
-                  customer_id:customer_id,
+                
                   payment_method_id: paymentMethodId,
               };
 
