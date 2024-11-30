@@ -36,7 +36,7 @@ const apiRoutes = {
         delete: (id) => `/schedule/delete/${id}`,
         update: (id) => `/schedule/update/${id}`,
         missedAttended: (id) => `/schedule/missed-attended-schedule/${id}`,
-        change: "/schedule/employee-availability-dashboard",
+        change:(code)=> `/schedule/employee-availability-dashboard/${code}`,
         assignedSchedules: (companyId) =>
             `/schedule/all-assigned-schedule/${companyId}`,
     },

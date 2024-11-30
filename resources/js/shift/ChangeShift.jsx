@@ -11,7 +11,7 @@ const ChangeShift = () => {
 
     useEffect(() => {
         // Dispatch the action to fetch data when the component mounts
-        dispatch(getChangeRequest());
+        dispatch(getChangeRequest(localStorage.getItem("company_code")));
     }, [dispatch]);
 
     // Define the table columns

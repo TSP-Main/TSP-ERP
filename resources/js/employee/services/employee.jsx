@@ -122,22 +122,13 @@ const refetchEmployees = async () => {
     const columns = [
         {
             title: "Name",
-            dataIndex: "name",
-            key: "companyName",
+            dataIndex: ["user", "name"],
+            key: "name",
         },
         {
             title: "Email",
-            dataIndex: "email",
-            key: "companyEmail",
-        },
-        {
-            title: "Role Name",
-            key: "role",
-            render: (text, record) => {
-                return record.roles && record.roles.length > 0
-                    ? record.roles[0].name
-                    : "No role assigned";
-            },
+            dataIndex: ["user", "email"],
+            key: "email",
         },
         {
             title: "Actions",
