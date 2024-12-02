@@ -1,0 +1,14 @@
+.ant-table-cell {
+    padding: 8px; /* Reduce padding for compact rows */
+    text-align: center;
+}
+
+.ant-table-thead > tr > th {
+    text-align: center;
+    background-color: #f5f5f5;
+    font-weight: bold;
+}
+
+.ant-table {
+    font-size: 14px; /* Adjust font size for better readability */
+}

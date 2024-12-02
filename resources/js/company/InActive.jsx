@@ -18,6 +18,7 @@ const InActive = () => {
             notification.success({
                 message: "Success",
                 description: "User approved successfully.",
+                duration: 3,
             });
 
             // Optionally refresh the inactive users data
@@ -27,6 +28,7 @@ const InActive = () => {
             notification.error({
                 message: "Error",
                 description: error || "Failed to approve user.",
+                duration: 3,
             });
         }
     };
@@ -39,6 +41,7 @@ const InActive = () => {
             notification.error({
                 message: "Error",
                 description: error || "Login failed",
+                duration: 3,
             });
             return;
         }
@@ -67,7 +70,7 @@ const InActive = () => {
             title: "Actions",
             key: "actions",
             render: (text, record) => (
-                <Button type="primary" onClick={() => handleApprove(record.id)}>
+                <Button type="primary" onClick={() => handleApprove(record?.user_id)}>
                     Approve
                 </Button>
             ),
@@ -94,8 +97,8 @@ const InActive = () => {
             <Table
                 columns={columns}
                 dataSource={inactivedata}
-                rowKey={(record) => record.id} // Use 'company.code' as unique key
-                pagination={{ pageSize: 10 }}
+                rowKey={(record) => record.user_id} // Use 'company.code' as unique key
+               
               
             />
         </div>

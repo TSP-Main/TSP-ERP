@@ -44,92 +44,53 @@ class AuthController extends BaseController
         try {
             DB::beginTransaction();
             if ($request->role === StatusEnum::COMPANY) {
-                // Step 1: Create user with company role
                 $user = User::create([
                     'name' => $request->company_name,
                     'email' => $request->email,
                     'password' => Hash::make($request->password),
                 ]);
                 $user->assignRole(StatusEnum::COMPANY);
-
-                // Step 2: Generate company details
+                // Generate unique company code
                 $companyCode = 'CPM-' . strtoupper(uniqid());
-                $slug = generateCompanySlug($request->company_name);
+                $slug = generateCompanySlug($request->company_name); // Use the helper function to generate a unique slug
                 $logoPath = null;
-
                 if ($request->hasFile('logo')) {
-                    $logoPath = $request->file('logo')->store('logos', 'public');
+                    $logoPath = $request->file('logo')->store('logos', 'public'); // Store in the 'logos' directory
                 }
-
                 $company = $user->company()->create([
+                    'user_id' => $user->id,
                     'name' => $request->company_name,
                     'slug' => $slug,
                     'code' => $companyCode,
                     'logo' => $logoPath,
                     'package' => $request->package,
                     'plan' => $request->plan,
+                    'payment_method_id' => $request->payment_method_id
                 ]);
-
-                try {
-                    // Step 3: Create Stripe customer
-                    Stripe::setApiKey(env('STRIPE_SECRET'));
-
-                    // Step 4: Retrieve and attach payment method to customer
-                    $paymentMethod = \Stripe\PaymentMethod::retrieve($request->payment_method_id);
-                    $stripeId = session('stripe_id');
-
-                    if (!$stripeId) {
-                        Log::error('Stripe ID not found in session.');
-                        return response()->json(['error' => 'Stripe customer ID is missing from session.'], 400);
-                    }
-
-                    Log::info('strip_id is ' . $stripeId);
-                    // Check if the payment method is already attached
-                    if (!$paymentMethod->customer) {
-                        $paymentMethod->attach(['customer' => session('stripe_id')]);
-                    }
-
-                    Log::info('strip_id is ' . $stripeId . ' passed');
-                    // Step 5: Set the payment method as default
-                    $user->updateDefaultPaymentMethod($request->payment_method_id);
-                    // Clear stripe_id from session after usage
-                    session()->forget('stripe_id');
-
-                    DB::commit();
-                    return $this->sendResponse($user->refresh()->load('company'), 'Company registered successfully.');
-                } catch (\Stripe\Exception\InvalidRequestException $e) {
-                    DB::rollBack();
-                    return $this->sendError($e->getMessage(), 400);
-                }
+                DB::commit();
+                return $this->sendResponse(['user' => $user], 'User register successfully');
             } elseif ($request->role === StatusEnum::EMPLOYEE) {
-                // Step 1: Fetch company details
                 $company = CompanyModel::where('code', $request->company_code)->firstOrFail();
-
-                // Step 2: Create employee user
+                // Register employee user
                 $user = User::create([
                     'name' => $request->name,
                     'email' => $request->email,
                     'password' => Hash::make($request->password),
-                    'status' => StatusEnum::NOT_APPROVED,
+                    'status' => StatusEnum::NOT_APPROVED
                 ]);
                 $user->assignRole(StatusEnum::EMPLOYEE);
-
-                // Step 3: Create employee record
                 Employee::create([
                     'user_id' => $user->id,
                     'company_code' => $company->code,
-                    'status' => StatusEnum::NOT_APPROVED,
+                    'status' => StatusEnum::NOT_APPROVED
                 ]);
-
                 DB::commit();
-                return $this->sendResponse($user, 'Employee registered successfully.');
+                return $this->sendResponse(['user' => $user], 'User register successfully');
             }
-
-            return $this->sendError('Invalid role.', 400);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Registration Error: ' . $e->getMessage());
-            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+            Log::error('Error creating employee user: ' . $e->getMessage());
+            return $this->sendError($e->getMessage(), $e->getCode());
         }
     }
 
@@ -387,7 +348,7 @@ class AuthController extends BaseController
                 $user->employee->update(['is_active' => StatusEnum::INACTIVE, 'status' => StatusEnum::REJECTED]);
                 break;
         }
-        return $this->sendResponse([], ucfirst($roleName) . ' rejected', 200);
+        return $this->sendResponse(ucfirst($roleName) . 'rejected', 200);
     }
 
     public function userInviteCancel(User $user)

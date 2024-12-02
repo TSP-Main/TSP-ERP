@@ -1,11 +1,12 @@
 /* SideNav.css */
+
 .ant-col.sidebarCol{
      background-color: #F5f5F5 !important;
      border-right: 1px solid #00000033;
 }
 /* Persistent selected styling for light theme */
 .ant-menu-light .ant-menu-item-selected {
-    background-color: #a4b3c8 !important; /* Selected background color */
+    background-color: #cfd8e4 !important; /* Selected background color */
     color: #fff !important; /* Selected text color */
     font-weight: bold !important; /* Optional: Bold font */
     border-radius: 8px; /* Optional: Rounded corners */
@@ -28,7 +29,7 @@
 .container {
     display: flex;
     height: 100vh;
-    overflow: hidden;
+    /* overflow: hidden; */
     background-color:'#5F5F58A' ;
 }
 
@@ -63,3 +64,15 @@
         width: "100%";
     }
 }
+@media screen and (max-width: 600px) {
+    .ant-layout {
+     margin-left: -50px;
+    min-height: 0;
+    }
+}
+ 
+    
+    /* display: hidden !important;; */
+
+
+

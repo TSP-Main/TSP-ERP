@@ -38,12 +38,15 @@ class AddEmployeeInvitationJob implements ShouldQueue
                 'plainPassword' => $this->plainPassword,
             ];
 
+            // Send the email using the data array
             Mail::send('emails.employee.AddEmployeeEmail', $data, function ($m) {
                 $m->from(config('mail.from.address'), config('app.name', 'APP Name'));
-                $m->to($this->employee->email)->subject('Add Employee.');
+                $m->to($this->employee->email)->subject('Add Employee');
             });
         } catch (Exception $e) {
+            // Log the error if the email fails
             Log::error('Failed to send add employee email: ' . $e->getMessage());
         }
     }
+
 }

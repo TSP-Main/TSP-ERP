@@ -1,42 +1,63 @@
-import React, { useContext, useState } from "react";
-import loginService from "../services/loginService";
+import React, { useState } from "react";
 import { Button, Form, notification } from "antd";
 import CustomInput from "../../components/CustomInput";
 import WelcomePage from "../../components/WelcomePage";
-import "../styles/Login.css";
+import styles from "../styles/Login.module.css"; // Import CSS Module
 import { useNavigate } from "react-router-dom";
-import UserContext from "../../context/userContext";
-import { useDispatch } from "react-redux";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { login } from "../redux/loginReducer";
+import { userData } from "../../dashboard/redux/reducer";
+import { getDefaultPage } from "../../services/defaultPage";
+import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 
 const Login = () => {
+    const [visible, setVisible] = useState(false);
     const dispatch = useDispatch();
-    const { error, loading } = useSelector((state) => state.auth);
+    const { error, loading } = useSelector((state) => state.auth); // Assuming user is available here
+    const { userdata } = useSelector((state) => state.user);
     const navigate = useNavigate();
+    const [rememberMe, setRememberMe] = useState(false);
 
     const handleLoginClick = async (values) => {
-        // Dispatch the login action
-        const response = await dispatch(login(values));
-         console.log("respomse",response)
-        if (error) {
-            console.log("login component error", response.error);
-            console.log(error)
-            // If there is an error, show the notification
-            notification.error({
-                message: "Error",
-                description: response.payload || error || "Login failed", // Use error from redux or default message
+        try {
+            // Unwrap the response to check for errors explicitly
+            const response = await dispatch(login(values)).unwrap();
+
+            const user_data = await dispatch(userData()).unwrap();
+
+            const accessToken = response?.access_token;
+
+            if (accessToken) {
+                if (rememberMe) {
+                    localStorage.setItem("access_token", accessToken);
+                } else {
+                    sessionStorage.setItem("access_token", accessToken);
+                }
+            }
+
+            console.log("user data", user_data);
+            notification.success({
+                description: "Logged in successfully!",
+                duration: 3,
             });
-        } else if(!error)
-          
-            navigate("/profile"); 
+
+            // Get the default page based on the user's role
+            // const defaultPage = getDefaultPage(user_data); // Pass the user data to get the default page
+            // console.log("defaultPage", defaultPage);
+            navigate('/dashboard'); // Navigate to the default page
+        } catch (err) {
+            console.error("Login error:", err);
+            notification.error({
+                description: err || "Login failed",
+                duration: 3,
+            });
         }
-    
+    };
 
     return (
-        <div className="login-container">
-            <div className="login-form-wrapper">
-                <div className="login-header">
+        <div className={styles.loginContainer}>
+            <div className={styles.loginFormWrapper}>
+                <div className={styles.loginHeader}>
                     <h2 style={{ fontWeight: "bold" }}>Sign In</h2>
                 </div>
                 <Form layout="vertical" onFinish={handleLoginClick}>
@@ -44,7 +65,6 @@ const Login = () => {
                         name="email"
                         placeholder="Email"
                         type="email"
-                        
                         rules={[
                             {
                                 required: true,
@@ -70,11 +90,21 @@ const Login = () => {
                             alignItems: "center",
                         }}
                     >
-                        <label className="remember-me">
-                            <input type="checkbox" name="remember" />
+                        <label className={styles.rememberMe}>
+                            <input
+                                type="checkbox"
+                                name="remember"
+                                checked={rememberMe}
+                                onChange={(e) =>
+                                    setRememberMe(e.target.checked)
+                                }
+                            />
                             Remember Me
                         </label>
-                        <a className="forgot-password" href="">
+                        <a
+                            className={styles.forgotPassword}
+                            href="/forget-password"
+                        >
                             Forgot Password
                         </a>
                     </div>
@@ -83,13 +113,13 @@ const Login = () => {
                             type="primary"
                             htmlType="submit"
                             size="large"
-                            className="custom-button"
+                            className={styles.customButton}
                             loading={loading}
                         >
                             Login
                         </Button>
                     </Form.Item>
-                    <div className="login-footer">
+                    <div className={styles.loginFooter}>
                         <p>
                             Don't have an account?{" "}
                             <a href="/register">Sign Up</a>
@@ -99,8 +129,11 @@ const Login = () => {
             </div>
 
             <WelcomePage
-                title="Hello Friend"
-                description="Sign Up to access your personalized dashboard and features."
+                containerStyle={{
+                    borderRadius: "0px 8px 8px 0px",
+                }}
+                title="Workforce Management Made Easier!"
+                description="Sign up to effortlessly track attendance, manage shifts, and maintain work hours."
                 buttonText="Sign Up"
                 linkPath="/register"
             />

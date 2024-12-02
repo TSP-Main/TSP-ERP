@@ -1,0 +1,23 @@
+{
+  "resources/js/app.jsx": {
+    "file": "assets/app-DY3Mfwjl.js",
+    "name": "app",
+    "src": "resources/js/app.jsx",
+    "isEntry": true,
+    "css": [
+      "assets/app-J1XkOmzc.css"
+    ],
+    "assets": [
+      "assets/tms_logo-B_irCaLO.png",
+      "assets/placeholder-image-88VTbnSV.jpg"
+    ]
+  },
+  "resources/js/assests/placeholder-image.jpg": {
+    "file": "assets/placeholder-image-88VTbnSV.jpg",
+    "src": "resources/js/assests/placeholder-image.jpg"
+  },
+  "resources/js/assests/tms_logo.png": {
+    "file": "assets/tms_logo-B_irCaLO.png",
+    "src": "resources/js/assests/tms_logo.png"
+  }
+}

@@ -40,14 +40,21 @@ const ShiftModal = ({ isVisible, onCancel }) => {
         if(response.error){
             notification.error({
                 message: "Error",
-                description:response?.payload?.data?.message || 'Problem sending, Recheck and try again'
-            })
+                description:
+                    response?.payload?.data?.message ||
+                    "Problem Creating, Recheck and try again",
+                duration: 3,
+            });
         }
         else{
             notification.success({
                 message: "Success",
-                description:response?.message || 'Shift created successfully'
-            })
+                description: response?.message || "Shift created successfully",
+                duration: 3,
+            });
+            
+            onCancel();
+            window.location.reload();
         }
     }
 
@@ -101,7 +108,7 @@ const ShiftModal = ({ isVisible, onCancel }) => {
                         ]}
                     >
                         <TimePicker
-                            format="HH:mm:ss"
+                            format="HH:mm"
                             placeholder="Select Start Time"
                         />
                     </Form.Item>
@@ -118,7 +125,7 @@ const ShiftModal = ({ isVisible, onCancel }) => {
                         ]}
                     >
                         <TimePicker
-                            format="HH:mm:ss"
+                            format="HH:mm"
                             placeholder="Select End Time"
                         />
                     </Form.Item>

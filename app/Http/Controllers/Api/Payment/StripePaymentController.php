@@ -54,7 +54,7 @@ class StripePaymentController extends BaseController
                 'amount' => $price->unit_amount, // Amount in cents
                 'currency' => $price->currency,
                 'payment_method_types' => ['card'],
-                // 'customer' => $stripe_id, // Associate with Stripe customer
+                // 'customer' => $stripeId,
                 'capture_method' => 'manual',
             ]);
 
@@ -90,6 +90,33 @@ class StripePaymentController extends BaseController
                     $company = $user->company;
                     $package = $company->package;
                     $plan = $company->plan;
+
+                    $amount = $this->calculateAmount($company->package, $company->plan);
+            
+                    // Create a payment intent and charge the customer
+                    $paymentIntent = PaymentIntent::create([
+                        'amount' => $amount * 100, // Amount in cents
+                        'currency' => 'gbp',
+                        'payment_method' => $company->payment_method_id,
+                        'confirm' => true,
+                        'automatic_payment_methods' => [
+                            'enabled' => true,
+                            'allow_redirects' => 'never',
+                        ],
+                    ]);
+
+                    $stripeId = getStripePriceId($package, $plan);
+
+                    // if($paymentIntent->status == 'succeeded'){
+                    //     // Add Company transation data
+                    //     CompanyTransaction::create([
+                    //         'company_id'    => $company->id,
+                    //         'package'       => $company->package,
+                    //         'plan'          => $company->plan,
+                    //         'amount'        => $amount,
+                    //         // 'status'        => 'New',
+                    //         'stripe_payment_intent_id' => $paymentIntent->id,
+                    //     ]);
 
                     // Call createSubscriptionPaymentIntent to get priceId
                     $subscriptionData = $this->createSubscriptionPaymentIntent($package, $plan);
@@ -134,22 +161,4 @@ class StripePaymentController extends BaseController
         }
     }
 
-    public function handlePayment(Request $request)
-    {
-        try {
-            // Set Stripe secret key
-            Stripe::setApiKey(config('services.stripe.secret'));
-
-            // Retrieve payment details from request if needed
-            // For example, use $request->payment_id if required
-
-            // You can retrieve the payment status from the Stripe API if needed
-
-            return response()->json([
-                'message' => 'Payment processed successfully'
-            ], 200);
-        } catch (Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
-    }
 }

@@ -1,177 +1,83 @@
 import React, { useEffect, useState } from "react";
-import { Table, Spin, Button } from "antd";
+import { Table, Spin, Button, Select, Alert } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { allEmployee } from "../employee/redux/reducers";
 import ShiftDropdown from "./components/ShiftDropdown";
-import { showSchedule } from "../shift/redux/reducer";
+import { showSchedule, getAssignedSchedules } from "../shift/redux/reducer";
+import { assignSchedule } from "../attendance/redux/reducer";
 import { FaArrowRight } from "react-icons/fa";
 
 function RowHeaderTable() {
-    const [shiftAssignments, setShiftAssignments] = useState([]);
-    const [selectedShifts, setSelectedShifts] = useState({});
+    const [dataSource, setDataSource] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [selectedShiftsState, setSelectedShiftsState] = useState({});
+
     const dispatch = useDispatch();
-    const { employeedata } = useSelector((state) => state.employee);
+
+    const { employeedata, loading: employeeLoading } = useSelector(
+        (state) => state.employee
+    );
     const { scheduledata, loading: scheduleLoading } = useSelector(
         (state) => state.schedule
     );
-    const [dataSource, setDataSource] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { assignedSchedules } = useSelector((state) => state.schedule);
 
-    const todayIndex = new Date().getDay();
-    const currentDate = new Date();
-    const daysOfWeek = [
-        "Sunday",
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-    ];
-
-    // Helper function to filter only upcoming dates
     const getDatesForWeek = () => {
-        const todayIndex = currentDate.getDay(); // Get today's index (0=Sunday, 1=Monday, ..., 6=Saturday)
+        const currentDate = new Date();
+        const next7Days = [];
 
-        // Collect days from today to Saturday (end of the week)
-        const upcomingDays = daysOfWeek.slice(todayIndex).map((dayName, i) => {
-            const date = new Date(currentDate);
-            date.setDate(currentDate.getDate() + i); // Increment day starting from today
-            return {
-                day: dayName,
-                date: date,
-                formattedDate: date.toLocaleDateString("en-US", {
+        for (let i = 1; i <= 7; i++) {
+            const nextDay = new Date(currentDate);
+            nextDay.setDate(currentDate.getDate() + i);
+            next7Days.push({
+                day: nextDay.toLocaleString("en-US", { weekday: "long" }),
+                date: nextDay,
+                formattedDate: nextDay.toLocaleDateString("en-US", {
                     month: "short",
                     day: "numeric",
                 }),
-            };
-        });
-
-        // If today is not Sunday, include the start of the next week
-        if (todayIndex > 0) {
-            const nextWeekDays = daysOfWeek
-                .slice(0, todayIndex)
-                .map((dayName, i) => {
-                    const date = new Date(currentDate);
-                    date.setDate(
-                        currentDate.getDate() + upcomingDays.length + i
-                    ); // Increment to wrap around to next week
-                    return {
-                        day: dayName,
-                        date: date,
-                        formattedDate: date.toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                        }),
-                    };
-                });
-
-            return [...upcomingDays, ...nextWeekDays];
+            });
         }
 
-        // If today is Sunday, return only upcomingDays
-        return upcomingDays;
+        return next7Days;
     };
 
     const reorderedDays = getDatesForWeek();
 
-    // Helper function to create the payload for assigning shifts
-    // Helper function to create the payload for assigning shifts
-    const createPayload = () => {
-        const payload = [];
-
-        shiftAssignments.forEach((assignment) => {
-            if (assignment.days.length === 1) {
-                payload.push({
-                    employee_id: assignment.employeeId,
-                    schedule_id: assignment.scheduleId,
-                    start_date: assignment.days[0].date
-                        .toISOString()
-                        .slice(0, 10), // Format date as YYYY-MM-DD
-                    end_date: assignment.days[0].date
-                        .toISOString()
-                        .slice(0, 10), // Format date as YYYY-MM-DD
-                });
-            } else {
-                const startDate = assignment.days[0].date
-                    .toISOString()
-                    .slice(0, 10); // Format date as YYYY-MM-DD
-                const endDate = assignment.days[assignment.days.length - 1].date
-                    .toISOString()
-                    .slice(0, 10); // Format date as YYYY-MM-DD
-
-                payload.push({
-                    employee_id: assignment.employeeId,
-                    schedule_id: assignment.scheduleId,
-                    start_date: startDate,
-                    end_date: endDate,
-                });
-            }
-        });
-        console.log("payload: " + payload);
-        return payload;
-    };
-
-    const handleCellClick = (employeeId, dayIndex, shiftId) => {
-        setShiftAssignments((prevAssignments) => {
-            const updatedAssignments = prevAssignments.map((assignment) => {
-                if (assignment.employeeId === employeeId) {
-                    const dayExists = assignment.days.findIndex(
-                        (day) => day.date === reorderedDays[dayIndex].date
-                    );
-
-                    if (dayExists !== -1) {
-                        assignment.days[dayExists].shiftId = shiftId;
-                    } else {
-                        console.log("Assignment1");
-                        assignment.days.push({
-                            date: reorderedDays[dayIndex].date,
-                            shiftId,
-                        });
-                    }
-                    return assignment;
-                }
-                return assignment;
-            });
-
-            if (
-                !updatedAssignments.some(
-                    (assignment) => assignment.employeeId === employeeId
-                )
-            ) {
-                console.log("Assignment");
-                updatedAssignments.push({
-                    employeeId,
-                    scheduleId: shiftId,
-                    days: [{ date: reorderedDays[dayIndex].date, shiftId }],
-                });
-            }
-
-            return updatedAssignments;
-        });
+    const handleShiftChange = (employeeKey, column, shiftId) => {
+        setSelectedShiftsState((prevShifts) => ({
+            ...prevShifts,
+            [employeeKey]: {
+                ...prevShifts[employeeKey],
+                [column]: shiftId,
+            },
+        }));
     };
 
     // Fetch employee data
     useEffect(() => {
-        console.log("query");
-        dispatch(allEmployee(localStorage.getItem("company_code")));
-    }, []);
+        const code = localStorage.getItem("company_code");
+        const payload = {
+            role: "employee",
+            code: code,
+        };
+        dispatch(allEmployee(payload));
+    }, [dispatch]);
 
     // Fetch schedule data once (on component mount)
     useEffect(() => {
-        console.log("query");
         const companyId = localStorage.getItem("company_id");
         if (companyId) {
             dispatch(showSchedule(companyId)); // Trigger the action to fetch schedule data
         }
-    }, []);
+    }, [dispatch]);
 
     // Format data for the table once employee data is available
     useEffect(() => {
         if (employeedata && employeedata.length > 0) {
             const formattedData = employeedata.map((employee) => ({
                 key: employee.id,
-                rowHeader: employee.name,
+                rowHeader: employee?.user?.name,
                 ...reorderedDays.reduce((acc, day, index) => {
                     acc[`col${index + 1}`] = null;
                     return acc;
@@ -182,132 +88,265 @@ function RowHeaderTable() {
         }
     }, [employeedata]);
 
-    // Handle shift assignment for all days when arrow icon is clicked
-    // Handle shift assignment for all days when arrow icon is clicked
-    const assignShiftForAllDays = (employeeId) => {
-        console.log("employee id", employeeId);
-        onShiftSelect = employeeId;
-        const shiftId = selectedShifts[employeeId];
-        console.log("shift ", shiftId);
-        if (shiftId) {
-            // Loop through each day in the week and call handleCellClick for each day
-            reorderedDays.forEach((_, dayIndex) => {
-                handleCellClick(employeeId, dayIndex, shiftId);
+    // Populate selectedShiftsState once assignedSchedules is fetched
+    useEffect(() => {
+        if (assignedSchedules && assignedSchedules.length > 0) {
+            const shiftsState = {};
+
+            // Iterate through each schedule and map employees to shifts
+            assignedSchedules.forEach((schedule) => {
+                // Iterate through the employees assigned to the current schedule
+                schedule.employees.forEach((employee) => {
+                    const employeeId = employee.employee_id;
+                    const shiftId = schedule.schedule_id;
+
+                    // Check if the employee already has an entry in shiftsState
+                    if (!shiftsState[employeeId]) {
+                        shiftsState[employeeId] = {}; // Initialize if not present
+                    }
+
+                    // For each employee, assign the shift to the appropriate column (col1, col2, ...)
+                    const shiftColumn = schedule.schedule_id; // Using the schedule_id as the column number
+
+                    // Map the schedule_id (shift) to the column for the specific employee
+                    shiftsState[employeeId][`col${shiftColumn}`] = shiftId;
+                });
             });
 
-            // Update the data source for the table immutably
-            setDataSource((prevDataSource) =>
-                prevDataSource.map((item) => {
-                    if (item.key === employeeId) {
-                        return {
-                            ...item,
-                            ...reorderedDays.reduce((acc, day, index) => {
-                                acc[`col${index + 1}`] = shiftId; // Apply shift ID to all columns
-                                return acc;
-                            }, {}),
-                        };
-                    }
-                    console.log("handle ", dataSource);
-                    return item;
-                })
-            );
+            // Update the selectedShiftsState with the mapped shifts
+            setSelectedShiftsState(shiftsState);
+        }
+    }, [assignedSchedules]);
+
+    const handleSubmit = () => {
+        const payload = [];
+        const employeeIds = Object.keys(selectedShiftsState);
+
+        employeeIds.forEach((employeeId) => {
+            const shifts = selectedShiftsState[employeeId];
+            const groupedShifts = {};
+
+            // Group shifts by schedule ID
+            Object.entries(shifts).forEach(([column, scheduleId]) => {
+                if (!groupedShifts[scheduleId]) {
+                    groupedShifts[scheduleId] = [];
+                }
+                groupedShifts[scheduleId].push(column); // Collect column names (e.g., col1, col2)
+            });
+
+            // Create payload entries for each group
+            Object.entries(groupedShifts).forEach(([scheduleId, columns]) => {
+                if (scheduleId === null) return; // Skip if no shift is assigned
+
+                const columnDates = columns.map(
+                    (col) =>
+                        reorderedDays[parseInt(col.replace("col", "")) - 1]
+                            ?.date
+                );
+
+                // Sort dates and create start and end dates
+                const sortedDates = columnDates.sort(
+                    (a, b) => new Date(a) - new Date(b)
+                );
+                const startDate = sortedDates[0]?.toISOString().split("T")[0];
+                const endDate = sortedDates[sortedDates.length - 1]
+                    ?.toISOString()
+                    .split("T")[0];
+
+                payload.push({
+                    employee_id: parseInt(employeeId),
+                    schedule_id: parseInt(scheduleId),
+                    start_date: startDate,
+                    end_date: endDate,
+                });
+            });
+        });
+
+        dispatch(assignSchedule(payload));
+
+        console.log("Generated Payload:", payload);
+    };
+
+    const handleAssignShiftToAllDays = (employeeId, currentShifts) => {
+        // Find the first non-null shift in currentShifts
+        const firstNonNullShift = Object.keys(currentShifts).reduce(
+            (acc, key) => {
+                if (currentShifts[key] !== null && !acc) {
+                    return currentShifts[key]; // Return the first valid shift ID
+                }
+                return acc;
+            },
+            null
+        ); // Default to null if no non-null value found
+
+        // If a non-null shift exists, apply it to all columns for the given employee
+        if (firstNonNullShift !== null) {
+            setSelectedShiftsState((prevState) => ({
+                ...prevState,
+                [employeeId]: {
+                    // Apply the first non-null shift to all columns
+                    ...reorderedDays.reduce((acc, _, index) => {
+                        acc[`col${index + 1}`] = firstNonNullShift; // Apply to col1, col2, etc.
+                        return acc;
+                    }, {}),
+                },
+            }));
         }
     };
 
-    const handleSubmit = () => {
-        const payload = createPayload();
-        console.log("payload", payload);
-        // Send the payload to the API here if needed
-    };
+   const columns = [
+       {
+           title: "Employee",
+           dataIndex: "rowHeader",
+           key: "employee", // Static key for the employee column
+           fixed: "left",
+           width: 150,
+           render: (text, record) => (
+               <span
+                   style={{
+                       display: "flex",
+                       justifyContent: "space-between",
+                       alignItems: "center",
+                   }}
+               >
+                   {text}
+                   <FaArrowRight
+                       type="link"
+                       onClick={() =>
+                           handleAssignShiftToAllDays(
+                               record.key,
+                               selectedShiftsState[record.key] || {}
+                           )
+                       }
+                       style={{ cursor: "pointer", color: "#1890ff" }}
+                   />
+               </span>
+           ),
+       },
+       ...reorderedDays.map((day, dayIndex) => ({
+           title: (
+               <div style={{ textAlign: "center" }}>
+                   <div style={{ fontWeight: "bold" }}>{day.day}</div>
+                   <div>{day.formattedDate}</div>
+               </div>
+           ),
+           fixed: "top",
+           dataIndex: `col${dayIndex + 1}`,
+           key: `col-${day.day}-${dayIndex}`, // Unique key for each column
+           width: 200,
+           render: (text, record) => {
+               // Retrieve the selected shift ID for the current employee and column
+               const shiftId =
+                   selectedShiftsState[record.key]?.[`col${dayIndex + 1}`];
 
-    const columns = [
-        {
-            title: "Employee",
-            dataIndex: "rowHeader",
-            key: "key",
-            fixed: "left",
-            width: 150,
+               return (
+                   <Select
+                       placeholder="Assign Shift"
+                       style={{ width: "100%" }}
+                       value={shiftId || null} // Ensure null value for unassigned
+                       onChange={(value) =>
+                           handleShiftChange(
+                               record.key,
+                               `col${dayIndex + 1}`,
+                               value
+                           )
+                       }
+                   >
+                       <Select.Option value={null} style={{ color: "gray" }}>
+                           No Schedule
+                       </Select.Option>
+                       {scheduledata.map((data) => (
+                           <Select.Option
+                               key={data.schedule_id}
+                               value={data.schedule_id}
+                           >
+                               {`${data.start_time} - ${data.end_time}`}
+                           </Select.Option>
+                       ))}
+                   </Select>
+               );
+           },
+       })),
+   ];
 
-            render: (text, record) => (
-                <span
-                    style={{
-                        display: "flex",
-                        flexGrow: 1,
-                        justifyContent: "space-between",
-                    }}
-                >
-                    {text}
-                    <div>
-                        <FaArrowRight
-                            type="link"
-                            onClick={() => assignShiftForAllDays(record.key)}
-                        />
-                    </div>
-                </span>
-            ),
-        },
-        ...reorderedDays.map((day, index) => ({
-            title: (
-                <div style={{ textAlign: "center" }}>
-                    <div style={{ fontWeight: "bold" }}>{day.day}</div>
-                    <div>{day.formattedDate}</div>
-                </div>
-            ),
-            fixed: "top",
-            dataIndex: `col${index + 1}`,
-            key: `${day.day}-${index}`, // Unique key for each column
-            width: 200,
-            render: (text, record) => (
-                <ShiftDropdown
-                    scheduledata={scheduledata}
-                    onShiftSelect={(shiftId) => {
-                        // handleCellClick(record.key, index, shiftId);
-                        setSelectedShifts((prev) => ({
-                            ...prev,
-                            [record.key]: shiftId,
-                            startDate: record.startDate,
-                            endDate: record.endDate,
-                        }));
-                    }}
-                    selectedShiftId={selectedShifts[record.key]}
-                />
-            ),
-            onCell: (record) => ({
-                style: {
-                    whiteSpace: "normal",
-                    wordBreak: "break-word",
-                },
-            }),
-        })),
-    ];
+    useEffect(() => {
+        const companyId = localStorage.getItem("company_id");
+        if (companyId) {
+            dispatch(getAssignedSchedules(companyId));
+        }
+    }, [dispatch]);
 
     // if (scheduleLoading || loading) {
     //     return <Spin />;
     // }
 
-    console.log("schecdule data: ", scheduledata);
-    console.log("employee data: ", employeedata);
-    console.log("data source: ", dataSource);
-    console.log("selected shifts: ", selectedShifts);
+    if (scheduleLoading) {
+        return <Spin />;
+    }
 
+    console.log("data source: ", dataSource);
+    console.log("employee data: ", employeedata);
+    // console.log("schedule data: ", scheduledata);
+    // console.log("assigned schedules: ", assignedSchedules);
+    // console.log("shift state: ", selectedShiftsState);
+    if (loading) return <Spin size="large" tip="Loading..." />;
+
+    // Show error state
+    //    if (error) return <Alert message="Error" description={error} type="error" />;
+    const dataSource12 = [
+        {
+            key: "1",
+            name: "Mike",
+            age: 32,
+            address: "10 Downing Street",
+        },
+        {
+            key: "2",
+            name: "John",
+            age: 42,
+            address: "10 Downing Street",
+        },
+    ];
+
+    const columns12 = [
+        {
+            title: "Name",
+            dataIndex: "name",
+            key: "name",
+        },
+        {
+            title: "Age",
+            dataIndex: "age",
+            key: "age",
+        },
+        {
+            title: "Address",
+            dataIndex: "address",
+            key: "address",
+        },
+    ];
     return (
         <>
-            <Table
-                key={JSON.stringify(dataSource)} // This forces a rerender when dataSource changes
+            {/* <Table
+                key={JSON.stringify(dataSource12)}
                 size="middle"
                 columns={columns}
-                dataSource={dataSource}
+                dataSource={dataSource12}
                 pagination={false}
                 bordered
                 scroll={{ x: "max-content", y: 500 }}
                 rowKey="key"
                 style={{
-                    minWidth: 800,
+                    // minWidth: 800,
                     tableLayout: "fixed",
                     overflowX: "auto",
                     overflowY: "auto",
                 }}
-            />
+                locale={{
+                    emptyText: "No employees or shifts available.",
+                }}
+            /> */}
+            <Table dataSource={dataSource} columns={columns} />;
             <div
                 style={{
                     display: "flex",

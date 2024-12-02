@@ -2,7 +2,6 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "../../services/axiosService";
 import apiRoutes from "../../routes/apiRoutes";
 import { notification } from "antd";
-import { useNavigate } from "react-router-dom";
 const initialState = {
     error: false,
     loading: false,
@@ -17,7 +16,7 @@ export const getPrice=createAsyncThunk(
     async(data,{rejectWithValue})=>{
         try{
           const response=await axios.post(apiRoutes.paymentIntent,data);
-          console.log(response.data)
+        //   console.log(response.data)
           return response.data;
         }catch(error){
              return rejectWithValue(
@@ -27,17 +26,37 @@ export const getPrice=createAsyncThunk(
         }
     }
 )
+export const logout = createAsyncThunk(
+    "user/logout",
+    async (_, {rejectWithValue}) => {
+        try {
+            const response = await axios.post(apiRoutes.logout);
+          
+            if (response.status === 200) {
+              localStorage.clear();
+              sessionStorage.clear();
+            }
+            window.location.reload();
+            return response.data.data;
+        } catch (error) {
+            // console.log("login redux", error);
+            console.log("hihi", error.response?.data?.errors);
+
+            return rejectWithValue(
+                error.response?.data?.errors || "Logout failed",
+            );
+        }
+    }
+);
 export const login = createAsyncThunk(
     "user/login",
     async (authdata, { rejectWithValue }) => {
         try {
+
             const response = await axios.post(apiRoutes.login, authdata);
-            console.log(response);
+            console.log("login ",response.data.data);
             if (response.status === 200) {
-                notification.success({
-                    message: "Success",
-                    description: response.data.message,
-                });
+               
                 localStorage.setItem(
                     "access_token",
                     response.data.data.access_token
@@ -45,9 +64,9 @@ export const login = createAsyncThunk(
 
 
             }
-            return response;
+            return response.data.data;
         } catch (error) {
-            console.log("login redux", error);
+            // console.log("login redux", error);
             console.log("hihi", error.response?.data?.errors);
 
           return rejectWithValue(
