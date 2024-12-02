@@ -62,48 +62,13 @@ class AuthController extends BaseController
                     'name' => $request->company_name,
                     'slug' => $slug,
                     'code' => $companyCode,
-                    'logo' => $logoPath
+                    'logo' => $logoPath,
+                    'package' => $request->package,
+                    'plan' => $request->plan,
+                    'payment_method_id' => $request->payment_method_id
                 ]);
-
-                try {
-                    Stripe::setApiKey(env('STRIPE_SECRET'));
-                    $stripeCustomer = \Stripe\Customer::create([
-                        'email' => $request->email,
-                        'name' => $request->company_name,
-                    ]);
-                    $user->update(['stripe_id' => $stripeCustomer->id]);
-
-                    // Attach the payment method to the customer
-                    $paymentMethod = \Stripe\PaymentMethod::retrieve($request->payment_method_id);
-                    $stripeId = session('stripe_id');
-
-                    if (!$stripeId) {
-                        Log::error('Stripe ID not found in session.');
-                        return response()->json(['error' => 'Stripe customer ID is missing from session.'], 400);
-                    }
-
-                    Log::info('strip_id is ' . $stripeId);
-                    // Check if the payment method is already attached
-                    if (!$paymentMethod->customer) {
-                        $paymentMethod->attach(['customer' => $stripeCustomer->id]);
-                    }
-
-                    Log::info('strip_id is ' . $stripeId . ' passed');
-                    // Step 5: Set the payment method as default
-                    $user->updateDefaultPaymentMethod($request->payment_method_id);
-
-                    DB::commit();
-
-                    // Reload user with related company and card details
-                    $user->refresh()->load('company');
-                    return $this->sendResponse($user, 'User registered successfully');
-                } catch (\Stripe\Exception\InvalidRequestException $e) {
-                    DB::rollBack();
-                    return $this->sendError('Invalid or already used payment method ID.', 400);
-                } catch (Exception $e) {
-                    DB::rollBack();
-                    return $this->sendError('An error occurred during registration.', 500);
-                }
+                DB::commit();
+                return $this->sendResponse(['user' => $user], 'User register successfully');
             } elseif ($request->role === StatusEnum::EMPLOYEE) {
                 $company = CompanyModel::where('code', $request->company_code)->firstOrFail();
                 // Register employee user
