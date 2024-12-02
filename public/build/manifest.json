@@ -1,6 +1,26 @@
 {
+  "resources/js/Profile/absent.png": {
+    "file": "assets/absent-CmILKzGl.png",
+    "src": "resources/js/Profile/absent.png"
+  },
+  "resources/js/Profile/company.png": {
+    "file": "assets/company-Dz7VbbqU.png",
+    "src": "resources/js/Profile/company.png"
+  },
+  "resources/js/Profile/money.png": {
+    "file": "assets/money-CkRIBGtw.png",
+    "src": "resources/js/Profile/money.png"
+  },
+  "resources/js/Profile/present.png": {
+    "file": "assets/present-BlMU-zwx.png",
+    "src": "resources/js/Profile/present.png"
+  },
+  "resources/js/Profile/totalemployess.png": {
+    "file": "assets/totalemployess-C_7RvK-s.png",
+    "src": "resources/js/Profile/totalemployess.png"
+  },
   "resources/js/app.jsx": {
-    "file": "assets/app-DJ-EeKCh.js",
+    "file": "assets/app-BMJ1yaih.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
@@ -9,7 +29,12 @@
     ],
     "assets": [
       "assets/tms_logo-B_irCaLO.png",
-      "assets/placeholder-image-88VTbnSV.jpg"
+      "assets/placeholder-image-88VTbnSV.jpg",
+      "assets/company-Dz7VbbqU.png",
+      "assets/money-CkRIBGtw.png",
+      "assets/totalemployess-C_7RvK-s.png",
+      "assets/present-BlMU-zwx.png",
+      "assets/absent-CmILKzGl.png"
     ]
   },
   "resources/js/assests/placeholder-image.jpg": {
