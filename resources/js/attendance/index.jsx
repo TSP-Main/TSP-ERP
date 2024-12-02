@@ -13,6 +13,7 @@ import moment from "moment";
 import { useDispatch, useSelector } from "react-redux";
 import { assignedShechule, checkIn, checkOut, postEmployeeAvailability } from "./redux/reducer";
 import Cookies from "js-cookie";
+import { get } from "react-hook-form";
 
 const Index = () => {
     console.log("attendance");
@@ -100,15 +101,14 @@ const Index = () => {
 
     const handleCheckIn = async () => {
         const id = localStorage.getItem("employee_id");
-        const time_in = getCurrentTime();
+        // const time_in = getCurrentTime();
 
-        const payload = { id, time_in };
-
+       
         try {
-            await dispatch(checkIn(payload));
+            await dispatch(checkIn(id));
             setStatusCheckIn(true);
             Cookies.set("statusCheckIn", "true", { expires: 7 });
-            console.log("Successfully Checked In:", payload);
+            // console.log("Successfully Checked In:", payload);
         } catch (error) {
             console.error("Error during Check In:", error);
         }
@@ -116,15 +116,17 @@ const Index = () => {
 
     const handleCheckOut = async () => {
         const id = localStorage.getItem("employee_id");
-        const time_out = getCurrentTime();
+        // const time_out = getCurrentTime();
 
-        const payload = { id, time_out };
+       
+        //  console.log("payload check out", payload);
+
 
         try {
-            await dispatch(checkOut(payload));
+            await dispatch(checkOut(id));
             setStatusCheckIn(false);
             Cookies.remove("statusCheckIn");
-            console.log("Successfully Checked Out:", payload);
+            // console.log("Successfully Checked Out:", payload);
         } catch (error) {
             console.error("Error during Check Out:", error);
         }
@@ -301,6 +303,7 @@ const Index = () => {
                             >
                                 Change Schedule
                             </Button>
+                            
                         </>
                     );
                 }

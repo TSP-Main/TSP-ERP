@@ -20,6 +20,7 @@ const Dashboard = () => {
     // Fetch user data on component mount
     useEffect(() => {
         dispatch(userData());
+        
     }, [dispatch]);
 
     // Logout and clear storage
@@ -100,6 +101,7 @@ const Dashboard = () => {
                             <div>
                                 <h3>Name</h3>
                                 <p>{userdata?.data?.name || "N/A"}</p>
+                                
                             </div>
                         </div>
                         <div className="profile-detail">

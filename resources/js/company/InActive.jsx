@@ -70,7 +70,7 @@ const InActive = () => {
             title: "Actions",
             key: "actions",
             render: (text, record) => (
-                <Button type="primary" onClick={() => handleApprove(record?.user_id)}>
+                <Button type="primary" onClick={() => handleApprove(record?.id)}>
                     Approve
                 </Button>
             ),

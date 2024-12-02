@@ -26,7 +26,7 @@ function RowHeaderTable() {
         const currentDate = new Date();
         const next7Days = [];
 
-        for (let i = 1; i <= 7; i++) {
+        for (let i = 0; i < 7; i++) {
             const nextDay = new Date(currentDate);
             nextDay.setDate(currentDate.getDate() + i);
             next7Days.push({
@@ -77,7 +77,7 @@ function RowHeaderTable() {
         if (employeedata && employeedata.length > 0) {
             const formattedData = employeedata.map((employee) => ({
                 key: employee.id,
-                rowHeader: employee.name,
+                rowHeader: employee?.user?.name,
                 ...reorderedDays.reduce((acc, day, index) => {
                     acc[`col${index + 1}`] = null;
                     return acc;

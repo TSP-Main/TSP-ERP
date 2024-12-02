@@ -74,16 +74,14 @@ export const postEmployeeAvailability = createAsyncThunk(
 );
 export const checkIn = createAsyncThunk(
     "employee/checkIn",
-    async ({ id, time_in }, { rejectWithValue }) => {
+    async (id, { rejectWithValue }) => {
         try {
-            console.log("Check In employee", id, time_in);
+            console.log("Check In employee", id);
 
             // POST request with `id` in the URL and `time_in` in the request body
-            const response = await axios.post(apiRoutes.employee.checkIn(id), {
-                time_in,
-            });
+            const response = await axios.post(apiRoutes.employee.checkIn(id));
 
-            console.log("response data employee checkIn");
+            console.log("response data employee checkIn", response.data);
             return response.data.data; // Adjusted to access the correct data
         } catch (error) {
             console.error("Error in checkIn:", error);
@@ -96,14 +94,12 @@ export const checkIn = createAsyncThunk(
 
 export const checkOut = createAsyncThunk(
     "employee/checkout",
-    async ({ id, time_out }, { rejectWithValue }) => {
+    async ( id, { rejectWithValue }) => {
         try {
-            console.log("Check Out employee", id, time_out);
+            console.log("Check Out employee", id);
 
             // Assuming apiRoutes.employee.checkOut(id) returns the correct endpoint
-            const response = await axios.post(apiRoutes.employee.checkOut(id), {
-                time_out, // Send time_out in the body of the request
-            });
+            const response = await axios.post(apiRoutes.employee.checkOut(id));
 
             console.log("response data employee checkOut", response.data);
             return response.data.data; // Ensure this is the correct structure based on your API response
