@@ -16,10 +16,10 @@ export const userData = createAsyncThunk(
             const response = await axios.get(apiRoutes.userdetails);
             console.log("useeerrr", response.data.data.roles[0].name);
             localStorage.setItem("role", response.data.data.roles[0].name)
-            if(response?.data?.data?.roles[0]?.name==="super_admin"){
+            // if(response?.data?.data?.roles[0]?.name==="super_admin"){
                 localStorage.setItem("name", response.data.data.name)
-            }
-            else if (response?.data?.data?.roles[0]?.name==="company"|| "manager"){
+            // }
+            // else if (response?.data?.data?.roles[0]?.name==="company"|| "manager"){
                 localStorage.setItem("name", response.data.data.name)
                  localStorage.setItem(
                      "company_code",
@@ -30,13 +30,10 @@ export const userData = createAsyncThunk(
                       response?.data?.data?.company?.id
                   );
         
-            }
-            else if(response.data?.data?.roles[0]?.name==="employee"){
-                  localStorage.setItem(
-                      "employee_id",
-                      response?.data?.data?.employee?.id
-                  );
-            }
+            // }
+            // else if (response.data?.data?.roles[0]?.name === "employee") {
+                localStorage.setItem("employee_id", response?.data?.data?.employee?.id);
+            // }
                
            
             return response.data;
