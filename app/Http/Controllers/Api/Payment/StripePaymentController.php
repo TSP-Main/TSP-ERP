@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Payment\GetStripePriceIdRequest;
 use App\Jobs\Company\CompanyApprovedEmailJob;
 use App\Jobs\Company\EmployeeApproveEmailJob;
-use App\Models\Company\CompanyModel;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Stripe\Stripe;
@@ -22,6 +21,54 @@ use Stripe\PaymentMethod;
 class StripePaymentController extends BaseController
 
 {
+    public function createSubscriptionPaymentIntent(GetStripePriceIdRequest $request, StripeService $stripeService)
+    {
+        try {
+            // Retrieve package and plan from request
+            $package = $request->package;
+            $plan = $request->plan;
+
+            // Get Stripe price ID using helper function
+            $priceId = getStripePriceId($package, $plan);
+
+            // Check if the price ID exists
+            if (!$priceId) {
+                return $this->sendResponse('Invalid package or plan', 400);
+            }
+
+            // Set Stripe secret key
+            Stripe::setApiKey(env('STRIPE_SECRET'));
+
+            // Retrieve price details from Stripe using the price_id
+            $price = Price::retrieve($priceId);
+
+            // Validate the response to ensure price exists
+            if (!$price || !isset($price->unit_amount) || !isset($price->currency)) {
+                return $this->sendResponse('Invalid price ID or price not found.', 400);
+            }
+
+            $stripeId = $stripeService->createCustomer($request->email, $request->name);
+            session(['stripe_id' => $stripeId]);
+
+            // Create a PaymentIntent with the price's amount, currency, and customer
+            $paymentIntent = PaymentIntent::create([
+                'amount' => $price->unit_amount, // Amount in cents
+                'currency' => $price->currency,
+                'payment_method_types' => ['card'],
+                // 'customer' => $stripeId,
+                'capture_method' => 'manual',
+            ]);
+
+            return $this->sendResponse([
+                'priceId' => $priceId,
+                'client_secret' => $paymentIntent->client_secret,
+                // 'customer_id' => $stripe_id, // Return customer ID to frontend
+            ], 'Payment intent created successfully', 200);
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
     public function approveUser(User $user, StripeService $stripeService)
     {
         try {
@@ -29,16 +76,73 @@ class StripePaymentController extends BaseController
 
             $authUser = auth()->user();
             $roleName = $user->roles->first()->name;
+            $companyCode = optional($user->company)->code;
 
             switch ($roleName) {
                 case StatusEnum::COMPANY:
                     $this->authorize('approve-company');
-                    $this->handleCompanyApproval($user);
+
+                    $company = $user->company;
+
+                    // Validate package and plan
+                    $package = $company->package;
+                    $plan = $company->plan;
+                    $priceId = getStripePriceId($package, $plan);
+
+                    if (!$priceId) {
+                        return $this->sendError('Invalid package or plan.', 400);
+                    }
+
+                    // Ensure Stripe customer exists
+                    if (!$user->hasStripeId()) {
+                        $user->createAsStripeCustomer();
+                    }
+
+                    // Validate and attach payment method
+                    $paymentMethodId = $company->payment_method_id;
+                    if (!$paymentMethodId) {
+                        return $this->sendError('Payment method is required.', 400);
+                    }
+
+                    Stripe::setApiKey(env('STRIPE_SECRET'));
+
+                    try {
+                        // Attach the payment method to the customer
+                        $paymentMethod = PaymentMethod::retrieve($paymentMethodId);
+                        $paymentMethod->attach(['customer' => $user->stripe_id]);
+
+                        // Update the default payment method for the user
+                        $user->updateDefaultPaymentMethod($paymentMethodId);
+                    } catch (Exception $e) {
+                        return $this->sendError('Failed to attach payment method: ' . $e->getMessage(), 400);
+                    }
+
+                    // Create the subscription
+                    $user->newSubscription('default', $priceId)
+                        ->create($paymentMethodId);
+
+                    // Dispatch email and update company status
+                    CompanyApprovedEmailJob::dispatch($user, $companyCode);
+                    $user->update([
+                        'is_active' => StatusEnum::ACTIVE,
+                        'status' => StatusEnum::APPROVED,
+                    ]);
+
+                    $company->update(['is_active' => StatusEnum::ACTIVE]);
                     break;
 
                 case StatusEnum::EMPLOYEE:
                     $this->authorize('approve-employee');
-                    $this->handleEmployeeApproval($user);
+
+                    EmployeeApproveEmailJob::dispatch($user->email);
+                    $user->update([
+                        'is_active' => StatusEnum::ACTIVE,
+                        'status' => StatusEnum::APPROVED,
+                    ]);
+                    $user->employee()->update([
+                        'is_active' => StatusEnum::ACTIVE,
+                        'status' => StatusEnum::APPROVED,
+                    ]);
                     break;
 
                 default:
@@ -53,116 +157,6 @@ class StripePaymentController extends BaseController
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
-
-    /**
-     * Handle company approval.
-     */
-    private function handleCompanyApproval(User $user)
-    {
-        $company = $user->company;
-
-        // Validate package and plan
-        $package = $company->package;
-        $plan = $company->plan;
-        $priceId = $this->getStripePriceId($package, $plan);
-
-        if (!$priceId) {
-            throw new Exception('Invalid package or plan.', 400);
-        }
-
-        // Ensure Stripe customer exists
-        if (!$user->hasStripeId()) {
-            $user->createAsStripeCustomer();
-        }
-
-        // Validate and attach payment method
-        $paymentMethodId = $company->payment_method_id;
-        if (!$paymentMethodId) {
-            throw new Exception('Payment method is required.', 400);
-        }
-
-        $this->attachPaymentMethod($user, $paymentMethodId);
-
-        // Create subscription and handle Stripe status
-        $this->createCompanySubscription($user, $priceId, $paymentMethodId);
-
-        // Update company status and notify
-        $this->updateCompanyStatus($user, $company);
-    }
-
-    /**
-     * Handle employee approval.
-     */
-    private function handleEmployeeApproval(User $user)
-    {
-        EmployeeApproveEmailJob::dispatch($user->email);
-
-        $user->update([
-            'is_active' => StatusEnum::ACTIVE,
-            'status' => StatusEnum::APPROVED,
-        ]);
-
-        $user->employee()->update([
-            'is_active' => StatusEnum::ACTIVE,
-            'status' => StatusEnum::APPROVED,
-        ]);
-    }
-
-    /**
-     * Attach payment method to Stripe customer.
-     */
-    private function attachPaymentMethod(User $user, string $paymentMethodId)
-    {
-        Stripe::setApiKey(env('STRIPE_SECRET'));
-
-        try {
-            $paymentMethod = PaymentMethod::retrieve($paymentMethodId);
-            $paymentMethod->attach(['customer' => $user->stripe_id]);
-
-            // Set as default payment method
-            $user->updateDefaultPaymentMethod($paymentMethodId);
-        } catch (Exception $e) {
-            throw new Exception('Failed to attach payment method: ' . $e->getMessage(), 400);
-        }
-    }
-
-    /**
-     * Create a subscription for a company.
-     */
-    private function createCompanySubscription(User $user, string $priceId, string $paymentMethodId)
-    {
-        try {
-            $user->newSubscription('default', $priceId)
-                ->create($paymentMethodId);
-        } catch (Exception $e) {
-            throw new Exception('Failed to create subscription: ' . $e->getMessage(), 400);
-        }
-    }
-
-    /**
-     * Update company status and dispatch email.
-     */
-    private function updateCompanyStatus(User $user, CompanyModel $company)
-    {
-        CompanyApprovedEmailJob::dispatch($user, optional($company)->code);
-
-        $user->update([
-            'is_active' => StatusEnum::ACTIVE,
-            'status' => StatusEnum::APPROVED,
-        ]);
-
-        $company->update(['is_active' => StatusEnum::ACTIVE]);
-    }
-
-    /**
-     * Mocked method to get Stripe price ID.
-     */
-    private function getStripePriceId(string $package, string $plan): ?string
-    {
-        // Mocked logic for retrieving price ID
-        return "price_id_for_{$package}_{$plan}";
-    }
-
 
     public function handleStripeWebhook(Request $request)
     {
