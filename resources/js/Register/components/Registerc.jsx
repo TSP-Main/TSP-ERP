@@ -94,20 +94,20 @@ const Register = () => {
                   payment_method_id: paymentMethodId,
               };
 
-              const registrationResponse = await dispatch(
-                  SignUp(registrationData)
-              );
+            //   const registrationResponse = await dispatch(
+            //       SignUp(registrationData)
+            //   );
 
-              if (registrationResponse.error) {
-                  notification.error({
-                      message: "Registration Error",
-                      description:
-                          registrationResponse.payload ||
-                          "Registration failed due to server error",
-                      duration: 3,
-                  });
-                  return;
-              }
+            //   if (registrationResponse.error) {
+            //       notification.error({
+            //           message: "Registration Error",
+            //           description:
+            //               registrationResponse.payload ||
+            //               "Registration failed due to server error",
+            //           duration: 3,
+            //       });
+            //       return;
+            //   }
 
               notification.success({
                   message: "Registration Successful",

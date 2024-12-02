@@ -6,12 +6,14 @@ import { FiUsers } from "react-icons/fi";
 import { IoTimeOutline } from "react-icons/io5";
 import { userData } from "../../dashboard/redux/reducer";
 import { RiHomeOfficeFill } from "react-icons/ri";
+import { BiTimer } from "react-icons/bi";
 import {
-    MdWork,
-    MdCoPresent,
-    MdTimer,
-    MdCancel,
+    MdWorkOutline,
     MdOutlineCoPresent,
+    MdOutlineTimer,
+    MdOutlineCancel,
+    MdOutlineCancelScheduleSend,
+    MdCoPresent,
 } from "react-icons/md";
 import { FcInvite } from "react-icons/fc";
 import { GrDocumentMissing } from "react-icons/gr";
@@ -44,18 +46,18 @@ const RoleBasedMenu = () => {
         getItem(
             <Link to="/dashboard">Dashboard</Link>,
             "/dashboard", // Key should match the path for proper selection
-            <MdWork />
+            <MdWorkOutline />
         ),
     ];
 
     // Define menu items based on the user's role
     if (userRole === "super_admin") {
         items.push(
-            getItem("New Signups", "company", <RiHomeOfficeFill />, [
+            getItem("Companies", "company", <RiHomeOfficeFill />, [
                 getItem(
                     <Link to="/onboard">Active</Link>,
                     "/onboard", // Key matching the URL path
-                    <MdWork />
+                    <MdWorkOutline />
                 ),
                 getItem(
                     <Link to="/inactive">New Request</Link>,
@@ -71,7 +73,7 @@ const RoleBasedMenu = () => {
                 "/rota", // Key matching the URL path
                 <FiUsers />
             ),
-            
+
             getItem("Shift", "shift", <IoIosTimer />, [
                 getItem(
                     <Link to="/shift">Shifts</Link>,
@@ -81,18 +83,13 @@ const RoleBasedMenu = () => {
                 getItem(
                     <Link to="/assign-shift">Assign Shift</Link>,
                     "/assign-shift", // Key matching the URL path
-                    <MdTimer />
+                    <MdOutlineTimer />
                 ),
                 getItem(
                     <Link to="/change-shift">Change Shift</Link>,
                     "/change-shift", // Key matching the URL path
-                    <MdTimer />
+                    <BiTimer />
                 ),
-                getItem(
-                    <Link to="/example">Example</Link>,
-                    "/example", // Key matching the URL path
-                    <MdCoPresent />
-                )
             ]),
             getItem("Employee", "employee", <FiUsers />, [
                 getItem(
@@ -119,14 +116,14 @@ const RoleBasedMenu = () => {
                 getItem(
                     <Link to="/rejected-employee">Rejected Employee</Link>,
                     "/rejected-employee", // Key matching the URL path
-                    <MdCancel />
+                    <MdOutlineCancel />
                 ),
                 getItem(
                     <Link to="/invite-cancel">Invite Canceled Employee</Link>,
                     "/invite-cancel", // Key matching the URL path
-                    <MdCancel />
+                    <MdOutlineCancelScheduleSend />
                 ),
-            ]),
+            ])
         );
     } else if (userRole === "employee") {
         items.push(

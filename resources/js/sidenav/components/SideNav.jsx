@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Layout, Menu, Drawer, Button, Dropdown, notification } from "antd";
 import { Link, Outlet, useNavigate } from "react-router-dom";
-import { IoLogOut } from "react-icons/io5";
+import { IoLogOut,IoPersonAdd } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
 import {
     SearchOutlined,
@@ -48,12 +48,21 @@ const SideNav = () => {
             });
         }
     };
+    const handleRegister = () => {
+        navigate("/register");
+    }
     const profilemenu = (
         <Menu>
             <Menu.Item key="/profile">
                 <Link to="/profile">
                     <FaUser style={{ marginRight: "5px" }} />
                     Profile
+                </Link>
+            </Menu.Item>
+            <Menu.Item key="/register">
+                <Link to="/register" onClick={handleRegister}>
+                    <IoPersonAdd  style={{ marginRight: "5px" }} />
+                    Sign Up
                 </Link>
             </Menu.Item>
             <Menu.Item key="/logout">

@@ -100,8 +100,6 @@ const InActive = () => {
                 dataSource={inactivedata}
                 rowKey={(record) => record.user_id} // Use 'company.code' as unique key
                 pagination={true}
-               
-              
             />
         </div>
     );
