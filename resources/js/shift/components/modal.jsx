@@ -58,12 +58,14 @@ const ShiftModal = ({ isVisible, onCancel }) => {
         }
     }
 
-    useEffect(() => {
-        const id = localStorage.getItem("company_id");
-        form.setFieldsValue({ company_id: id });
-    }, [form]);
-    // if(error)
-    //     return <h1>No schedule found</h1>
+  useEffect(() => {
+      const companyId = localStorage.getItem("company_id");
+      if (companyId) {
+          form.setFieldsValue({ company_id: companyId });
+      }
+  }, [form]);
+    if(error)
+        return <h1>No schedule found</h1>
 
     return (
         <Modal
@@ -115,7 +117,6 @@ const ShiftModal = ({ isVisible, onCancel }) => {
 
                     <Form.Item
                         name="end_time"
-                        
                         label="End Time"
                         rules={[
                             {

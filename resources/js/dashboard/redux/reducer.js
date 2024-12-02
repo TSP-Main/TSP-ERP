@@ -14,13 +14,31 @@ export const userData = createAsyncThunk(
         try {
             console.log("usersrsrsrs")
             const response = await axios.get(apiRoutes.userdetails);
-            console.log("useeerrr",response.data.data);
-            localStorage.setItem(
-                "company_code",
-                response.data.data.company?.code
-            );
-            localStorage.setItem("company_id", response?.data?.data?.company?.id)
-            localStorage.setItem("employee_id", response?.data?.data?.employee?.id)
+            console.log("useeerrr", response.data.data.roles[0].name);
+            localStorage.setItem("role", response.data.data.roles[0].name)
+            if(response?.data?.data?.roles[0]?.name==="super_admin"){
+                localStorage.setItem("name", response.data.data.name)
+            }
+            else if (response?.data?.data?.roles[0]?.name==="company"|| "manager"){
+                localStorage.setItem("name", response.data.data.name)
+                 localStorage.setItem(
+                     "company_code",
+                     response.data.data.company?.code
+                 );
+                  localStorage.setItem(
+                      "company_id",
+                      response?.data?.data?.company?.id
+                  );
+        
+            }
+            else if(response.data?.data?.roles[0]?.name==="employee"){
+                  localStorage.setItem(
+                      "employee_id",
+                      response?.data?.data?.employee?.id
+                  );
+            }
+               
+           
             return response.data;
         } catch (error) {
             console.log("redux error: " + error);

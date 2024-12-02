@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Table, Spin, Button, Select, Alert } from "antd";
+import { Table, Spin, Button, Select } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { allEmployee } from "../employee/redux/reducers";
 import ShiftDropdown from "./components/ShiftDropdown";
@@ -9,7 +9,7 @@ import { FaArrowRight } from "react-icons/fa";
 
 function RowHeaderTable() {
     const [dataSource, setDataSource] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [selectedShiftsState, setSelectedShiftsState] = useState({});
 
     const dispatch = useDispatch();
@@ -26,7 +26,7 @@ function RowHeaderTable() {
         const currentDate = new Date();
         const next7Days = [];
 
-        for (let i = 1; i <= 7; i++) {
+        for (let i = 0; i < 7; i++) {
             const nextDay = new Date(currentDate);
             nextDay.setDate(currentDate.getDate() + i);
             next7Days.push({
@@ -194,80 +194,88 @@ function RowHeaderTable() {
         }
     };
 
-   const columns = [
-       {
-           title: "Employee",
-           dataIndex: "rowHeader",
-           key: "employee", // Static key for the employee column
-           fixed: "left",
-           width: 150,
-           render: (text, record) => (
-               <span
-                   style={{
-                       display: "flex",
-                       justifyContent: "space-between",
-                       alignItems: "center",
-                   }}
-               >
-                   {text}
-                   <FaArrowRight
-                       type="link"
-                       onClick={() =>
-                           handleAssignShiftToAllDays(
-                               record.key,
-                               selectedShiftsState[record.key] || {}
-                           )
-                       }
-                       style={{ cursor: "pointer", color: "#1890ff" }}
-                   />
-               </span>
-           ),
-       },
-       ...reorderedDays.map((day, dayIndex) => ({
-           title: (
-               <div style={{ textAlign: "center" }}>
-                   <div style={{ fontWeight: "bold" }}>{day.day}</div>
-                   <div>{day.formattedDate}</div>
-               </div>
-           ),
-           fixed: "top",
-           dataIndex: `col${dayIndex + 1}`,
-           key: `col-${day.day}-${dayIndex}`, // Unique key for each column
-           width: 200,
-           render: (text, record) => {
-               // Retrieve the selected shift ID for the current employee and column
-               const shiftId =
-                   selectedShiftsState[record.key]?.[`col${dayIndex + 1}`];
-
-               return (
-                   <Select
-                       placeholder="Assign Shift"
-                       style={{ width: "100%" }}
-                       value={shiftId || null} // Ensure null value for unassigned
-                       onChange={(value) =>
-                           handleShiftChange(
-                               record.key,
-                               `col${dayIndex + 1}`,
-                               value
-                           )
-                       }
-                   >
-                       <Select.Option value={null} style={{ color: "gray" }}>
-                           No Schedule
-                       </Select.Option>
-                       {scheduledata.map((data) => (
-                           <Select.Option
-                               key={data.schedule_id}
-                               value={data.schedule_id}
-                           >
-                               {`${data.start_time} - ${data.end_time}`}
-                           </Select.Option>
-                       ))}
-                   </Select>
-               );
-           },
-       })),
-   ];
+    const columns = [
+        {
+            title: "Employee",
+            dataIndex: "rowHeader",
+            key: "key",
+            fixed: "left",
+            width: 150,
+            render: (text, record) => (
+                <span
+                    style={{
+                        display: "flex",
+                        flexGrow: 1,
+                        justifyContent: "space-between",
+                    }}
+                >
+                    {text}
+                    <div>
+                        <FaArrowRight
+                            type="link"
+                            onClick={() =>
+                                handleAssignShiftToAllDays(
+                                    record.key,
+                                    selectedShiftsState[record.key] || {}
+                                )
+                            }
+                            style={{ cursor: "pointer" }}
+                        />
+                    </div>
+                </span>
+            ),
+        },
+        ...reorderedDays.map((day, dayIndex) => ({
+            title: (
+                <div style={{ textAlign: "center" }}>
+                    <div style={{ fontWeight: "bold" }}>{day.day}</div>
+                    <div>{day.formattedDate}</div>
+                </div>
+            ),
+            fixed: "top",
+            dataIndex: `col${dayIndex + 1}`,
+            key: `${day.day}-${dayIndex}`,
+            width: 200,
+            render: (text, record) => {
+                // Get the shift ID from selectedShiftsState for this employee (record.key) and column (colN)
+                const shiftId =
+                    selectedShiftsState[record.key]?.[`col${dayIndex + 1}`];
+                return (
+                    <Select
+                        style={{
+                            width: "60px", // Default compact width
+                        }}
+                        dropdownStyle={{
+                            width: "auto", // Allow dropdown to expand
+                            minWidth: "150px", // Set minimum width for the dropdown
+                        }}
+                        placeholder="Select shift"
+                        // style={{ width: "100%" }}
+                        value={shiftId}
+                        onChange={(value) =>
+                            handleShiftChange(
+                                record.key,
+                                `col${dayIndex + 1}`,
+                                value
+                            )
+                        }
+                    >
+                        <Select.Option value={null} style={{ color: "gray" }}>
+                            No Schedule
+                        </Select.Option>
+                        {scheduledata.map((data) => (
+                            <Select.Option
+                                key={data.schedule_id}
+                                value={data.schedule_id}
+                            >
+                                {`${data.start_time}-${data.end_time}`}
+                            </Select.Option>
+                        ))}
+                    </Select>
+                );
+            },
+        })),
+    ];
 
     useEffect(() => {
         const companyId = localStorage.getItem("company_id");
@@ -289,64 +297,21 @@ function RowHeaderTable() {
     // console.log("schedule data: ", scheduledata);
     // console.log("assigned schedules: ", assignedSchedules);
     // console.log("shift state: ", selectedShiftsState);
-    if (loading) return <Spin size="large" tip="Loading..." />;
 
-    // Show error state
-    //    if (error) return <Alert message="Error" description={error} type="error" />;
-    const dataSource12 = [
-        {
-            key: "1",
-            name: "Mike",
-            age: 32,
-            address: "10 Downing Street",
-        },
-        {
-            key: "2",
-            name: "John",
-            age: 42,
-            address: "10 Downing Street",
-        },
-    ];
-
-    const columns12 = [
-        {
-            title: "Name",
-            dataIndex: "name",
-            key: "name",
-        },
-        {
-            title: "Age",
-            dataIndex: "age",
-            key: "age",
-        },
-        {
-            title: "Address",
-            dataIndex: "address",
-            key: "address",
-        },
-    ];
     return (
         <>
-            {/* <Table
-                key={JSON.stringify(dataSource12)}
-                size="middle"
+            <Table
+                key={JSON.stringify(dataSource)}
+                size="small"
                 columns={columns}
-                dataSource={dataSource12}
+                dataSource={dataSource}
                 pagination={false}
                 bordered
-                scroll={{ x: "max-content", y: 500 }}
+                // scroll={{ x: "max-content", y: 500 }}
                 rowKey="key"
-                style={{
-                    // minWidth: 800,
-                    tableLayout: "fixed",
-                    overflowX: "auto",
-                    overflowY: "auto",
-                }}
-                locale={{
-                    emptyText: "No employees or shifts available.",
-                }}
-            /> */}
-            <Table dataSource={dataSource} columns={columns} />;
+               
+            />
+
             <div
                 style={{
                     display: "flex",

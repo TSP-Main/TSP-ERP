@@ -46,83 +46,101 @@ class StripePaymentController extends BaseController
                 return $this->sendResponse('Invalid price ID or price not found.', 400);
             }
 
-            // Create a Stripe Customer
-            // $stripeCustomer = \Stripe\Customer::create([
-            //     'email' => $request->email,
-            //     'name' => $request->name,
-            // ]);
-            // $stripe_id = $stripeCustomer->id;
+            $stripeId = $stripeService->createCustomer($request->email, $request->name);
+            session(['stripe_id' => $stripeId]);
 
             // Create a PaymentIntent with the price's amount, currency, and customer
             $paymentIntent = PaymentIntent::create([
                 'amount' => $price->unit_amount, // Amount in cents
                 'currency' => $price->currency,
                 'payment_method_types' => ['card'],
-                // 'customer' => $stripe_id, // Associate with Stripe customer
+                // 'customer' => $stripeId,
                 'capture_method' => 'manual',
             ]);
 
             return $this->sendResponse([
                 'priceId' => $priceId,
                 'client_secret' => $paymentIntent->client_secret,
-                'customer_id' => $stripe_id, // Return customer ID to frontend
+                // 'customer_id' => $stripe_id, // Return customer ID to frontend
             ], 'Payment intent created successfully', 200);
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
 
-    public function approveUser(User $user)
+    public function approveUser(User $user, StripeService $stripeService)
     {
         try {
             DB::beginTransaction();
+
             $authUser = auth()->user();
             $roleName = $user->roles->first()->name;
             $companyCode = optional($user->company)->code; // Safely access company code
 
             switch ($roleName) {
                 case StatusEnum::COMPANY:
-                    // if ($authUser->cannot('approve-company')) {
-                    //     return $this->sendError('Unauthorized access', 403);
-                    // }
+                    $this->authorize('approve-company');
 
+                    // Ensure Stripe customer exists for the user
                     if (!$user->hasStripeId()) {
                         $user->createAsStripeCustomer();
                     }
 
-                    // Retrieve package and plan from the user's company details
+                    // Retrieve company and package details
                     $company = $user->company;
                     $package = $company->package;
                     $plan = $company->plan;
 
-                    // Call createSubscriptionPaymentIntent to get priceId
-                    $subscriptionData = $this->createSubscriptionPaymentIntent($package, $plan);
-                    $priceId = $subscriptionData['priceId'] ?? null;
-
+                    // Get Stripe price ID for the package and plan
+                    $priceId = getStripePriceId($package, $plan);
                     if (!$priceId) {
-                        DB::rollBack();
-                        return $this->sendError('Invalid subscription plan or package', 400);
+                        return $this->sendResponse('Invalid package or plan', 400);
                     }
 
-                    // Create a new subscription with the default payment method
-                    $user->newSubscription('default', $priceId)->create($user->defaultPaymentMethod()->id);
+                    // Set Stripe secret key
+                    Stripe::setApiKey(env('STRIPE_SECRET'));
 
+                    // Retrieve price details from Stripe
+                    $price = Price::retrieve($priceId);
+
+                    // Validate Stripe price response
+                    if (!$price || !isset($price->unit_amount) || !isset($price->currency)) {
+                        return $this->sendResponse('Invalid price ID or price not found.', 400);
+                    }
+
+                    // Create a subscription for the user
+                    $user->newSubscription('default', $priceId)->create();
+
+                    // Add company transaction data
+                    // CompanyTransaction::create([
+                    //     'company_id' => $company->id,
+                    //     'package' => $package,
+                    //     'plan' => $plan,
+                    //     'amount' => $price->unit_amount / 100, // Convert cents to dollars
+                    //     'currency' => $price->currency,
+                    //     'stripe_payment_intent_id' => null, // No manual intent needed for subscription
+                    // ]);
+
+                    // Dispatch email and activate the company
                     CompanyApprovedEmailJob::dispatch($user, $companyCode);
-                    $user->company()->update(['is_active' => StatusEnum::ACTIVE]);
+                    $user->update([
+                        'is_active' => StatusEnum::ACTIVE,
+                        'status' => StatusEnum::APPROVED,
+                    ]);
                     break;
 
                 case StatusEnum::EMPLOYEE:
-                    // if ($authUser->cannot('approve-employee')) {
-                    //     return $this->sendError('Unauthorized access', 403);
-                    // }
+                    $this->authorize('approve-employee');
 
                     EmployeeApproveEmailJob::dispatch($user->email);
                     $user->update([
                         'is_active' => StatusEnum::ACTIVE,
-                        'otp_verified' => StatusEnum::OTP_VERIFIED,
-                        'status' => StatusEnum::APPROVED
+                        'status' => StatusEnum::APPROVED,
                     ]);
-                    $user->employee()->update(['is_active' => StatusEnum::ACTIVE, 'status' => StatusEnum::APPROVED]);
+                    $user->employee()->update([
+                        'is_active' => StatusEnum::ACTIVE,
+                        'status' => StatusEnum::APPROVED,
+                    ]);
                     break;
 
                 default:
@@ -135,25 +153,6 @@ class StripePaymentController extends BaseController
         } catch (Exception $e) {
             DB::rollBack();
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
-        }
-    }
-
-    public function handlePayment(Request $request)
-    {
-        try {
-            // Set Stripe secret key
-            Stripe::setApiKey(config('services.stripe.secret'));
-
-            // Retrieve payment details from request if needed
-            // For example, use $request->payment_id if required
-
-            // You can retrieve the payment status from the Stripe API if needed
-
-            return response()->json([
-                'message' => 'Payment processed successfully'
-            ], 200);
-        } catch (Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 }

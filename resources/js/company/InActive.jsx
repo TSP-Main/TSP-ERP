@@ -52,17 +52,17 @@ const InActive = () => {
     // Define table columns
     const columns = [
         {
-            title: "Company Name",
+            title: "Name",
             dataIndex: ["company", "name"], // Access nested 'name' in 'company'
             key: "companyName",
         },
         {
-            title: "Company Email",
+            title: "Email",
             dataIndex: "email", // Access 'email' directly from main object
             key: "companyEmail",
         },
         {
-            title: "Company Code",
+            title: "Code",
             dataIndex: ["company", "code"], // Access nested 'code' in 'company'
             key: "companyCode",
         },
@@ -70,7 +70,7 @@ const InActive = () => {
             title: "Actions",
             key: "actions",
             render: (text, record) => (
-                <Button type="primary" onClick={() => handleApprove(record?.user_id)}>
+                <Button type="primary" onClick={() => handleApprove(record?.id)}>
                     Approve
                 </Button>
             ),
@@ -93,13 +93,13 @@ const InActive = () => {
 
     return (
         <div>
-            <h1>New Request</h1>
+            <h1>New SignUps</h1>
             <Table
+                size="small"
                 columns={columns}
                 dataSource={inactivedata}
                 rowKey={(record) => record.user_id} // Use 'company.code' as unique key
-               
-              
+                pagination={true}
             />
         </div>
     );

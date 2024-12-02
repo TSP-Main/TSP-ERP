@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('logo')->nullable();
             $table->string('package')->nullable();
             $table->string('plan')->nullable();
+            $table->string('payment_method_id')->nullable();
             $table->timestamps();
         });
     }
