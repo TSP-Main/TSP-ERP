@@ -28,6 +28,7 @@ const apiRoutes = {
         inactive: (code) => `/employee/in-active-employee/${code}`,
         getCancelInvited: (code) => `/cancelled-user/${code}`,
         newSignups: (code) => `/new-registered-user/${code}`,
+        ischeckin: "/schedule/employee-attendance-status",
     },
     schedule: {
         create: "/schedule/create-schedule",
@@ -36,7 +37,7 @@ const apiRoutes = {
         delete: (id) => `/schedule/delete/${id}`,
         update: (id) => `/schedule/update/${id}`,
         missedAttended: (id) => `/schedule/missed-attended-schedule/${id}`,
-        change:(code)=> `/schedule/employee-availability-dashboard/${code}`,
+        change: (code) => `/schedule/employee-availability-dashboard/${code}`,
         assignedSchedules: (companyId) =>
             `/schedule/all-assigned-schedule/${companyId}`,
     },

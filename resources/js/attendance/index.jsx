@@ -11,7 +11,7 @@ import {
 import React, { useState, useEffect } from "react";
 import moment from "moment";
 import { useDispatch, useSelector } from "react-redux";
-import { assignedShechule, checkIn, checkOut, postEmployeeAvailability } from "./redux/reducer";
+import { assignedShechule, checkIn, checkOut, isCheckIn, postEmployeeAvailability } from "./redux/reducer";
 import Cookies from "js-cookie";
 import { get } from "react-hook-form";
 
@@ -107,7 +107,7 @@ const Index = () => {
         try {
             await dispatch(checkIn(id));
             setStatusCheckIn(true);
-            Cookies.set("statusCheckIn", "true", { expires: 7 });
+           
             // console.log("Successfully Checked In:", payload);
         } catch (error) {
             console.error("Error during Check In:", error);
@@ -125,7 +125,7 @@ const Index = () => {
         try {
             await dispatch(checkOut(id));
             setStatusCheckIn(false);
-            Cookies.remove("statusCheckIn");
+           
             // console.log("Successfully Checked Out:", payload);
         } catch (error) {
             console.error("Error during Check Out:", error);
@@ -153,6 +153,19 @@ const Index = () => {
 
         fetchAssignedSchedule();
     }, [dispatch]);
+    const getCheckInStatus=async()=>{
+        try{
+            const response=await isCheckIn(localStorage.getItem(employee_id))
+            if(response?.status=="present"){
+               setStatusCheckIn(true)
+            } 
+            else if(response?.status=="absent"){
+                setStatusCheckIn(false)
+            }
+        }catch(error){
+
+        }
+    }
 
     useEffect(() => {
         if (Array.isArray(dataa) && dataa.length > 0) {

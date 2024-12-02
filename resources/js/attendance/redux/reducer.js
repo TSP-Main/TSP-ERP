@@ -91,7 +91,29 @@ export const checkIn = createAsyncThunk(
         }
     }
 );
+export const isCheckIn=createAsyncThunk(
+    "employee/ischeckin",
+    async ( id, { rejectWithValue }) => {
+        try {
+            console.log("Check Out employee", id);
 
+            // Assuming apiRoutes.employee.checkOut(id) returns the correct endpoint
+            const response = await axios.post(apiRoutes.employee.ischeckin,{
+                params:{
+                    employee_id:id,
+                }
+            });
+
+            console.log("response data employee checkOut", response.data);
+            return response.data; // Ensure this is the correct structure based on your API response
+        } catch (error) {
+            console.error("Error during checkout:", error);
+            return rejectWithValue(
+                error.response?.data?.errors || "Failed to check out"
+            );
+        }
+    }
+)
 export const checkOut = createAsyncThunk(
     "employee/checkout",
     async ( id, { rejectWithValue }) => {
