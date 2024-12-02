@@ -98,7 +98,7 @@ export const isCheckIn=createAsyncThunk(
             console.log("Check Out employee", id);
 
             // Assuming apiRoutes.employee.checkOut(id) returns the correct endpoint
-            const response = await axios.post(apiRoutes.employee.ischeckin,{
+            const response = await axios.get(apiRoutes.employee.ischeckin,{
                 params:{
                     employee_id:id,
                 }

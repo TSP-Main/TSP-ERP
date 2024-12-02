@@ -100,6 +100,6 @@ Route::middleware('auth:api')->group(function () {
     });
 });
 // stripe payment
-Route::middleware(['api', 'web'])->group(function () {
-    Route::post('/create-payment-intent', [StripePaymentController::class, 'createSubscriptionPaymentIntent']);
-});
+// Route::middleware(['api', 'web'])->group(function () {
+//     Route::post('/create-payment-intent', [StripePaymentController::class, 'createSubscriptionPaymentIntent']);
+// });

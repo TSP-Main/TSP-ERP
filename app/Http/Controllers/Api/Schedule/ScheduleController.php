@@ -32,8 +32,6 @@ class ScheduleController extends BaseController
         $startTime  = Carbon::parse($request->start_time, $timezone);
         $endTime  = Carbon::parse($request->end_time, $timezone);
 
-        dd(Carbon::now('UTC')->format('H:i:s'),  $startTime, $endTime);
-
         $schedule = Schedule::create([
             'company_id' => $request->company_id,
             'name' => $request->name,

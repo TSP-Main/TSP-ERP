@@ -155,7 +155,9 @@ const Index = () => {
     }, [dispatch]);
     const getCheckInStatus=async()=>{
         try{
-            const response=await isCheckIn(localStorage.getItem(employee_id))
+            console.log("nej")
+            const response=await dispatch(isCheckIn(localStorage.getItem('employee_id')))
+            console.log("checkout response",response)
             if(response?.status=="present"){
                setStatusCheckIn(true)
             } 
@@ -163,10 +165,12 @@ const Index = () => {
                 setStatusCheckIn(false)
             }
         }catch(error){
-
+                console.log("err0r ejjenc",error)
         }
     }
-
+    useEffect(()=>{
+        getCheckInStatus()
+    },[])
     useEffect(() => {
         if (Array.isArray(dataa) && dataa.length > 0) {
             const generatedDates = generateDates();

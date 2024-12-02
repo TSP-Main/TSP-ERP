@@ -31,11 +31,12 @@ function getUserTimezone($ipAddress)
     try {
         // geolocation service API key.
         $token = env('IPINFO_SECRET');
-        $response = Http::get("https://ipinfo.io/{$ipAddress}?token={$token}");
+        $testIpAddress = '119.73.100.67';
+        // $ipAddress = $request->header('X-Forwarded-For') ?? $request->ip();   //for production add this like for ip
+        $response = Http::get("https://ipinfo.io/{$testIpAddress}?token={$token}");
 
         if ($response->successful()) {
             $data = $response->json();
-        // dd($data);
             return $data['timezone'] ?? 'UTC'; // Default to UTC if timezone is not found
         }
 
