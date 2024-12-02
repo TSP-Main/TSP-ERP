@@ -54,14 +54,10 @@ const Register = () => {
 
            console.log("Step 2: Confirm payment"); 
              const cardElement = elements.getElement(CardElement);
-             const responsestripe = await stripe.createPaymentMethod({
-                 type: "card",
-                 card: cardElement,
-                 billing_details: {
-                     name: values.name,
-                     email: values.email,
-                 },
-             });
+             const responsestripe = await stripe.createPaymentMethod(
+                 "card",cardElement,
+                 
+             );
              
 
               if (responsestripe.error) {
