@@ -35,6 +35,7 @@ function getUserTimezone($ipAddress)
 
         if ($response->successful()) {
             $data = $response->json();
+        // dd($data);
             return $data['timezone'] ?? 'UTC'; // Default to UTC if timezone is not found
         }
 
