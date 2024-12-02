@@ -88,6 +88,11 @@ const RoleBasedMenu = () => {
                     "/change-shift", // Key matching the URL path
                     <MdTimer />
                 ),
+                getItem(
+                    <Link to="/example">Example</Link>,
+                    "/example", // Key matching the URL path
+                    <MdCoPresent />
+                )
             ]),
             getItem("Employee", "employee", <FiUsers />, [
                 getItem(

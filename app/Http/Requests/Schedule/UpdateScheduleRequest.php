@@ -23,8 +23,8 @@ class UpdateScheduleRequest extends FormRequest
     {
         return [
             'name' => 'nullable|string|max:255',
-            'start_time' => 'required|date',
-            'end_time' => 'required|date',
+            'start_time' => 'required|date_format:H:i:s',
+            'end_time' => 'required|date_format:H:i:s',
             'week_day' => 'nullable|string', // E.g., 'Monday' or 'Weekend'
         ];
     }

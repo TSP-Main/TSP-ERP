@@ -68,84 +68,79 @@ class StripePaymentController extends BaseController
         }
     }
 
-    public function approveUser(User $user)
+    public function approveUser(User $user, StripeService $stripeService)
     {
         try {
             DB::beginTransaction();
+
             $authUser = auth()->user();
             $roleName = $user->roles->first()->name;
             $companyCode = optional($user->company)->code; // Safely access company code
 
             switch ($roleName) {
                 case StatusEnum::COMPANY:
-                    // if ($authUser->cannot('approve-company')) {
-                    //     return $this->sendError('Unauthorized access', 403);
-                    // }
+                    $this->authorize('approve-company');
 
+                    // Ensure Stripe customer exists for the user
                     if (!$user->hasStripeId()) {
                         $user->createAsStripeCustomer();
                     }
 
-                    // Retrieve package and plan from the user's company details
+                    // Retrieve company and package details
                     $company = $user->company;
                     $package = $company->package;
                     $plan = $company->plan;
 
-                    $amount = $this->calculateAmount($company->package, $company->plan);
-            
-                    // Create a payment intent and charge the customer
-                    $paymentIntent = PaymentIntent::create([
-                        'amount' => $amount * 100, // Amount in cents
-                        'currency' => 'gbp',
-                        'payment_method' => $company->payment_method_id,
-                        'confirm' => true,
-                        'automatic_payment_methods' => [
-                            'enabled' => true,
-                            'allow_redirects' => 'never',
-                        ],
-                    ]);
-
-                    $stripeId = getStripePriceId($package, $plan);
-
-                    // if($paymentIntent->status == 'succeeded'){
-                    //     // Add Company transation data
-                    //     CompanyTransaction::create([
-                    //         'company_id'    => $company->id,
-                    //         'package'       => $company->package,
-                    //         'plan'          => $company->plan,
-                    //         'amount'        => $amount,
-                    //         // 'status'        => 'New',
-                    //         'stripe_payment_intent_id' => $paymentIntent->id,
-                    //     ]);
-
-                    // Call createSubscriptionPaymentIntent to get priceId
-                    $subscriptionData = $this->createSubscriptionPaymentIntent($package, $plan);
-                    $priceId = $subscriptionData['priceId'] ?? null;
-
+                    // Get Stripe price ID for the package and plan
+                    $priceId = getStripePriceId($package, $plan);
                     if (!$priceId) {
-                        DB::rollBack();
-                        return $this->sendError('Invalid subscription plan or package', 400);
+                        return $this->sendResponse('Invalid package or plan', 400);
                     }
 
-                    // Create a new subscription with the default payment method
-                    $user->newSubscription('default', $priceId)->create($user->defaultPaymentMethod()->id);
+                    // Set Stripe secret key
+                    Stripe::setApiKey(env('STRIPE_SECRET'));
 
+                    // Retrieve price details from Stripe
+                    $price = Price::retrieve($priceId);
+
+                    // Validate Stripe price response
+                    if (!$price || !isset($price->unit_amount) || !isset($price->currency)) {
+                        return $this->sendResponse('Invalid price ID or price not found.', 400);
+                    }
+
+                    // Create a subscription for the user
+                    $user->newSubscription('default', $priceId)->create();
+
+                    // Add company transaction data
+                    // CompanyTransaction::create([
+                    //     'company_id' => $company->id,
+                    //     'package' => $package,
+                    //     'plan' => $plan,
+                    //     'amount' => $price->unit_amount / 100, // Convert cents to dollars
+                    //     'currency' => $price->currency,
+                    //     'stripe_payment_intent_id' => null, // No manual intent needed for subscription
+                    // ]);
+
+                    // Dispatch email and activate the company
                     CompanyApprovedEmailJob::dispatch($user, $companyCode);
-                    $user->company()->update(['is_active' => StatusEnum::ACTIVE]);
+                    $user->update([
+                        'is_active' => StatusEnum::ACTIVE,
+                        'status' => StatusEnum::APPROVED,
+                    ]);
                     break;
 
                 case StatusEnum::EMPLOYEE:
-                    // if ($authUser->cannot('approve-employee')) {
-                    //     return $this->sendError('Unauthorized access', 403);
-                    // }
+                    $this->authorize('approve-employee');
 
                     EmployeeApproveEmailJob::dispatch($user->email);
                     $user->update([
                         'is_active' => StatusEnum::ACTIVE,
-                        'otp_verified' => StatusEnum::OTP_VERIFIED,
-                        'status' => StatusEnum::APPROVED
+                        'status' => StatusEnum::APPROVED,
                     ]);
-                    $user->employee()->update(['is_active' => StatusEnum::ACTIVE, 'status' => StatusEnum::APPROVED]);
+                    $user->employee()->update([
+                        'is_active' => StatusEnum::ACTIVE,
+                        'status' => StatusEnum::APPROVED,
+                    ]);
                     break;
 
                 default:
@@ -160,5 +155,4 @@ class StripePaymentController extends BaseController
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
-
 }

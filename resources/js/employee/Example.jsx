@@ -28,15 +28,16 @@ const EmployeeScheduleTable = () => {
             const date = new Date(today);
             date.setDate(today.getDate() + i);
             dates.push({
-                day: date.toLocaleString("en-US", { weekday: "short" }),
+                day: date.toLocaleString("en-US", { weekday: "short" }), // e.g., Mon
                 formattedDate: date.toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
+                    day: "numeric", // e.g., 2
+                    month: "short", // e.g., Dec
                 }),
             });
         }
         return dates;
     };
+
 
     const reorderedDays = generateDates();
 
@@ -111,10 +112,10 @@ const EmployeeScheduleTable = () => {
             title: "Employee",
             dataIndex: "name",
             key: "employee",
-            fixed: "left",
+            // fixed: "left",
             render: (text, record) => (
-                <span
-                    style={{ display: "flex", justifyContent: "space-between" }}
+                <
+                    // style={{ display: "flex", justifyContent: "space-between" }}
                 >
                     {text}
                     <FaArrowRight
@@ -126,7 +127,7 @@ const EmployeeScheduleTable = () => {
                         }
                         style={{ cursor: "pointer", color: "#1890ff" }}
                     />
-                </span>
+                </>
             ),
         },
         ...reorderedDays.map((day, dayIndex) => ({
@@ -138,41 +139,51 @@ const EmployeeScheduleTable = () => {
             ),
             dataIndex: `col${dayIndex + 1}`,
             key: `col-${day.day}-${dayIndex}`,
-            render: (text, record) => {
-                const shiftId =
-                    selectedShiftsState[record.key]?.[`col${dayIndex + 1}`];
+            render:(text,record)=>{
                 return (
                     <Select
                         style={{
-                            width: "80px", // Default compact width
+                            width: "60px", // Default compact width
                         }}
                         dropdownStyle={{
-                            // width: "auto", // Allow dropdown to expand
+                            width: "auto", // Allow dropdown to expand
                             minWidth: "150px", // Set minimum width for the dropdown
                         }}
-                        placeholder="Assign Shift"
-                        value={shiftId || null}
-                        onChange={(value) =>
-                            handleShiftChange(
-                                record.key,
-                                `col${dayIndex + 1}`,
-                                value
-                            )
-                        }
-                        // style={{ width: "100%" }}
+                        placeholder="Assign"
                     >
                         <Select.Option value={null}>No Schedule</Select.Option>
-                        {scheduledata.map((schedule) => (
-                            <Select.Option
-                                key={schedule.schedule_id}
-                                value={schedule.schedule_id}
-                            >
-                                {`${schedule.start_time} - ${schedule.end_time}`}
-                            </Select.Option>
-                        ))}
+                        <Select.Option value={1}>Schedule 1</Select.Option>
                     </Select>
                 );
-            },
+            }
+            // render: (text, record) => {
+            //     const shiftId =
+            //         selectedShiftsState[record.key]?.[`col${dayIndex + 1}`];
+            //     return (
+            //         <Select
+            //             placeholder="Assign Shift"
+            //             value={shiftId || null}
+            //             onChange={(value) =>
+            //                 handleShiftChange(
+            //                     record.key,
+            //                     `col${dayIndex + 1}`,
+            //                     value
+            //                 )
+            //             }
+            //             // style={{ width: "100%" }}
+            //         >
+            //             <Select.Option value={null}>No Schedule</Select.Option>
+            //             {scheduledata.map((schedule) => (
+            //                 <Select.Option
+            //                     key={schedule.schedule_id}
+            //                     value={schedule.schedule_id}
+            //                 >
+            //                     {`${schedule.start_time} - ${schedule.end_time}`}
+            //                 </Select.Option>
+            //             ))}
+            //         </Select>
+            //     );
+            // },
         })),
     ];
 
@@ -187,9 +198,9 @@ const EmployeeScheduleTable = () => {
                 loading={loading}
                 bordered
                 pagination={false}
-                scroll={{ x: "max-content" }}
+                // scroll={{ x: "max-content" }}
             />
-            <div
+            {/* <div
                 style={{
                     display: "flex",
                     justifyContent: "flex-end",
@@ -199,7 +210,7 @@ const EmployeeScheduleTable = () => {
                 <Button type="primary" onClick={handleSubmit}>
                     Submit
                 </Button>
-            </div>
+            </div> */}
         </>
     );
 };
