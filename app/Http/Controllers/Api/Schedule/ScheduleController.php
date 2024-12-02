@@ -21,9 +21,6 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-
-use function PHPUnit\Framework\isEmpty;
 
 class ScheduleController extends BaseController
 {
@@ -32,9 +29,10 @@ class ScheduleController extends BaseController
         $ipAddress = $request->ip();
         $timezone = getUserTimezone($ipAddress);
 
-        // Convert provided time into UTC based on the detected timezone
-        $startTime = Carbon::parse($request->start_time, $timezone);
-        $endTime = Carbon::parse($request->end_time, $timezone);
+        $startTime  = Carbon::parse($request->start_time, $timezone);
+        $endTime  = Carbon::parse($request->end_time, $timezone);
+
+        dd(Carbon::now('UTC')->format('H:i:s'),  $startTime, $endTime);
 
         $schedule = Schedule::create([
             'company_id' => $request->company_id,
@@ -115,10 +113,12 @@ class ScheduleController extends BaseController
         }
     }
 
-    public function checkIn($employeeId)
+    public function checkIn($employeeId, Request $request)
     {
+        $ipAddress = $request->ip();
+        $timezone = getUserTimezone($ipAddress);
         try {
-            $today = Carbon::today('UTC');
+            $today = Carbon::today($timezone);
 
             $employeeSchedule = EmployeeSchedule::where('employee_id', $employeeId)
                 ->whereDate('start_date', '<=', $today)
@@ -147,7 +147,7 @@ class ScheduleController extends BaseController
                 'employee_id' => $employeeId,
                 'employee_schedule_id' => $employeeSchedule->id,
                 'date' => $today->toDateString(),
-                'time_in' => Carbon::now('UTC')->format('H:i:s'), //->toTimeString()
+                'time_in' => Carbon::now($timezone)->format('H:i:s'), //->toTimeString()
                 'status' => StatusEnum::PRESENT,
             ]);
 
@@ -157,8 +157,10 @@ class ScheduleController extends BaseController
         }
     }
 
-    public function checkOut($employeeId)
+    public function checkOut($employeeId, Request $request)
     {
+        $ipAddress = $request->ip();
+        $timezone = getUserTimezone($ipAddress);
         try {
             $attendance = Attendance::where('employee_id', $employeeId)
                 ->whereDate('date', Carbon::today('UTC')->toDateString())
@@ -170,11 +172,11 @@ class ScheduleController extends BaseController
             }
 
             // Mark checkout time in UTC
-            $attendance->update(['time_out' => Carbon::now('UTC')->format('H:i:s')]);
+            $attendance->update(['time_out' => Carbon::now($timezone)->format('H:i:s')]);
 
             $schedule = $attendance->employeeSchedule->schedule;
-            $shiftStart = Carbon::parse($schedule->start_time)->setTimezone('UTC');
-            $shiftEnd = Carbon::parse($schedule->end_time)->setTimezone('UTC');
+            $shiftStart = Carbon::parse($schedule->start_time)->setTimezone($timezone);
+            $shiftEnd = Carbon::parse($schedule->end_time)->setTimezone($timezone);
 
             // Handle cross-date shifts
             if ($shiftEnd->lt($shiftStart)) {
@@ -182,8 +184,8 @@ class ScheduleController extends BaseController
             }
 
             // Calculate total worked time
-            $checkIn = Carbon::parse($attendance->time_in)->setTimezone('UTC');
-            $checkOut = Carbon::parse($attendance->time_out)->setTimezone('UTC');
+            $checkIn = Carbon::parse($attendance->time_in)->setTimezone($timezone);
+            $checkOut = Carbon::parse($attendance->time_out)->setTimezone($timezone);
 
             // Account for cross-date checkouts
             if ($checkOut->lt($checkIn)) {
@@ -213,8 +215,11 @@ class ScheduleController extends BaseController
 
     public function getWorkingHours(GetWorkingHoursRequest $request)
     {
+
+        $ipAddress = $request->ip();
+        $timezone = getUserTimezone($ipAddress);
         try {
-            $date = $request->date ? Carbon::parse($request->date) : Carbon::today('UTC');
+            $date = $request->date ? Carbon::parse($request->date) : Carbon::today($timezone);
 
             $attendances = Attendance::where('employee_id', $request->employee_id)
                 ->whereDate('date', $date->toDateString())
@@ -411,7 +416,6 @@ class ScheduleController extends BaseController
         }
     }
 
-
     public function getAvailabilityDashboard($companyCode)
     {
         try {
@@ -516,6 +520,33 @@ class ScheduleController extends BaseController
             ];
 
             return $this->sendResponse($data, 'Schedules successfully displayed');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function getCheckInStatus(Request $request)
+    {
+        try {
+            $ipAddress = $request->ip();
+            $timezone = getUserTimezone($ipAddress);
+
+            $attendance = Attendance::where('employee_id', $request->employee_id)
+                ->whereNull('time_out')
+                ->first();
+
+            if (!$attendance) {
+                return response()->json(['status' => 'absent'], 200);
+            }
+
+            $checkInTime = Carbon::parse($attendance->time_in);
+
+            $currentTime = Carbon::now($timezone);
+            if ($checkInTime->isToday() && $currentTime->greaterThan($checkInTime)) {
+                return response()->json(['status' => 'present'], 200);
+            }
+
+            return response()->json(['status' => 'absent'], 200);
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
