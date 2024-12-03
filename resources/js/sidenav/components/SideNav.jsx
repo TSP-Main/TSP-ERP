@@ -99,7 +99,7 @@ const SideNav = () => {
                                 backgroundColor: "#F5F5F58A",
                             }}
                         >
-                            <div className="Content Nav">
+                            <div className="content-nav">
                                 <div className="demo-logo-vertical">
                                     <img
                                         src={logo}
