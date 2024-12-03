@@ -103,11 +103,11 @@ const SideNav = () => {
                                 <div className="demo-logo-vertical">
                                     <img
                                         src={logo}
-
                                         alt="Logo"
                                         style={{
-
-                                            display:collapsed ? "none" : "block",
+                                            display: collapsed
+                                                ? "none"
+                                                : "block",
                                             paddingLeft: collapsed
                                                 ? "5px"
                                                 : "70px",
@@ -163,39 +163,53 @@ const SideNav = () => {
             )}
 
             {isSmallScreen && (
-                <Drawer
-                    placement="left"
-                    closable={false}
-                    onClose={handleDrawerClose}
-                    open={drawerVisible}
-                    styles={{
-                        backgroundColor: "#F5F5F58A",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        height: "100vh",
-                        width: "100%",
-                        // overflowY: "auto",
-                    }}
-                >
-                    <div
-                        className="demo-logo-vertical"
-                        style={{ marginBottom: "20px" }}
-                    >
-                        <img src={logo} alt="Logo" style={{ width: "100px" }} />
-                    </div>
-                    <Menu
-                        style={{
+                <div style={{
+                    backgroundColor: "#F5F5F58A",
+                }}>
+                    <Drawer
+                        placement="left"
+                        closable={false}
+                        onClose={handleDrawerClose}
+                        open={drawerVisible}
+                        styles={{
                             backgroundColor: "#F5F5F58A",
-                            color: "black",
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            height: "100vh",
+                            width: "100%",
+                            // overflowY: "auto",
                         }}
-                        theme="light"
-                        mode="inline"
-                        selectedKeys={[currentPath]}
-                        items={RoleBasedMenu()}
-                        onClick={handleDrawerClose}
-                    />
-                </Drawer>
+                    >
+                        <div
+                            className="demo-logo-vertical"
+                            style={{ marginBottom: "20px" }}
+                        >
+                            <img
+                                src={logo}
+                                alt="Logo"
+                                style={{
+                                    display: collapsed ? "none" : "block",
+                                    paddingLeft: collapsed ? "5px" : "70px",
+                                    paddingTop: "20px",
+                                    paddingBottom: "10px",
+                                }}
+                            />
+                        </div>
+                        <Menu
+                            style={{
+                                backgroundColor: "#F5F5F58A",
+                                color: "black",
+                            }}
+                            theme="light"
+                            mode="inline"
+                            selectedKeys={[currentPath]}
+                            items={RoleBasedMenu()}
+                            onClick={handleDrawerClose}
+                        />
+                    </Drawer>
+                </div>
             )}
 
             <Layout
