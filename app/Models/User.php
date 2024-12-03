@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Models\Company\CompanyModel;
 use App\Models\Employee\Employee;
+use App\Models\Employee\Manager;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -67,5 +68,10 @@ class User extends Authenticatable
     public function employee()
     {
         return $this->hasOne(Employee::class);
+    }
+
+    public function manager()
+    {
+        return $this->hasOne(Manager::class);
     }
 }
