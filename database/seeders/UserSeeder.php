@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Classes\StatusEnum;
 use App\Models\Company\CompanyModel;
+use App\Models\Employee\Employee;
+use App\Models\Employee\Manager;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -60,6 +62,15 @@ class UserSeeder extends Seeder
             ]
         )->assignRole('manager');
 
+        $managerProfile = Manager::firstOrCreate([
+            'user_id' => $manger->id,
+            'company_code' => $companyProfile->code,
+            'joining_date' => '2024-12-03',
+            'employment_type' => 'permanent',
+            'is_active' => 1,
+            'status' => StatusEnum::APPROVED
+        ]);
+
         // Create Employee User
         $employeeEmail = 'employee@employee.com';
         $employee = User::firstOrCreate(
@@ -71,5 +82,15 @@ class UserSeeder extends Seeder
                 'otp_verified' => StatusEnum::OTP_VERIFIED
             ]
         )->assignRole('employee');
+
+        $managerProfile = Employee::firstOrCreate([
+            'user_id' => $employee->id,
+            'manager_id' => $managerProfile->id,
+            'company_code' => $companyProfile->code,
+            'joining_date' => '2024-12-03',
+            'employment_type' => 'permanent',
+            'is_active' => 1,
+            'status' => StatusEnum::APPROVED
+        ]);
     }
 }
