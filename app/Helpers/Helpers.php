@@ -26,27 +26,29 @@ function generateCompanySlug($companyName)
     return $slug;
 }
 
-function getUserTimezone($ipAddress)
+function getUserTimezone($request)
 {
     try {
-        // geolocation service API key.
         $token = env('IPINFO_SECRET');
-        $testIpAddress = '119.73.100.67';
-        // $ipAddress = $request->header('X-Forwarded-For') ?? $request->ip();   //for production add this like for ip
-        $response = Http::get("https://ipinfo.io/{$testIpAddress}?token={$token}");
+
+        // Use a test IP for local or the actual client IP for production.
+        $ipAddress = app()->environment('local')
+            ? '119.73.100.67' // Test IP for local
+            : $request->header('X-Forwarded-For') ?? $request->ip(); // Client IP for production
+
+        $response = Http::get("https://ipinfo.io/{$ipAddress}?token={$token}");
 
         if ($response->successful()) {
             $data = $response->json();
-            return $data['timezone'] ?? 'UTC'; // Default to UTC if timezone is not found
+            return $data['timezone'] ?? 'UTC';
         }
 
-        return 'UTC'; // Fallback in case of error
+        return 'UTC';
     } catch (Exception $e) {
         Log::error("Failed to get timezone: " . $e->getMessage());
         return 'UTC';
     }
 }
-
 
 function getStripePriceId($package, $plan)
 {

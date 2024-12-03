@@ -289,6 +289,8 @@ class ScheduleController extends BaseController
                             'employee_id' => $employeeSchedule->employee->id,
                             'employee_name' => $employeeSchedule->employee->user->name ?? '',
                             'employee_email' => $employeeSchedule->employee->user->email ?? '',
+                            'start_date' => $employeeSchedule->start_date,
+                            'end_date' => $employeeSchedule->end_date,
                         ];
                     }),
                 ];

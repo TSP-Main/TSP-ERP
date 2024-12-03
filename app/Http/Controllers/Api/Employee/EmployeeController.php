@@ -8,8 +8,8 @@ use App\Http\Requests\Employee\CompanyEmployeeRequest;
 use App\Http\Requests\Employee\CreateEmployeeRequest;
 use App\Http\Requests\Employee\UpdateEmployeeRequest;
 use App\Jobs\Employee\AddEmployeeInvitationJob;
-use App\Models\Company\CompanyModel;
 use App\Models\Employee\Employee;
+use App\Models\Employee\Manager;
 use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -22,10 +22,9 @@ class EmployeeController extends BaseController
     public function create(CreateEmployeeRequest $request)
     {
         DB::beginTransaction();
+        $roleName = $request->role;
         try {
-            if (auth()->user()->cannot('create-employee')) {
-                return $this->sendError('Unauthorized access', 403);
-            }
+            $this->authorize('create-employee');
             $plainPassword = Str::random(8);
             $companyCode = $request->company_code;
             $user = User::create([
@@ -35,16 +34,26 @@ class EmployeeController extends BaseController
                 'is_active' => StatusEnum::ACTIVE,
                 'status' => StatusEnum::INVITED
             ]);
-            Employee::create([
-                'user_id' => $user->id,
-                'company_code' => $companyCode,
-                'is_active' => StatusEnum::ACTIVE,
-                'status' => StatusEnum::INVITED
-            ]);
-            $user->assignRole($request->role);
+            if ($roleName == StatusEnum::EMPLOYEE) {
+                Employee::create([
+                    'user_id' => $user->id,
+                    'company_code' => $companyCode,
+                    'is_active' => StatusEnum::ACTIVE,
+                    'status' => StatusEnum::INVITED
+                ]);
+                $user->assignRole($roleName);
+            } elseif ($roleName == StatusEnum::MANAGER) {
+                Manager::create([
+                    'user_id' => $user->id,
+                    'company_code' => $companyCode,
+                    'is_active' => StatusEnum::ACTIVE,
+                    'status' => StatusEnum::INVITED
+                ]);
+                $user->assignRole($roleName);
+            }
 
             AddEmployeeInvitationJob::dispatch($companyCode, $user, $plainPassword);
-            $user->load('employee');
+            $user->load(['employee', 'manager']);
             DB::commit();
             return $this->sendResponse($user, 'Employee successfully added, Mail has been dispatched');
         } catch (Exception $e) {
@@ -79,9 +88,7 @@ class EmployeeController extends BaseController
             $paginate = $request->pagination ?? 20;
 
             // Check if the user has the required permission
-            if (auth()->user()->cannot('show-employees')) {
-                return $this->sendError('Unauthorized access', 403);
-            }
+            $this->authorize('show-employees');
 
             $query = User::whereHas('employee', function ($query) use ($companyCode) {
                 $query->where('company_code', $companyCode);
