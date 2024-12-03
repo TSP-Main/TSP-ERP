@@ -263,7 +263,7 @@ useEffect(() => {
             fixed: "top",
             dataIndex: `col${dayIndex + 1}`,
             key: `${day.day}-${dayIndex}`,
-            width: 200,
+            // width: 200,
             render: (text, record) => {
                 // Get the shift ID from selectedShiftsState for this employee (record.key) and column (colN)
                 const shiftId =
@@ -271,7 +271,8 @@ useEffect(() => {
                 return (
                     <Select
                         style={{
-                            width: "60px", // Default compact width
+                            width: "100%",
+                             // Default compact width
                         }}
                         dropdownStyle={{
                             width: "auto", // Allow dropdown to expand
@@ -335,7 +336,7 @@ useEffect(() => {
                 dataSource={dataSource}
                 pagination={false}
                 bordered
-                // scroll={{ x: "max-content", y: 500 }}
+                scroll={{ x: "max-content", y: 500 }}
                 rowKey="key"
                
             />

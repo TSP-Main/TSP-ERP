@@ -8,14 +8,14 @@ const DefaultLayout = () => {
     return (
         <div className="layoutContainer">
             <Row className="layoutRow">
-                <Col className="sidebarCol">
+                {/* <Col className="sidebarCol"> */}
                     <AppSideNav />
                     
-                </Col>
-
+                {/* </Col> */}
+{/* 
                 <Col className="contentCol" style={{ paddingTop: "80px"}}>
                     <Outlet />
-                </Col>
+                </Col> */}
             </Row>
         </div>
     );

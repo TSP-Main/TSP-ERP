@@ -14,7 +14,7 @@ import RoleBasedMenu from "../services/RoleBasedMenu"; // Import RoleBasedMenu c
 import useResponsive from "../../hooks/useResponsive";
 import logo from "../../assests/tms_logo.png";
 import placeholder from "../../assests/placeholder-image.jpg";
-// import "../styles/SideNav.css";
+import "../styles/SideNav.css";
 import apiRoutes from "../../routes/apiRoutes";
 import axios from "../../services/axiosService";
 import { useLocation } from "react-router-dom";
@@ -82,9 +82,10 @@ const SideNav = () => {
                             justifyContent: "space-between", // Space between items to push footer to the bottom
                             alignItems: "center",
                             overflowY: "auto",
+                            overflowX: "hidden",
                         }}
-                        width={290}
-                        collapsedWidth={80}
+                        // width={290}
+                        // collapsedWidth={80}
                         trigger={null}
                         collapsible
                         collapsed={collapsed}
@@ -102,10 +103,13 @@ const SideNav = () => {
                                 <div className="demo-logo-vertical">
                                     <img
                                         src={logo}
+
                                         alt="Logo"
                                         style={{
+
+                                            display:collapsed ? "none" : "block",
                                             paddingLeft: collapsed
-                                                ? "20px"
+                                                ? "5px"
                                                 : "70px",
                                             paddingTop: "20px",
                                             paddingBottom: "10px",
@@ -118,6 +122,7 @@ const SideNav = () => {
                                         backgroundColor: "#F5F5F58A",
                                         color: "black",
                                         border: "none",
+                                        width: "200px",
                                     }}
                                     theme="light"
                                     mode="inline"
@@ -126,7 +131,7 @@ const SideNav = () => {
                                     onClick={handleDrawerClose}
                                 />
                             </div>
-                            <div>
+                            <div className="Footer-hidden">
                                 <footer
                                     style={{
                                         justifyContent: "center",
@@ -135,6 +140,7 @@ const SideNav = () => {
                                         color: "black",
                                         padding: "10px",
                                         textAlign: "center",
+                                        display: collapsed ? "none" : "block",
                                     }}
                                 >
                                     © 2024{" "}
@@ -168,6 +174,8 @@ const SideNav = () => {
                         flexDirection: "column",
                         alignItems: "center",
                         height: "100vh",
+                        width: "100%",
+                        // overflowY: "auto",
                     }}
                 >
                     <div
@@ -180,7 +188,6 @@ const SideNav = () => {
                         style={{
                             backgroundColor: "#F5F5F58A",
                             color: "black",
-                            width: "100%",
                         }}
                         theme="light"
                         mode="inline"
@@ -201,7 +208,7 @@ const SideNav = () => {
                         padding: 0,
                         background: "white",
                         position: "fixed",
-                        left: isSmallScreen ? 0 : collapsed ? 80 : 290,
+                        left: isSmallScreen ? 0 : collapsed ? 90 : 200,
                         right: 0,
                         top: 0,
                         zIndex: 2,
@@ -292,8 +299,14 @@ const SideNav = () => {
                         </Dropdown>
                     </div>
                 </Header>
-                <Content style={{ margin: "64px 16px", overflow: "auto" }}>
-                    {/* Your content goes here */}
+                <Content
+                    style={{
+                        margin: "64px 16px",
+                        overflow: "initial",
+                        paddingTop: "30px",
+                    }}
+                >
+                    <Outlet style={{ backgroundColor: "#fff" }} />
                 </Content>
 
                 {/* <Content
