@@ -33,6 +33,7 @@ const Attended = () => {
             start_date: startDate.format("YYYY-MM-DD"),
             end_date: endDate.format("YYYY-MM-DD"),
         };
+        console.log("payload", payload);
        dispatch(attendedSchedule({ id, payload })).unwrap();
       
     };

@@ -158,7 +158,7 @@ const Index = () => {
             console.log("Getting check in status")
             const response=await dispatch(isCheckIn(localStorage.getItem('employee_id')))
             console.log("checkout response",response)
-            if(response?.status=="present"){
+            if(response?.payload?.status=="present"){
                setStatusCheckIn(true)
             } 
             else if(response?.status=="absent"){
@@ -307,6 +307,7 @@ const Index = () => {
                                 </Button>
                             ) : (
                                 <Button
+                                    style={{ marginRight: "10px" }}
                                     type="primary"
                                     onClick={handleCheckOut}
                                     disabled={shouldDisableButton}
@@ -321,7 +322,6 @@ const Index = () => {
                             >
                                 Change Schedule
                             </Button>
-                            
                         </>
                     );
                 }

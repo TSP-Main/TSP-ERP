@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
     showSchedule,
     deleteSchedule,
+    updateSchedule,
 } from "../redux/reducer";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
@@ -58,9 +59,10 @@ const fetchSchedules = async () => {
         try {
             const updatedData = editForm.getFieldsValue(); // Get updated values
             const payload = {
-                id: scheduleToEdit.id,
+                id: scheduleToEdit.schedule_id,
                 payload: updatedData,
             };
+            console.log("payload: " + payload)
             const response = await dispatch(updateSchedule(payload));
             if(!response.error){
                 notification.success({
@@ -132,7 +134,7 @@ const fetchSchedules = async () => {
                 <div style={{ display: "flex", gap: "8px" }}>
                     <Button
                         icon={<FaEdit />}
-                        onClick={() => showEditModal(record.schedule_id)}
+                        onClick={() => showEditModal(record)}
                     />
                     <Button
                         icon={<MdDelete />}
