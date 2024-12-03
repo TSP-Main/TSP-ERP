@@ -33,4 +33,9 @@ class Employee extends Model
     {
         return $this->hasMany(Attendance::class);
     }
+
+    public function Manager()
+    {
+        return $this->belongsTo(Manager::class);
+    }
 }

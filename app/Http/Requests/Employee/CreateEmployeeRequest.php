@@ -26,6 +26,7 @@ class CreateEmployeeRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $this->id],
             'role' => ['required', 'string', 'exists:roles,name'],
             'company_code' => ['required', 'string', 'exists:companies,code'],
+            'manager_id' => ['required_if:role,employee', 'exists:users,id'], // Conditional rule
         ];
     }
 }

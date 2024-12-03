@@ -35,13 +35,15 @@ class MarkAbsentEmployees extends Command
         parent::__construct();
     }
 
-    public function handle()
+    public function handle($request)
     {
         Log::info('Mark absent employees cron start');
-
+        $ipAddress = $request->ip();
+        $timezone = getUserTimezone($ipAddress);
+        
         DB::beginTransaction();
         try {
-            $today = Carbon::today('UTC');
+            $today = Carbon::today($timezone);
             $employee = EmployeeSchedule::whereDate('start_date', '<=', $today)
                 ->where(function ($query) use ($today) {
                     $query->whereNull('end_date')
@@ -49,7 +51,7 @@ class MarkAbsentEmployees extends Command
                 })->with('schedule')->get();
 
             foreach ($employee as $employeeSchedule) {
-                $shiftEnd = Carbon::parse($employeeSchedule->schedule->end_time)->setTimezone('UTC');
+                $shiftEnd = Carbon::parse($employeeSchedule->schedule->end_time)->setTimezone($timezone);
 
                 // If shift has ended and no check-in is recorded
                 $attendance = Attendance::where('employee_id', $employeeSchedule->employee_id)
