@@ -1,6 +1,6 @@
 /.phpunit.cache
 /node_modules
-# /config/cors.php
+ /config/cors.php
 # /public/build
 /public/hot
 /public/storage
