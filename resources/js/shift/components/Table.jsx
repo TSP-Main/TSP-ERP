@@ -27,9 +27,7 @@ const ScheduleTable = () => {
     const { error, loading, scheduledata } = useSelector(
         (state) => state.schedule
     );
-
-    // Fetch schedules on component mount
-    useEffect(() => {
+const fetchSchedules = async () => {
         const id = localStorage.getItem("company_id");
         if (id) {
             dispatch(showSchedule(id));
@@ -39,7 +37,11 @@ const ScheduleTable = () => {
                 description: "Company ID not found in localStorage.",
             });
         }
-    }, [dispatch]);
+   }
+    // Fetch schedules on component mount
+    useEffect(() => {
+       fetchSchedules();
+    }, []);
 
     // Ensure scheduledata is an array
     const dataSource = Array.isArray(scheduledata) ? scheduledata : [];
@@ -59,12 +61,16 @@ const ScheduleTable = () => {
                 id: scheduleToEdit.id,
                 payload: updatedData,
             };
-            await dispatch(updateSchedule(payload));
-            notification.success({
-                description: "Schedule updated successfully.",
-            });
-            setIsEditModalOpen(false);
-            setScheduleToEdit(null);
+            const response = await dispatch(updateSchedule(payload));
+            if(!response.error){
+                notification.success({
+                    description: "Schedule updated successfully.",
+                });
+                 setIsEditModalOpen(false);
+                 setScheduleToEdit(null);
+            }
+            
+           
         } catch (error) {
             console.error("Error updating schedule:", error);
             notification.error({
@@ -82,13 +88,15 @@ const ScheduleTable = () => {
     // Handle Delete
     const handleDelete = async () => {
         try {
-            await dispatch(deleteSchedule(scheduleToDelete));
-            notification.success({
+            const response = await dispatch(deleteSchedule(scheduleToDelete));
+            if(!response.error){
+                notification.success({
                 message: "Success",
                 description: "Schedule deleted successfully.",
             });
             setIsDeleteModalOpen(false);
             setScheduleToDelete(null);
+        }
         } catch (error) {
             console.error("Error deleting schedule:", error);
             notification.error({
@@ -122,11 +130,11 @@ const ScheduleTable = () => {
                 <div style={{ display: "flex", gap: "8px" }}>
                     <Button
                         icon={<FaEdit />}
-                        onClick={() => showEditModal(record)}
+                        onClick={() => showEditModal(record.schedule_id)}
                     />
                     <Button
                         icon={<MdDelete />}
-                        onClick={() => showDeleteModal(record.id)}
+                        onClick={() => showDeleteModal(record.schedule_id)}
                     />
                 </div>
             ),

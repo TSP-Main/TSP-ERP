@@ -137,7 +137,7 @@ const refetchEmployees = async () => {
                 <div style={{ display: "flex", gap: "8px" }}>
                     <Button
                         icon={<FaEdit />}
-                        onClick={() => showEditModal(record)}
+                        onClick={() => showEditModal(record.user)}
                     />
                     <Button
                         icon={<MdDelete />}

@@ -22,11 +22,7 @@ const Login = () => {
         try {
             // Unwrap the response to check for errors explicitly
             const response = await dispatch(login(values)).unwrap();
-
-            const user_data = await dispatch(userData()).unwrap();
-
-            const accessToken = response?.access_token;
-
+             const accessToken = response?.access_token;
             if (accessToken) {
                 if (rememberMe) {
                     localStorage.setItem("access_token", accessToken);
@@ -34,6 +30,9 @@ const Login = () => {
                     sessionStorage.setItem("access_token", accessToken);
                 }
             }
+            const user_data = await dispatch(userData()).unwrap();
+           
+
 
             console.log("user data", user_data);
             notification.success({

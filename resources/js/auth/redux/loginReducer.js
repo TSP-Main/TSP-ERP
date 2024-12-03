@@ -55,15 +55,6 @@ export const login = createAsyncThunk(
 
             const response = await axios.post(apiRoutes.login, authdata);
             console.log("login ",response.data.data);
-            if (response.status === 200) {
-               
-                localStorage.setItem(
-                    "access_token",
-                    response.data.data.access_token
-                );
-
-
-            }
             return response.data.data;
         } catch (error) {
             // console.log("login redux", error);
@@ -80,12 +71,6 @@ export const SignUp = createAsyncThunk(
     async (authdata, { rejectWithValue }) => {
         try {
             const response = await axios.post(apiRoutes.register, authdata);
-            if (response.data.status === 200) {
-                localStorage.setItem(
-                    "access_token",
-                    response.data.data.access_token
-                );
-            }
             return response.data;
         } catch (error) {
             console.log("Registration redux error", error);

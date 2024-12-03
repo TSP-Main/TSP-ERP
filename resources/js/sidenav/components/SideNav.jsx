@@ -48,21 +48,12 @@ const SideNav = () => {
             });
         }
     };
-    const handleRegister = () => {
-        navigate("/register");
-    }
     const profilemenu = (
         <Menu>
             <Menu.Item key="/profile">
                 <Link to="/profile">
                     <FaUser style={{ marginRight: "5px" }} />
                     Profile
-                </Link>
-            </Menu.Item>
-            <Menu.Item key="/register">
-                <Link to="/register" onClick={handleRegister}>
-                    <IoPersonAdd  style={{ marginRight: "5px" }} />
-                    Sign Up
                 </Link>
             </Menu.Item>
             <Menu.Item key="/logout">

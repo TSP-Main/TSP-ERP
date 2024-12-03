@@ -16,7 +16,8 @@ const axios = axios_.create({
 
 axios.interceptors.request.use(
   async config => {
-    const token=  localStorage.getItem('access_token');
+    const token=  localStorage.getItem('access_token')||sessionStorage.getItem('access_token');
+    console.log(`Access token: ${token}`);
     if (token) {
       config.headers.Authorization = `${TOKEN_TYPE} ${token}`}
     return config;

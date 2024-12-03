@@ -155,7 +155,7 @@ const Index = () => {
     }, [dispatch]);
     const getCheckInStatus=async()=>{
         try{
-            console.log("nej")
+            console.log("Getting check in status")
             const response=await dispatch(isCheckIn(localStorage.getItem('employee_id')))
             console.log("checkout response",response)
             if(response?.status=="present"){
@@ -169,6 +169,7 @@ const Index = () => {
         }
     }
     useEffect(()=>{
+        console.log("getCheckInStatus")
         getCheckInStatus()
     },[])
     useEffect(() => {

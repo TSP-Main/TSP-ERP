@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Modal, Form, Input, TimePicker, Select,notification } from "antd";
 import { useDispatch,useSelector } from "react-redux";
 import { createSchedule } from "../redux/reducer";
-
+import { showSchedule } from "../redux/reducer";
 const daysOfWeek = [
     "Monday",
     "Tuesday",
@@ -26,6 +26,17 @@ const ShiftModal = ({ isVisible, onCancel }) => {
         return `${hours.toString().padStart(2, "0")}:${minutes
             .toString()
             .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+    };
+    const fetchSchedules = async () => {
+        const id = localStorage.getItem("company_id");
+        if (id) {
+            dispatch(showSchedule(id));
+        } else {
+            notification.error({
+                message: "Error",
+                description: "Company ID not found in localStorage.",
+            });
+        }
     };
 
     const handleFormSubmit = async(values) => {
@@ -52,6 +63,7 @@ const ShiftModal = ({ isVisible, onCancel }) => {
                 description: response?.message || "Shift created successfully",
                 duration: 3,
             });
+            fetchSchedules();
             
             onCancel();
             window.location.reload();
@@ -60,6 +72,7 @@ const ShiftModal = ({ isVisible, onCancel }) => {
 
   useEffect(() => {
       const companyId = localStorage.getItem("company_id");
+      console.log("companyId", companyId);
       if (companyId) {
           form.setFieldsValue({ company_id: companyId });
       }

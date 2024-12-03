@@ -13,10 +13,6 @@ const loginService = {
                     description: response.data.message,
                     duration: 3,
                 });
-                localStorage.setItem(
-                    "access_token",
-                    response.data.data.access_token
-                );
             }
             return response;
         } catch (error) {
