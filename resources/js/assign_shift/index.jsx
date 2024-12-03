@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Table, Spin, Button, Select } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { allEmployee } from "../employee/redux/reducers";
-import ShiftDropdown from "./components/ShiftDropdown";
 import { showSchedule, getAssignedSchedules } from "../shift/redux/reducer";
 import { assignSchedule } from "../attendance/redux/reducer";
 import { FaArrowRight } from "react-icons/fa";
