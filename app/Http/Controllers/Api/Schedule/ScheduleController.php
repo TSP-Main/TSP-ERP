@@ -537,7 +537,7 @@ class ScheduleController extends BaseController
                 return response()->json(['status' => 'absent'], 200);
             }
 
-            $checkInTime = Carbon::parse($attendance->time_in);
+            $checkInTime = Carbon::parse($attendance->time_in, $timezone);
 
             $currentTime = Carbon::now($timezone);
             if ($checkInTime->isToday() && $currentTime->greaterThan($checkInTime)) {
