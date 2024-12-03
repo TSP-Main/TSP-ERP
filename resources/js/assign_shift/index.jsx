@@ -98,7 +98,11 @@ function RowHeaderTable() {
                 schedule.employees.forEach((employee) => {
                     const employeeId = employee.employee_id;
                     const shiftId = schedule.schedule_id;
-
+                    console.log("employeeId: " + employeeId + " shiftId: " + shiftId)
+                    console.log(
+                        "employeeId: " + employeeId + " shiftId: " + shiftId
+                    );
+                    
                     // Check if the employee already has an entry in shiftsState
                     if (!shiftsState[employeeId]) {
                         shiftsState[employeeId] = {}; // Initialize if not present
