@@ -3,13 +3,7 @@
 .ant-layout-sider-children{
     display: flex;
 }
-@media screen and (max-width: 600px) {
-   .ant-layout {
-    margin-left: -50px;
-   min-width:1
-    /* display: hidden !important;; */
-} 
-}
+
 .ant-menu-submenu {
     overflow: hidden;
     white-space: nowrap;

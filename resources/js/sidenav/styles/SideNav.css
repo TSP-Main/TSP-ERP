@@ -64,14 +64,7 @@
         width: "100%";
     }
 }
-@media screen and (max-width: 600px) {
-    .ant-layout {
-     margin-left: -50px;
-    min-height: 0;
-    }
-}
- 
-    
+
     /* display: hidden !important;; */
 
 
