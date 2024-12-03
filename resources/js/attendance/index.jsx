@@ -307,6 +307,7 @@ const Index = () => {
                                 </Button>
                             ) : (
                                 <Button
+                                    style={{ marginRight: "10px" }}
                                     type="primary"
                                     onClick={handleCheckOut}
                                     disabled={shouldDisableButton}
@@ -321,7 +322,6 @@ const Index = () => {
                             >
                                 Change Schedule
                             </Button>
-                            
                         </>
                     );
                 }

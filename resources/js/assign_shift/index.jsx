@@ -110,9 +110,10 @@ function RowHeaderTable() {
 
                     // For each employee, assign the shift to the appropriate column (col1, col2, ...)
                     const shiftColumn = schedule.schedule_id; // Using the schedule_id as the column number
-
+                    console.log("shift id comun", shiftColumn);
                     // Map the schedule_id (shift) to the column for the specific employee
                     shiftsState[employeeId][`col${shiftColumn}`] = shiftId;
+                   
                 });
             });
 
@@ -120,7 +121,7 @@ function RowHeaderTable() {
             setSelectedShiftsState(shiftsState);
         }
     }, [assignedSchedules]);
-
+ console.log("shift state", selectedShiftsState);
     const handleSubmit = () => {
         const payload = [];
         const employeeIds = Object.keys(selectedShiftsState);
