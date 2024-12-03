@@ -66,7 +66,7 @@ const ShiftModal = ({ isVisible, onCancel }) => {
             fetchSchedules();
             
             onCancel();
-            window.location.reload();
+       
         }
     }
 

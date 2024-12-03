@@ -68,6 +68,7 @@ const fetchSchedules = async () => {
                 });
                  setIsEditModalOpen(false);
                  setScheduleToEdit(null);
+                 fetchSchedules();
             }
             
            
@@ -96,6 +97,7 @@ const fetchSchedules = async () => {
             });
             setIsDeleteModalOpen(false);
             setScheduleToDelete(null);
+            fetchSchedules();
         }
         } catch (error) {
             console.error("Error deleting schedule:", error);
