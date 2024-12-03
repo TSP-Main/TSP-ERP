@@ -88,39 +88,63 @@ function RowHeaderTable() {
     }, [employeedata]);
 
     // Populate selectedShiftsState once assignedSchedules is fetched
-    useEffect(() => {
-        if (assignedSchedules && assignedSchedules.length > 0) {
-            const shiftsState = {};
+useEffect(() => {
+    if (assignedSchedules && assignedSchedules.length > 0) {
+        const shiftsState = {};
 
-            // Iterate through each schedule and map employees to shifts
-            assignedSchedules.forEach((schedule) => {
-                // Iterate through the employees assigned to the current schedule
-                schedule.employees.forEach((employee) => {
-                    const employeeId = employee.employee_id;
-                    const shiftId = schedule.schedule_id;
-                    console.log("employeeId: " + employeeId + " shiftId: " + shiftId)
-                    console.log(
-                        "employeeId: " + employeeId + " shiftId: " + shiftId
+        assignedSchedules.forEach((schedule) => {
+            schedule.employees.forEach((employee) => {
+                const employeeId = employee.employee_id;
+                const shiftId = schedule.schedule_id;
+
+                // Parse start_date and end_date as Date objects
+                const startDate = new Date(employee.start_date);
+                const endDate = new Date(employee.end_date);
+
+                if (!shiftsState[employeeId]) {
+                    shiftsState[employeeId] = {};
+                }
+
+                // Iterate through the range of dates
+                let currentDate = new Date(startDate); // Create a copy of the start date
+                while (currentDate <= endDate) {
+                    // Find the index of the date in reorderedDays
+                    const columnIndex = reorderedDays.findIndex(
+                        (day) =>
+                            day.date.toDateString() ===
+                            currentDate.toDateString()
                     );
-                    
-                    // Check if the employee already has an entry in shiftsState
-                    if (!shiftsState[employeeId]) {
-                        shiftsState[employeeId] = {}; // Initialize if not present
+
+                    if (columnIndex !== -1) {
+                        const columnKey = `col${columnIndex + 1}`;
+
+                        // If columnKey doesn't exist, initialize as an array
+                        if (!shiftsState[employeeId][columnKey]) {
+                            shiftsState[employeeId][columnKey] = [];
+                        }
+
+                        // Add the shiftId to the column
+                        if (
+                            !shiftsState[employeeId][columnKey].includes(
+                                shiftId
+                            )
+                        ) {
+                            shiftsState[employeeId][columnKey].push(shiftId);
+                        }
                     }
 
-                    // For each employee, assign the shift to the appropriate column (col1, col2, ...)
-                    const shiftColumn = schedule.schedule_id; // Using the schedule_id as the column number
-                    console.log("shift id comun", shiftColumn);
-                    // Map the schedule_id (shift) to the column for the specific employee
-                    shiftsState[employeeId][`col${shiftColumn}`] = shiftId;
-                   
-                });
+                    // Increment the current date by 1 day
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
             });
+        });
 
-            // Update the selectedShiftsState with the mapped shifts
-            setSelectedShiftsState(shiftsState);
-        }
-    }, [assignedSchedules]);
+        setSelectedShiftsState(shiftsState);
+    }
+}, [assignedSchedules]);
+
+
+
  console.log("shift state", selectedShiftsState);
     const handleSubmit = () => {
         const payload = [];
