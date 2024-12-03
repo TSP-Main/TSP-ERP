@@ -146,6 +146,7 @@ useEffect(() => {
 
 
  console.log("shift state", selectedShiftsState);
+
     const handleSubmit = () => {
         const payload = [];
         const employeeIds = Object.keys(selectedShiftsState);
@@ -335,6 +336,7 @@ useEffect(() => {
                 dataSource={dataSource}
                 pagination={false}
                 bordered
+                overflow="scroll"
                 // scroll={{ x: "max-content", y: 500 }}
                 rowKey="key"
                
