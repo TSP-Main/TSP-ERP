@@ -70,92 +70,91 @@ class StripePaymentController extends BaseController
     }
 
     public function approveUser(User $user, StripeService $stripeService)
-{
-    try {
-        DB::beginTransaction();
+    {
+        try {
+            DB::beginTransaction();
 
-        $authUser = auth()->user();
-        $roleName = $user->roles->first()->name;
-        $companyCode = optional($user->company)->code;
+            $authUser = auth()->user();
+            $roleName = $user->roles->first()->name;
+            $companyCode = optional($user->company)->code;
 
-        switch ($roleName) {
-            case StatusEnum::COMPANY:
-                $this->authorize('approve-company');
+            switch ($roleName) {
+                case StatusEnum::COMPANY:
+                    $this->authorize('approve-company');
 
-                $company = $user->company;
+                    $company = $user->company;
 
-                // Validate package and plan
-                $package = $company->package;
-                $plan = $company->plan;
-                $priceId = getStripePriceId($package, $plan);
+                    // Validate package and plan
+                    $package = $company->package;
+                    $plan = $company->plan;
+                    $priceId = getStripePriceId($package, $plan);
 
-                if (!$priceId) {
-                    return $this->sendError('Invalid package or plan.', 400);
-                }
+                    if (!$priceId) {
+                        return $this->sendError('Invalid package or plan.', 400);
+                    }
 
-                // Ensure Stripe customer exists
-                if (!$user->hasStripeId()) {
-                    $user->createAsStripeCustomer();
-                }
+                    // Ensure Stripe customer exists
+                    if (!$user->hasStripeId()) {
+                        $user->createAsStripeCustomer();
+                    }
 
-                // Validate and attach payment method
-                $paymentMethodId = $company->payment_method_id;
-                if (!$paymentMethodId) {
-                    return $this->sendError('Payment method is required.', 400);
-                }
+                    // Validate and attach payment method
+                    $paymentMethodId = $company->payment_method_id;
+                    if (!$paymentMethodId) {
+                        return $this->sendError('Payment method is required.', 400);
+                    }
 
-                Stripe::setApiKey(env('STRIPE_SECRET'));
+                    Stripe::setApiKey(env('STRIPE_SECRET'));
 
-                try {
-                    // Attach the payment method to the customer
-                    $paymentMethod = PaymentMethod::retrieve($paymentMethodId);
-                    $paymentMethod->attach(['customer' => $user->stripe_id]);
+                    try {
+                        // Attach the payment method to the customer
+                        $paymentMethod = PaymentMethod::retrieve($paymentMethodId);
+                        $paymentMethod->attach(['customer' => $user->stripe_id]);
 
-                    // Update the default payment method for the user
-                    $user->updateDefaultPaymentMethod($paymentMethodId);
-                } catch (Exception $e) {
-                    return $this->sendError('Failed to attach payment method: ' . $e->getMessage(), 400);
-                }
+                        // Update the default payment method for the user
+                        $user->updateDefaultPaymentMethod($paymentMethodId);
+                    } catch (Exception $e) {
+                        return $this->sendError('Failed to attach payment method: ' . $e->getMessage(), 400);
+                    }
 
-                // Create the subscription
-                $user->newSubscription('default', $priceId)
-                    ->create($paymentMethodId);
+                    // Create the subscription
+                    $user->newSubscription('default', $priceId)
+                        ->create($paymentMethodId);
 
-                // Dispatch email and update company status
-                CompanyApprovedEmailJob::dispatch($user, $companyCode);
-                $user->update([
-                    'is_active' => StatusEnum::ACTIVE,
-                    'status' => StatusEnum::APPROVED,
-                ]);
+                    // Dispatch email and update company status
+                    CompanyApprovedEmailJob::dispatch($user, $companyCode);
+                    $user->update([
+                        'is_active' => StatusEnum::ACTIVE,
+                        'status' => StatusEnum::APPROVED,
+                    ]);
 
-                $company->update(['is_active' => StatusEnum::ACTIVE]);
-                break;
+                    $company->update(['is_active' => StatusEnum::ACTIVE]);
+                    break;
 
-            case StatusEnum::EMPLOYEE:
-                $this->authorize('approve-employee');
+                case StatusEnum::EMPLOYEE:
+                    $this->authorize('approve-employee');
 
-                EmployeeApproveEmailJob::dispatch($user->email);
-                $user->update([
-                    'is_active' => StatusEnum::ACTIVE,
-                    'status' => StatusEnum::APPROVED,
-                ]);
-                $user->employee()->update([
-                    'is_active' => StatusEnum::ACTIVE,
-                    'status' => StatusEnum::APPROVED,
-                ]);
-                break;
+                    EmployeeApproveEmailJob::dispatch($user->email);
+                    $user->update([
+                        'is_active' => StatusEnum::ACTIVE,
+                        'status' => StatusEnum::APPROVED,
+                    ]);
+                    $user->employee()->update([
+                        'is_active' => StatusEnum::ACTIVE,
+                        'status' => StatusEnum::APPROVED,
+                    ]);
+                    break;
 
-            default:
-                DB::rollBack();
-                return $this->sendError('Invalid user role.', 400);
+                default:
+                    DB::rollBack();
+                    return $this->sendError('Invalid user role.', 400);
+            }
+
+            DB::commit();
+            return $this->sendResponse(ucfirst($roleName) . ' approved successfully, email dispatched.', 200);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
-
-        DB::commit();
-        return $this->sendResponse(ucfirst($roleName) . ' approved successfully, email dispatched.', 200);
-    } catch (Exception $e) {
-        DB::rollBack();
-        return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
     }
-}
-
 }
