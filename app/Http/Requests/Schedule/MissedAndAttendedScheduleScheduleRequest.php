@@ -23,7 +23,11 @@ class MissedAndAttendedScheduleScheduleRequest extends FormRequest
     {
         return [
             'start_date' => 'nullable|date|before_or_equal:' . now()->toDateString(),
-            'end_date' => 'nullable|date|before_or_equal:' . now()->toDateString(),
+            'end_date' => [
+                'nullable',
+                'date',
+                'after_or_equal:start_date',
+            ]
         ];
     }
 }
