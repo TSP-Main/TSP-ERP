@@ -222,4 +222,78 @@ class EmployeeController extends BaseController
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
+
+    public function employeeInvitationCancel(User $user)
+    {
+        if (!$user) {
+            return $this->sendResponse([], 'User not found');
+        }
+
+        $role = $user->roles->first();
+        if (!$role) {
+            return $this->sendResponse([], 'User role not found');
+        }
+
+        if (in_array($role->name, [StatusEnum::EMPLOYEE, StatusEnum::MANAGER])) {
+            // Check if the user is invited
+            if ($user->status !== StatusEnum::INVITED) {
+                return $this->sendResponse([], 'Action not allowed. User is not in invited status.');
+            }
+
+            $this->authorize('reject-employee');
+
+            // Collect attributes to update
+            $updateData = [
+                'is_active' => StatusEnum::INACTIVE,
+                'status' => StatusEnum::CANCELLED
+            ];
+
+            $user->update($updateData);
+            if ($user->employee) {
+                $user->employee->update($updateData);
+            }
+
+            if ($user->manager) {
+                $user->manager->update($updateData);
+            }
+        }
+
+        return $this->sendResponse(ucfirst($role->name) . ' invite cancelled', 200);
+    }
+
+    public function inviteCancelledEmployee(Request $request, $companyCode)
+    {
+        try {
+            $paginate = $request->per_page ?? 20;
+            $user = Employee::where('company_code', $companyCode)
+                ->where('status', StatusEnum::CANCELLED)
+                ->with('user')->paginate($paginate);
+            if ($user->isEmpty()) {
+                return $this->sendResponse([], 'No cancelled invitation employee found');
+            }
+            return $this->sendResponse($user, 'Cancelled invitation employees successfully displayed');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function newSignUpEmployees(Request $request, $companyCode)
+    {
+        try {
+            $paginate = $request->paginate ?? 20;
+
+            $employees = Employee::where('company_code', $companyCode)
+                ->where(['is_active' => StatusEnum::INACTIVE, 'status' => StatusEnum::NOT_APPROVED])
+                ->with('user')
+                ->paginate($paginate);
+
+            if ($employees->isEmpty()) {
+                return $this->sendResponse([], 'No new employees found for this company code', 200);
+            }
+
+            return $this->sendResponse($employees, 'New registered employees displayed successfully');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
 }

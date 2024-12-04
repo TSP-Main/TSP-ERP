@@ -45,10 +45,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('get-all-users', [AuthController::class, 'getAllUsers']);
     Route::post('update-status/{id}', [AuthController::class, 'updateIsActiveStatus']);
     Route::post('user-reject/{user}', [AuthController::class, 'userReject']);
-    Route::post('cancel-invitation/{user}', [AuthController::class, 'userInviteCancel']);
     Route::get('rejected-user/{companyCode}', [AuthController::class, 'rejectedUser']);
-    Route::get('cancelled-user/{companyCode}', [AuthController::class, 'inviteCancelledUser']);
-    Route::get('new-registered-user/{companyCode}', [AuthController::class, 'newSignUps']);
 });
 
 // Route::get('email/verify/{id}', [VerificationController::class, 'verify'])->name('verification.verify'); // Make sure to keep this as your route name
@@ -67,6 +64,7 @@ Route::middleware('auth:api')->group(function () {
 
     // Employee routes
     Route::get('all-employees/{companyCode}', [EmployeeController::class, 'allCompanyEmployees']);
+    Route::post('cancel-invitation/{user}', [EmployeeController::class, 'employeeInvitationCancel']);
     Route::prefix('employee')->group(function () {
         Route::post('add-employee', [EmployeeController::class, 'create']);
         Route::get('show-employee/{user}', [EmployeeController::class, 'show']);
@@ -76,9 +74,13 @@ Route::middleware('auth:api')->group(function () {
         Route::post('delete/{user}', [EmployeeController::class, 'delete']);
         Route::post('assign-manager', [EmployeeController::class, 'assignManager']);
         Route::get('invited-employees/{companyCode}', [EmployeeController::class, 'invitedEmployees']);
+        Route::get('invitation-cancelled-employees/{companyCode}', [EmployeeController::class, 'inviteCancelledEmployee']);
+        Route::get('new-registered-employees/{companyCode}', [EmployeeController::class, 'newSignUpEmployees']);
 
         // Employee manager routes
         Route::get('invited-managers/{companyCode}', [ManagerController::class, 'invitedManagers']);
+        Route::get('invitation-cancelled-managers/{companyCode}', [ManagerController::class, 'inviteCancelledManager']);
+        Route::get('new-registered-managers/{companyCode}', [ManagerController::class, 'newSignUpmanagers']);
     });
 
     // Schedule routes

@@ -416,40 +416,4 @@ class AuthController extends BaseController
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
-
-    public function inviteCancelledUser(Request $request, $companyCode)
-    {
-        try {
-            $paginate = $request->per_page ?? 20;
-            $user = Employee::where('company_code', $companyCode)
-                ->where('status', StatusEnum::CANCELLED)
-                ->with('user')->paginate($paginate);
-            if ($user->isEmpty()) {
-                return $this->sendResponse([], 'No cancelled invitation users found');
-            }
-            return $this->sendResponse($user, 'Cancelled invitation user successfully displayed');
-        } catch (Exception $e) {
-            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
-        }
-    }
-
-    public function newSignUps(Request $request, $companyCode)
-    {
-        try {
-            $paginate = $request->paginate ?? 20;
-
-            $employees = Employee::where('company_code', $companyCode)
-                ->where(['is_active' => StatusEnum::INACTIVE, 'status' => StatusEnum::NOT_APPROVED])
-                ->with('user')
-                ->paginate($paginate);
-
-            if ($employees->isEmpty()) {
-                return $this->sendResponse([], 'No new employees found for this company code', 200);
-            }
-
-            return $this->sendResponse($employees, 'New registered employees displayed successfully');
-        } catch (Exception $e) {
-            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
-        }
-    }
 }
