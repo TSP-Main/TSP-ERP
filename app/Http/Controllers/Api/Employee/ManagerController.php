@@ -111,4 +111,40 @@ class ManagerController extends BaseController
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
+
+    public function inviteCancelledManager(Request $request, $companyCode)
+    {
+        try {
+            $paginate = $request->per_page ?? 20;
+            $manger = Manager::where('company_code', $companyCode)
+                ->where('status', StatusEnum::CANCELLED)
+                ->with('user')->paginate($paginate);
+            if ($manger->isEmpty()) {
+                return $this->sendResponse([], 'No cancelled invitation manager found');
+            }
+            return $this->sendResponse($manger, 'Cancelled invitation managers successfully displayed');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function newSignUpmanagers(Request $request, $companyCode)
+    {
+        try {
+            $paginate = $request->paginate ?? 20;
+
+            $employees = Manager::where('company_code', $companyCode)
+                ->where(['is_active' => StatusEnum::INACTIVE, 'status' => StatusEnum::NOT_APPROVED])
+                ->with('user')
+                ->paginate($paginate);
+
+            if ($employees->isEmpty()) {
+                return $this->sendResponse([], 'No new manager found for this company code', 200);
+            }
+
+            return $this->sendResponse($employees, 'New registered managers displayed successfully');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
 }
