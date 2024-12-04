@@ -132,7 +132,7 @@ const SideNav = () => {
                                 />
                             </div>
                             <div className="Footer-hidden">
-                                <footer
+                                <Footer
                                     style={{
                                         justifyContent: "center",
                                         alignItems: "center",
@@ -155,7 +155,7 @@ const SideNav = () => {
                                         </a>
                                     </span>{" "}
                                     All Rights Reserved
-                                </footer>
+                                </Footer>
                             </div>
                         </div>
                     </Sider>

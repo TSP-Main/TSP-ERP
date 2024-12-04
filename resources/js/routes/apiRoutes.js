@@ -23,11 +23,12 @@ const apiRoutes = {
         checkedin: "/schedule/checked-in-employees",
         reject: (id) => `/user-reject/${id}`,
         getRejectedUsers: (code) => `/rejected-user/${code}`,
-        getInvitedUsers: (code) => `/invited-user/${code}`,
+        getInvitedUsers: (code) => `/employee/invited-employees/${code}`,
         cancelInvite: (id) => `/cancel-invitation/${id}`,
         inactive: (code) => `/employee/in-active-employee/${code}`,
-        getCancelInvited: (code) => `/cancelled-user/${code}`,
-        newSignups: (code) => `/new-registered-user/${code}`,
+        getCancelInvited: (code) =>
+            `/employee/invitation-cancelled-employees/${code}`,
+        newSignups: (code) => `/employee/new-registered-employees/${code}`,
         ischeckin: "/schedule/employee-attendance-status",
     },
     schedule: {
