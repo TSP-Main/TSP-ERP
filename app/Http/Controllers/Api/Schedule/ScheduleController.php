@@ -32,6 +32,10 @@ class ScheduleController extends BaseController
         $startTime  = Carbon::parse($request->start_time, $timezone);
         $endTime  = Carbon::parse($request->end_time, $timezone);
 
+        // if ($endTime->lessThan($startTime)) {
+        //     $endTime->addDay(); // Add one day to the end time
+        // }        //handeled in checkout api
+
         $schedule = Schedule::create([
             'company_id' => $request->company_id,
             'name' => $request->name,
