@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Employee;
 
 use App\Classes\StatusEnum;
 use App\Http\Controllers\Api\BaseController;
+use App\Http\Requests\Employee\AssignManagerRequest;
 use App\Http\Requests\Employee\CompanyEmployeeRequest;
 use App\Http\Requests\Employee\CreateEmployeeRequest;
 use App\Http\Requests\Employee\UpdateEmployeeRequest;
@@ -12,6 +13,7 @@ use App\Models\Employee\Employee;
 use App\Models\Employee\Manager;
 use App\Models\User;
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Str;
@@ -37,6 +39,7 @@ class EmployeeController extends BaseController
             if ($roleName == StatusEnum::EMPLOYEE) {
                 Employee::create([
                     'user_id' => $user->id,
+                    'manager_id' => $request->manager_id,
                     'company_code' => $companyCode,
                     'is_active' => StatusEnum::ACTIVE,
                     'status' => StatusEnum::INVITED
@@ -179,6 +182,28 @@ class EmployeeController extends BaseController
             return $this->sendResponse([], 'Employee successfully deleted');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function assignManager(AssignManagerRequest $request)
+    {
+        try {
+            $this->authorize('create-employee');
+            // Fetch the employee
+            $employee = Employee::findOrFail($request->employee_id);
+
+            // Update the manager_id field
+            $employee->manager_id = $request->manager_id;
+            $employee->save();
+
+            // Load related data for response
+            $employee->load(['manager', 'user']);
+
+            return $this->sendResponse($employee, 'Manager assigned successfully');
+        } catch (ModelNotFoundException $e) {
+            return $this->sendError('Employee not found', 404);
+        } catch (Exception $e) {
+            return $this->sendError('An error occurred: ' . $e->getMessage(), $e->getCode() ?: 500);
         }
     }
 }

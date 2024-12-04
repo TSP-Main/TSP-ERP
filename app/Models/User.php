@@ -8,6 +8,7 @@ use App\Models\Company\CompanyModel;
 use App\Models\Employee\Employee;
 use App\Models\Employee\Manager;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Cashier\Billable;
@@ -16,7 +17,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles, Billable;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles, Billable, SoftDeletes;
 
     const AUTH_TOKEN = 'RotaAuthToken';
     /**
