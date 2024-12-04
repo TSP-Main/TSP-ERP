@@ -19,9 +19,7 @@ class ManagerController extends BaseController
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-    }
+    public function index() {}
 
     /**
      * Show the form for creating a new resource.
@@ -55,7 +53,7 @@ class ManagerController extends BaseController
         } catch (Exception $e) {
             DB::rollBack();
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
-        }        
+        }
     }
 
     /**
@@ -96,5 +94,21 @@ class ManagerController extends BaseController
     public function destroy(string $id)
     {
         //
+    }
+
+    public function invitedManagers(Request $request, $companyCode)
+    {
+        try {
+            $paginate = $request->per_page ?? 20;
+            $employees = Manager::where('company_code', $companyCode)
+                ->where('status', StatusEnum::INVITED)
+                ->with('user')->paginate($paginate);
+            if ($employees->isEmpty()) {
+                return $this->sendResponse([], 'No invited manager found');
+            }
+            return $this->sendResponse($employees, 'Invited managers successfully displayed');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
     }
 }

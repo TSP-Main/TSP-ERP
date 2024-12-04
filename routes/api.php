@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Companies\CompanyController;
 use App\Http\Controllers\Api\Employee\EmployeeController;
+use App\Http\Controllers\Api\Employee\ManagerController;
 use App\Http\Controllers\Api\Payment\StripePaymentController;
 use App\Http\Controllers\Api\Schedule\ScheduleController;
 use Illuminate\Auth\Events\Authenticated;
@@ -46,7 +47,6 @@ Route::middleware('auth:api')->group(function () {
     Route::post('user-reject/{user}', [AuthController::class, 'userReject']);
     Route::post('cancel-invitation/{user}', [AuthController::class, 'userInviteCancel']);
     Route::get('rejected-user/{companyCode}', [AuthController::class, 'rejectedUser']);
-    Route::get('invited-user/{companyCode}', [AuthController::class, 'invitedUser']);
     Route::get('cancelled-user/{companyCode}', [AuthController::class, 'inviteCancelledUser']);
     Route::get('new-registered-user/{companyCode}', [AuthController::class, 'newSignUps']);
 });
@@ -75,6 +75,10 @@ Route::middleware('auth:api')->group(function () {
         Route::post('update/{id}', [EmployeeController::class, 'update']);
         Route::post('delete/{user}', [EmployeeController::class, 'delete']);
         Route::post('assign-manager', [EmployeeController::class, 'assignManager']);
+        Route::get('invited-employees/{companyCode}', [EmployeeController::class, 'invitedEmployees']);
+
+        // Employee manager routes
+        Route::get('invited-managers/{companyCode}', [ManagerController::class, 'invitedManagers']);
     });
 
     // Schedule routes

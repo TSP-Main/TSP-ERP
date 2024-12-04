@@ -417,22 +417,6 @@ class AuthController extends BaseController
         }
     }
 
-    public function invitedUser(Request $request, $companyCode)
-    {
-        try {
-            $paginate = $request->per_page ?? 20;
-            $user = Employee::where('company_code', $companyCode)
-                ->where('status', StatusEnum::INVITED)
-                ->with('user')->paginate($paginate);
-            if ($user->isEmpty()) {
-                return $this->sendResponse([], 'No invited users found');
-            }
-            return $this->sendResponse($user, 'Invited user successfully displayed');
-        } catch (Exception $e) {
-            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
-        }
-    }
-
     public function inviteCancelledUser(Request $request, $companyCode)
     {
         try {
