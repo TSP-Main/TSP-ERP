@@ -8,6 +8,7 @@ use App\Models\Employee\Attendance;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Console\Command;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -35,12 +36,11 @@ class MarkAbsentEmployees extends Command
         parent::__construct();
     }
 
-    public function handle($request)
+    public function handle()
     {
-        Log::info('Mark absent employees cron start');
-        $ipAddress = $request->ip();
+        $ipAddress = request()->ip(); // Use request helper to fetch the IP address
         $timezone = getUserTimezone($ipAddress);
-        
+
         DB::beginTransaction();
         try {
             $today = Carbon::today($timezone);
@@ -68,9 +68,9 @@ class MarkAbsentEmployees extends Command
                     ]);
                 }
             }
+
             DB::commit();
-            Log::info('Mark absent employees successfully.');
-            $this->info('Absent employees marked successfully!');
+            // $this->info('Absent employees marked successfully!');
         } catch (Exception $e) {
             DB::rollBack();
             Log::error('Error in inactivating schedules: ' . $e->getMessage());
