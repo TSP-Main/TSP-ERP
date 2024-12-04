@@ -74,6 +74,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('active-employee/{companyCode}', [EmployeeController::class, 'activeEmployees']);
         Route::post('update/{id}', [EmployeeController::class, 'update']);
         Route::post('delete/{user}', [EmployeeController::class, 'delete']);
+        Route::post('assign-manager', [EmployeeController::class, 'assignManager']);
     });
 
     // Schedule routes

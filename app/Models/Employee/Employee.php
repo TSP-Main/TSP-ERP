@@ -7,12 +7,13 @@ use App\Models\Company\EmployeeSchedule;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Employee extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-    protected $fillable = ['user_id', 'company_code', 'joining_date', 'employment_type', 'is_active', 'status'];
+    protected $fillable = ['user_id', 'manager_id', 'company_code', 'joining_date', 'employment_type', 'is_active', 'status'];
 
     public function user()
     {

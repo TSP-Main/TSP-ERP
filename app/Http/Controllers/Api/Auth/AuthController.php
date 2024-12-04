@@ -18,6 +18,7 @@ use App\Jobs\Company\CompanyApprovedEmailJob;
 use App\Jobs\Company\EmployeeApproveEmailJob;
 use App\Models\Company\CompanyModel;
 use App\Models\Employee\Employee;
+use App\Models\Employee\Manager;
 use App\Models\Otp;
 use App\Models\User;
 use Illuminate\Auth\Events\Authenticated;
@@ -30,8 +31,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Request;
-use Stripe\Stripe;
-use Stripe\SetupIntent;
 use Illuminate\Support\Str;
 
 
@@ -108,7 +107,7 @@ class AuthController extends BaseController
             //     return $this->sendError(['error' => 'User already logged in.'], 403);
             // }
 
-            if (($user->hasRole([StatusEnum::COMPANY, StatusEnum::EMPLOYEE])) && $user->is_active != StatusEnum::ACTIVE) {
+            if (($user->hasRole([StatusEnum::COMPANY, StatusEnum::EMPLOYEE, StatusEnum::MANAGER])) && $user->is_active != StatusEnum::ACTIVE) {
                 return $this->sendError(['error' => 'Account is not active. Please contact support.'], 403);
             }
 
@@ -302,29 +301,43 @@ class AuthController extends BaseController
     public function updateIsActiveStatus($id)
     {
         try {
+            // Fetch the user with active status and roles (employee or manager)
             $user = User::where('id', $id)
                 ->where('is_active', StatusEnum::ACTIVE)
                 ->whereHas('roles', function ($query) {
-                    $query->where('name', StatusEnum::EMPLOYEE);
+                    $query->whereIn('name', [StatusEnum::EMPLOYEE, StatusEnum::MANAGER]);
                 })
                 ->firstOrFail();
 
             // Update the user's active status
             $user->update(['is_active' => StatusEnum::INACTIVE]);
 
-            $employee = Employee::where('user_id', $id)
-                ->where('is_active', StatusEnum::ACTIVE)
-                ->first();
+            // Update related models if applicable
+            if ($user->hasRole(StatusEnum::EMPLOYEE)) {
+                $employee = Employee::where('user_id', $id)
+                    ->where('is_active', StatusEnum::ACTIVE)
+                    ->first();
 
-            if ($employee) {
-                $employee->update(['is_active' => StatusEnum::INACTIVE]);
+                if ($employee) {
+                    $employee->update(['is_active' => StatusEnum::INACTIVE]);
+                }
             }
 
-            return $this->sendResponse([], 'User and employee status updated successfully');
+            if ($user->hasRole(StatusEnum::MANAGER)) {
+                $manager = Manager::where('user_id', $id)
+                    ->where('is_active', StatusEnum::ACTIVE)
+                    ->first();
+
+                if ($manager) {
+                    $manager->update(['is_active' => StatusEnum::INACTIVE]);
+                }
+            }
+
+            return $this->sendResponse([], 'User and related status updated successfully');
         } catch (ModelNotFoundException $e) {
-            return $this->sendError('User not found, not active, or does not have the employee role', 404);
+            return $this->sendError('User not found, not active, or does not have the required role', 404);
         } catch (Exception $e) {
-            Log::error('Error updating user and employee status: ' . $e->getMessage());
+            Log::error('Error updating user and related statuses: ' . $e->getMessage());
             return $this->sendError('Something went wrong while updating status', 500);
         }
     }
@@ -362,7 +375,7 @@ class AuthController extends BaseController
             return $this->sendResponse([], 'User role not found');
         }
 
-        if ($role->name === StatusEnum::EMPLOYEE) {
+        if (in_array($role->name, [StatusEnum::EMPLOYEE, StatusEnum::MANAGER])) {
             // Check if the user is invited
             if ($user->status !== StatusEnum::INVITED) {
                 return $this->sendResponse([], 'Action not allowed. User is not in invited status.');
@@ -377,7 +390,13 @@ class AuthController extends BaseController
             ];
 
             $user->update($updateData);
-            $user->employee->update($updateData);
+            if ($user->employee) {
+                $user->employee->update($updateData);
+            }
+
+            if ($user->manager) {
+                $user->manager->update($updateData);
+            }
         }
 
         return $this->sendResponse(ucfirst($role->name) . ' invite cancelled', 200);
