@@ -86,7 +86,7 @@ class RoleSeeder extends Seeder
         // Assign specific permissions to manger
         $manager->syncPermissions([
             'approve-employee',
-            'update-schedule',
+            'create-employee',
             'update-schedule',
             'show-employees',
             'assign-schedule',

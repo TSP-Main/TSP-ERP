@@ -31,6 +31,7 @@ class UpdateUserStatusOnFirstLogin
         if ($user->status === StatusEnum::INVITED) {
             $user->update(['status' => StatusEnum::APPROVED]);
             $user->employee()->update(['status' => StatusEnum::APPROVED]);
+            $user->manager()->update(['status' => StatusEnum::APPROVED]);
         }
     }
 }

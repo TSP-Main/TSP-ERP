@@ -4,7 +4,7 @@ namespace App\Http\Requests\Employee;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateEmployeeRequest extends FormRequest
+class AssignManagerRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,11 +22,8 @@ class CreateEmployeeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $this->id],
-            'role' => ['required', 'string', 'exists:roles,name'],
-            'company_code' => ['required', 'string', 'exists:companies,code'],
-            'manager_id' => ['required_if:role,employee', 'exists:managers,id'], // Conditional rule
+            'employee_id' => 'required|exists:employees,id',
+            'manager_id' => 'required|exists:managers,id',
         ];
     }
 }

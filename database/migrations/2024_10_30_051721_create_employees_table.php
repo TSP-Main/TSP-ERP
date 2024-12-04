@@ -12,9 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('employees', function (Blueprint $table) {
+            $table->softDeletes();
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('manager_id')->constrained();
+            $table->foreignId('manager_id')->constrained()->nullable();
             $table->string('company_code');
             $table->date('joining_date')->nullable();
             $table->string('employment_type')->comment('permanent, contract, intern, part-time')->nullable();
