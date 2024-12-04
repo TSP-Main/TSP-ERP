@@ -44,13 +44,13 @@ class MarkAbsentEmployees extends Command
         DB::beginTransaction();
         try {
             $today = Carbon::now($timezone);
-            $employee = EmployeeSchedule::whereDate('start_date', '<=', $today)
+            $employeeSchedules = EmployeeSchedule::whereDate('start_date', '<=', $today)
                 ->where(function ($query) use ($today) {
                     $query->whereNull('end_date')
                         ->orWhereDate('end_date', '>=', $today);
                 })->with('schedule')->get();
 
-            foreach ($employee as $employeeSchedule) {
+            foreach ($employeeSchedules as $employeeSchedule) {
                 $shiftEnd = Carbon::parse($employeeSchedule->schedule->end_time);
 
                 // If shift has ended and no check-in is recorded

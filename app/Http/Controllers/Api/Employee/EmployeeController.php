@@ -206,4 +206,20 @@ class EmployeeController extends BaseController
             return $this->sendError('An error occurred: ' . $e->getMessage(), $e->getCode() ?: 500);
         }
     }
+
+    public function invitedEmployees(Request $request, $companyCode)
+    {
+        try {
+            $paginate = $request->per_page ?? 20;
+            $employees = Employee::where('company_code', $companyCode)
+                ->where('status', StatusEnum::INVITED)
+                ->with('user')->paginate($paginate);
+            if ($employees->isEmpty()) {
+                return $this->sendResponse([], 'No invited users found');
+            }
+            return $this->sendResponse($employees, 'Invited user successfully displayed');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
 }
