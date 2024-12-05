@@ -59,6 +59,7 @@ class MarkAbsentEmployees extends Command
                     ->first();
                     // dd($shiftEnd,$today->gt($shiftEnd), $today);
                 if (!$attendance && $today->gt($shiftEnd)) {
+                    dd('here');
                     // Mark as absent if no attendance exists for the day
                     Attendance::create([
                         'employee_id' => $employeeSchedule->employee_id,
