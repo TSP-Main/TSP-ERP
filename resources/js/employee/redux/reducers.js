@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "../../services/axiosService";
 import apiRoutes from "../../routes/apiRoutes";
-import { CodeFilled } from "@ant-design/icons";
+
 
 const initialState = {
     error: false,
@@ -49,15 +49,11 @@ export const updateEmployee = createAsyncThunk(
 );
 export const allEmployee = createAsyncThunk(
     "user/employee",
-    async ({ code, role }, { rejectWithValue }) => {
+    async (code, { rejectWithValue }) => {
         try {
-            console.log("Users", code, role);
-            console.log("Employeeseses", { role });
-            const response = await axios.get(apiRoutes.employee.active(code), {
-                params: {
-                    role: role,
-                },
-            });
+            // console.log("Users", code, role);
+            // console.log("Employeeseses", { role });
+            const response = await axios.get(apiRoutes.employee.active(code));
             console.log("employee", response.data.data.data);
             if(response?.data?.data.length==0){
                 return [];

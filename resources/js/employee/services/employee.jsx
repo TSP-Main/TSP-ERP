@@ -14,6 +14,7 @@ import {
 } from "antd";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
+import { gettActiveManagers } from "../../manager/redux/reducer";
 
 function Employee() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -24,6 +25,7 @@ function Employee() {
     const { error, loading, employeedata } = useSelector(
         (state) => state.employee
     );
+    const {activeManagersdata}=useSelector((state)=>state.manager)
     const [selectedRole, setSelectedRole] = useState("");
 
     const dispatch = useDispatch();
@@ -33,18 +35,26 @@ function Employee() {
         const fetchEmployees = async () => {
             try {
                 const code = localStorage.getItem("company_code");
-                const payload = {
-                    role: selectedRole,
-                    code: code,
-                };
-                await dispatch(allEmployee(payload));
+                await dispatch(allEmployee(code));
             } catch (error) {
                 console.error("Error fetching employees:", error);
             }
         };
 
         fetchEmployees();
-    }, [dispatch, selectedRole]);
+    }, [dispatch]);
+    useEffect(() => {
+        const fetchManagers = async () => {
+            try {
+                const code = localStorage.getItem("company_code");
+                await dispatch(gettActiveManagers(code));
+            } catch (error) {
+                console.error("Error fetching employees:", error);
+            }
+        };
+
+        fetchManagers();
+    }, [dispatch]);
 
     // Show the delete confirmation modal
     const showDeleteModal = (employeeId) => {
@@ -62,6 +72,7 @@ function Employee() {
                      duration: 2,
                  });
                  refetchEmployees()
+                 refetchManagers()
              }
              
            
@@ -84,11 +95,13 @@ function Employee() {
     };
 const refetchEmployees = async () => {
     const code = localStorage.getItem("company_code");
-    const payload = {
-        role: selectedRole,
-        code: code,
-    };
-    await dispatch(allEmployee(payload)); // Dispatch the action to fetch employees
+   
+    await dispatch(allEmployee(code)); // Dispatch the action to fetch employees
+};
+const refetchManagers = async () => {
+    const code = localStorage.getItem("company_code");
+
+    await dispatch(gettActiveManagers(code)); // Dispatch the action to fetch employees
 };
     // Handle edit submission
     const handleEdit = async () => {
@@ -108,6 +121,7 @@ const refetchEmployees = async () => {
                      duration: 2,
                  });
                  refetchEmployees()
+                 refetchManagers()
             }
            
         } catch (error) {
@@ -117,7 +131,34 @@ const refetchEmployees = async () => {
             });
         }
     };
-
+    const columnsM = [
+        {
+            title: "Name",
+            dataIndex: ["user", "name"],
+            key: "name",
+        },
+        {
+            title: "Email",
+            dataIndex: ["user", "email"],
+            key: "email",
+        },
+        {
+            title: "Actions",
+            key: "actions",
+            render: (text, record) => (
+                <div style={{ display: "flex", gap: "8px" }}>
+                    <Button
+                        icon={<FaEdit />}
+                        onClick={() => showEditModal(record.user)}
+                    />
+                    <Button
+                        icon={<MdDelete />}
+                        onClick={() => showDeleteModal(record?.user_id)}
+                    />
+                </div>
+            ),
+        },
+    ];
     // Define columns for the Ant Design table
     const columns = [
         {
@@ -129,6 +170,11 @@ const refetchEmployees = async () => {
             title: "Email",
             dataIndex: ["user", "email"],
             key: "email",
+        },
+        {
+            title:"Manager",
+            dataIndex:["manager","user","name"],
+            key: "manager",
         },
         {
             title: "Actions",
@@ -158,25 +204,21 @@ const refetchEmployees = async () => {
     // Render the Table with data and role filter
     return (
         <>
-            <Select
-                value={selectedRole}
-                placeholder="Filter by Role"
-                style={{
-                    marginBottom: "10px",
-                    width: "20%",
-                }}
-                onChange={(value) => setSelectedRole(value)}
-            >
-                <Select.Option value="">All Roles</Select.Option>
-                <Select.Option value="employee">Employee</Select.Option>
-                <Select.Option value="manager">Manager</Select.Option>
-            </Select>
+            <h4 style={{ textAlign: "center" }}>Manager</h4>
+            <Table
+                columns={columnsM}
+                dataSource={activeManagersdata}
+                rowKey={(record) => record.id}
+                pagination={false}
+            />
+            <h4 style={{ textAlign: "center" }}>Employees</h4>
             <Table
                 columns={columns}
                 dataSource={employeedata}
                 rowKey={(record) => record.id}
                 pagination={false}
             />
+
             {/* Delete Confirmation Modal */}
             <Modal
                 title="Confirm Deletion"

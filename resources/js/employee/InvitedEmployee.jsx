@@ -1,26 +1,44 @@
 import React, { useEffect } from "react";
-import { Table, Button, notification, Tooltip,Spin,Alert } from "antd";
+import { Table, Button, notification, Tooltip, Spin, Alert } from "antd";
 import { MdCancelPresentation } from "react-icons/md";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { getInvitedUsers, cancelInvite } from "./redux/reducers";
-import { useSelector } from "react-redux";
+import InvitedManagers from "../manager/InvitedManagers";
+
 const InvitedEmployee = () => {
     const { error, loading, InvitedUsers } = useSelector(
         (state) => state.employee
     );
-    console.log("invited", InvitedUsers);
     const dispatch = useDispatch();
-    const handleCancelnvite = async (id) => {
+
+    // Fetch Invited Users
+    const invitedEmployee = async () => {
         try {
-            console.log("id cancel", id);
+            await dispatch(
+                getInvitedUsers(localStorage.getItem("company_code"))
+            );
+        } catch (error) {
+            notification.error({
+                description: error || "Failed to get invited users.",
+                duration: 1.5,
+            });
+        }
+    };
+
+    useEffect(() => {
+        invitedEmployee();
+    }, []); // Only fetch once on mount
+
+    // Cancel Invite
+    const handleCancelInvite = async (id) => {
+        try {
             const response = await dispatch(cancelInvite(id));
-            console.log("response", response);
             if (!response.error) {
                 notification.success({
                     description: "Invite Cancelled Successfully",
                     duration: 1.5,
                 });
-                invitedEmployee();
+                invitedEmployee(); // Refresh the list after canceling
             }
         } catch (error) {
             notification.error({
@@ -29,56 +47,46 @@ const InvitedEmployee = () => {
             });
         }
     };
-    const invitedEmployee = async () => {
-        try {
-            const response = await dispatch(getInvitedUsers(localStorage.getItem("company_code")));
-        } catch (error) {
-            notification.error({
-                description: error || "Failed to get users",
-                duration: 1.5,
-            });
-        }
-    };
-    useEffect(() => {
-        invitedEmployee();
-    }, []);
+
+    // Table Columns
     const columns = [
         {
             title: "Name",
             dataIndex: ["user", "name"],
-            key: "companyName",
+            key: "name",
         },
         {
             title: "Email",
             dataIndex: ["user", "email"],
-            key: "companyEmail",
+            key: "email",
         },
-        // {
-        //     title: "Company Code",
-        //     dataIndex: ["employee", "company_code"],
-        //     key: "companyCode",
-        // },
+        {
+            title: "Manager",
+            dataIndex: ["manager", "user", "name"],
+            key: "manager",
+        },
         {
             title: "Actions",
             key: "actions",
             render: (text, record) => (
                 <div style={{ display: "flex", gap: "8px" }}>
-                    <Tooltip title="Cancel Invite">
+                    <Tooltip title="Cancel Invite" trigger="hover">
                         <Button
                             style={{
                                 border: "none",
                                 background: "red",
                                 color: "white",
                             }}
-                            onClick={() => handleCancelnvite(record?.user_id)}
+                            onClick={() => handleCancelInvite(record?.user_id)}
                             icon={<MdCancelPresentation />}
                         />
                     </Tooltip>
-                    {/* <Button icon={<MdDelete />} /> */}
                 </div>
             ),
         },
     ];
+
+    // Show loading state
     if (loading) return <Spin size="large" tip="Loading..." />;
 
     // Show error state
@@ -87,16 +95,17 @@ const InvitedEmployee = () => {
 
     return (
         <>
-            <h1>Invited Employee</h1>
+            <h1>Invited Staff</h1>
+            <InvitedManagers /> {/* Show Invited Managers */}
+            <h4 style={{ textAlign: "center" }}>Employees</h4>
             <Table
                 columns={columns} // Pass the columns here
                 dataSource={InvitedUsers} // Pass the employee data here
-                // rowKey={(record) => record.employee.company_code}
-                pagination={false}
+                rowKey={(record) => record.user_id} // Ensure unique row key
+                pagination={false} // Disable pagination for now
             />
         </>
     );
 };
-
 
 export default InvitedEmployee;

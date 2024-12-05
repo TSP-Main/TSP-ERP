@@ -6,6 +6,8 @@ import { useDispatch } from "react-redux";
 import { allEmployee, sendInvite } from "./redux/reducers";
 import { useSelector } from "react-redux";
 import Employe from "./services/employee";
+import { createManager } from "../manager/redux/reducer";
+// import { createManager } from "../manager/redux/reducer";
 const Employee = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const dispatch = useDispatch();
@@ -22,32 +24,43 @@ const Employee = () => {
         setIsModalVisible(false);
     };
     // Handle Form Submission
-    const handleSendInvite = async (values) => {
-        setLoading(true);
-        try {
-            const response = await dispatch(sendInvite(values));
-            notification.success({
-                message: "Success",
-                description:
-                    response?.payload?.data?.message ||
-                    "Invite sent successfully",
-                duration: 3,
-            });
-        } catch (error) {
-            notification.error({
-                message: "Error",
-                description:
-                    response?.payload?.data?.message ||
-                    "Problem sending, Recheck and try again",
-                duration: 3,
-            });
-        }
-        hideModal();
-    };
+   const handleSendInvite = async (values, selectedRole) => {
+     console.log("values",values);
+     
+       setLoading(true);
+       try {
+           let response;
+           if (selectedRole === "employee") {
+               response = await dispatch(sendInvite(values));
+           } else if (selectedRole === "manager") {
+               response = await dispatch(createManager(values));
+           }
+
+           if (response?.error) {
+               throw new Error("Failed to send invite");
+           }
+
+           notification.success({
+               message: "Success",
+               description: "Invite sent successfully",
+               duration: 3,
+           });
+       } catch (error) {
+           notification.error({
+               message: "Error",
+               description:
+                   error.message || "Problem sending invite. Try again.",
+               duration: 3,
+           });
+       } finally {
+           setLoading(false);
+           hideModal();
+       }
+   };
 
     return (
         <>
-            <h1>Employee</h1>
+            <h1>Active Staff</h1>
             <Button
                 text="Send Invite"
                 onClick={showModal}
