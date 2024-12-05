@@ -51,13 +51,13 @@ class MarkAbsentEmployees extends Command
                 })->with('schedule')->get();
 
             foreach ($employeeSchedules as $employeeSchedule) {
-                $shiftEnd = Carbon::parse($employeeSchedule->schedule->end_time);
+                $shiftEnd = Carbon::parse($employeeSchedule->schedule->end_time, $timezone);
 
                 // If shift has ended and no check-in is recorded
                 $attendance = Attendance::where('employee_id', $employeeSchedule->employee_id)
                     ->whereDate('date', $today->toDateString())
                     ->first();
-
+                    // dd($shiftEnd,$today->gt($shiftEnd), $today);
                 if (!$attendance && $today->gt($shiftEnd)) {
                     // Mark as absent if no attendance exists for the day
                     Attendance::create([

@@ -145,7 +145,7 @@ class EmployeeController extends BaseController
 
             $employees = Employee::where('company_code', $companyCode)
                 ->where(['is_active' => StatusEnum::ACTIVE, 'status' => StatusEnum::APPROVED])
-                ->with('user')
+                ->with(['manager','user'])
                 ->paginate($paginate);
 
             if ($employees->isEmpty()) {

@@ -197,6 +197,7 @@ class ManagerController extends BaseController
             if ($employees->isEmpty()) {
                 return $this->sendResponse([], 'No employee found for this manager');
             }
+            $employees->load('user');
             return $this->sendResponse($employees, 'All employees displayed for this manager');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
