@@ -66,7 +66,7 @@ const RoleBasedMenu = () => {
                 ),
             ])
         );
-    } else if (userRole === "company" || userRole === "manager") {
+    } else if (userRole === "company") {
         items.push(
             getItem(
                 <Link to="/rota">ROTA</Link>,
