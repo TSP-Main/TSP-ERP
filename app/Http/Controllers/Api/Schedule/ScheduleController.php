@@ -353,12 +353,17 @@ class ScheduleController extends BaseController
     {
         $this->authorize('checkedin-employees');
         $companyId = $request->query('company_id'); // Optional company filter
+        $managerId = $request->input('manager_id');
+
 
         // Fetch employees with necessary conditions
         $employees = Employee::whereHas('attendance', function ($query) {
             $query->whereNotNull('time_in')
                 ->whereNull('time_out');
         })
+            ->when($managerId, function ($query) use ($managerId) {
+                $query->where('manager_id', $managerId); // Apply manager filter if provided
+            })
             ->with([
                 'attendance' => function ($query) {
                     $query->whereNotNull('time_in')

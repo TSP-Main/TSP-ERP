@@ -26,6 +26,7 @@ class UserSeeder extends Seeder
                 'email' => 'superadmin@superadmin.com',
                 'password' => Hash::make('password'),
                 'is_active' => 1,
+                'status' => StatusEnum::APPROVED,
                 'otp_verified' => StatusEnum::OTP_VERIFIED
             ]
         )->assignRole('super_admin');
@@ -38,6 +39,7 @@ class UserSeeder extends Seeder
                 'name' => 'Company Inc.',
                 'password' => Hash::make('password'),
                 'is_active' => 1,
+                'status' => StatusEnum::APPROVED,
                 'otp_verified' => StatusEnum::OTP_VERIFIED
             ]
         )->assignRole('company');
@@ -58,6 +60,7 @@ class UserSeeder extends Seeder
                 'name' => 'Manager',
                 'password' => Hash::make('password'),
                 'is_active' => 1,
+                'status' => StatusEnum::APPROVED,
                 'otp_verified' => StatusEnum::OTP_VERIFIED
             ]
         )->assignRole('manager');
@@ -79,6 +82,7 @@ class UserSeeder extends Seeder
                 'name' => 'Employee',
                 'password' => Hash::make('password'),
                 'is_active' => 1,
+                'status' => StatusEnum::APPROVED,
                 'otp_verified' => StatusEnum::OTP_VERIFIED
             ]
         )->assignRole('employee');

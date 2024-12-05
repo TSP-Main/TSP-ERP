@@ -48,6 +48,15 @@ const apiRoutes = {
         resetPassword: "/reset-password",
     },
     paymentIntent: "/create-payment-intent",
+    manager: {
+        getInvitedManagers: (code) => `/employee/invited-managers/${code}`,
+        getCancelledInvitedManagers: (code) =>
+            `/employee/invitation-cancelled-managers/${code}`,
+        getActiveManagers: (code) => `/employee/active-managers/${code}`,
+        getInActiveManagers: (code) => `/employee/active-managers/${code}`,
+        create: "/employee/add-manager",
+        assignManager: "/employee/assign-manager",
+    },
 };
 
 export default apiRoutes;

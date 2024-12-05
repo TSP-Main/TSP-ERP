@@ -15,7 +15,7 @@ use App\Models\User;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 
@@ -121,12 +121,19 @@ class EmployeeController extends BaseController
     public function inActiveEmployees(Request $request, $companyCode)
     {
         try {
-            $paginate = $request->paginate ?? 20;
+            $paginate = $request->input('paginate', 20);
+            $managerId = $request->input('manager_id');
 
-            $employees = Employee::where('company_code', $companyCode)
+            $query = Employee::where('company_code', $companyCode)
                 ->where(['is_active' => StatusEnum::INACTIVE, 'status' => StatusEnum::APPROVED])
-                ->with('user')
-                ->paginate($paginate);
+                ->with(['manager.user', 'user']);
+
+            // Apply manager_id filter if provided
+            if ($managerId) {
+                $query->where('manager_id', $managerId);
+            }
+
+            $employees = $query->paginate($paginate);
 
             if ($employees->isEmpty()) {
                 return $this->sendResponse([], 'No inactive employees found for this company code', 200);
@@ -141,15 +148,21 @@ class EmployeeController extends BaseController
     public function activeEmployees(Request $request, $companyCode)
     {
         try {
-            $paginate = $request->paginate ?? 20;
+            $paginate = $request->input('paginate', 20);
+            $managerId = $request->input('manager_id');
 
-            $employees = Employee::where('company_code', $companyCode)
+            $query = Employee::where('company_code', $companyCode)
                 ->where(['is_active' => StatusEnum::ACTIVE, 'status' => StatusEnum::APPROVED])
-                ->with('user')
-                ->paginate($paginate);
+                ->with(['manager.user', 'user']);
 
+            // Apply manager_id filter if provided
+            if ($managerId) {
+                $query->where('manager_id', $managerId);
+            }
+
+            $employees = $query->paginate($paginate);
             if ($employees->isEmpty()) {
-                return $this->sendResponse([], 'no Active employees found for this company code', 200);
+                return $this->sendResponse([], 'No active employees found for this company code', 200);
             }
 
             return $this->sendResponse($employees, 'Active employees displayed successfully');
@@ -157,6 +170,7 @@ class EmployeeController extends BaseController
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
+
 
     public function show($user)
     {
@@ -210,18 +224,27 @@ class EmployeeController extends BaseController
     public function invitedEmployees(Request $request, $companyCode)
     {
         try {
-            $paginate = $request->per_page ?? 20;
-            $employees = Employee::where('company_code', $companyCode)
+            $paginate = $request->input('per_page', 20);
+            $managerId = $request->input('manager_id');
+
+            $query = Employee::where('company_code', $companyCode)
                 ->where('status', StatusEnum::INVITED)
-                ->with('user')->paginate($paginate);
+                ->when($managerId, function ($query) use ($managerId) {
+                    $query->where('manager_id', $managerId); // Apply manager filter if provided
+                })
+                ->with(['manager.user', 'user']);
+
+            $employees = $query->paginate($paginate);
             if ($employees->isEmpty()) {
                 return $this->sendResponse([], 'No invited users found');
             }
-            return $this->sendResponse($employees, 'Invited user successfully displayed');
+
+            return $this->sendResponse($employees, 'Invited users successfully displayed');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
+
 
     public function employeeInvitationCancel(User $user)
     {
@@ -265,9 +288,14 @@ class EmployeeController extends BaseController
     {
         try {
             $paginate = $request->per_page ?? 20;
+            $managerId = $request->input('manager_id');
+
             $user = Employee::where('company_code', $companyCode)
                 ->where('status', StatusEnum::CANCELLED)
-                ->with('user')->paginate($paginate);
+                ->when($managerId, function ($user) use ($managerId) {
+                    $user->where('manager_id', $managerId); // Apply manager filter if provided
+                })
+                ->with(['manager.user', 'user'])->paginate($paginate);
             if ($user->isEmpty()) {
                 return $this->sendResponse([], 'No cancelled invitation employee found');
             }
@@ -284,7 +312,7 @@ class EmployeeController extends BaseController
 
             $employees = Employee::where('company_code', $companyCode)
                 ->where(['is_active' => StatusEnum::INACTIVE, 'status' => StatusEnum::NOT_APPROVED])
-                ->with('user')
+                ->with(['manager.user', 'user'])
                 ->paginate($paginate);
 
             if ($employees->isEmpty()) {

@@ -3,6 +3,7 @@ import { Table, Spin,Alert } from "antd";
 import { MdCancelPresentation } from "react-icons/md";
 import { useDispatch,useSelector } from "react-redux";
 import { cancelInvitedEmloyee } from "./redux/reducers";
+import InvitedCanceledManagers from "../manager/InviteCanceledManagers";
 const InvitCancel = () => {
     const dispatch=useDispatch();
    
@@ -34,6 +35,9 @@ const InvitCancel = () => {
     return (
         <>
             <h1>Invite Cancel Employee</h1>
+            <InvitedCanceledManagers/>
+
+            <h4 style={{ textAlign: "center" }}>Employees</h4>
             <Table
                 columns={columns} // Pass the columns here
                 dataSource={getCancelInvitedUsers} // Pass the employee data here
@@ -46,15 +50,20 @@ const InvitCancel = () => {
 export const columns = [
     {
         title: "Name",
-        dataIndex: ["user","name"],
+        dataIndex: ["user", "name"],
         key: "companyName",
     },
     {
         title: "Email",
-        dataIndex: ["user","email"],
+        dataIndex: ["user", "email"],
         key: "companyEmail",
     },
-    
+    {
+        title: "Manager",
+        dataIndex: ["manager", "user", "name"],
+        key: "manager",
+    },
+
     // {
     //     title: "Actions",
     //     key: "actions",

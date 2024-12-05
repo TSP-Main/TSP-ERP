@@ -278,7 +278,7 @@ class AuthController extends BaseController
     {
         $user = auth()->user();
 
-        $user->load(['employee', 'company', 'roles']);
+        $user->load(['employee', 'manager', 'company', 'roles']);
 
         if ($user) {
             return $this->sendResponse($user, 'User details retrieved successfully.');
@@ -405,13 +405,23 @@ class AuthController extends BaseController
     public function rejectedUser(Request $request, $companyCode)
     {
         try {
-            $paginate = $request->per_page ?? 20;
-            $user = Employee::where('company_code', $companyCode)
-                ->where('status', StatusEnum::REJECTED)->with('user')->paginate($paginate);
-            if ($user->isEmpty()) {
+            $paginate = $request->input('per_page', 20);
+            $managerId = $request->input('manager_id');
+
+            $query = Employee::where('company_code', $companyCode)
+                ->where('status', StatusEnum::REJECTED)
+                ->when($managerId, function ($query) use ($managerId) {
+                    $query->where('manager_id', $managerId);
+                })
+                ->with('user');
+
+            $users = $query->paginate($paginate);
+
+            if ($users->isEmpty()) {
                 return $this->sendResponse([], 'No rejected users found');
             }
-            return $this->sendResponse($user, 'Rejected user successfully displayed');
+
+            return $this->sendResponse($users, 'Rejected users successfully displayed');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }

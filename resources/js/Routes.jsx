@@ -10,7 +10,8 @@ import EmployeeRoutes from "./routes/EmployeeRoutes.jsx";
 import { userData } from "./dashboard/redux/reducer.js";
 import DefaultLayout from "./defaultLayout/DefaultLayout.jsx";
 import Dashboard from "./Profile/Profile.jsx";
-import Profile from "./dashboard/Dashboard.jsx"
+import Profile from "./dashboard/Dashboard.jsx";
+import ManagerRoutes from "./routes/ManagerRoutes.jsx";
 const RoutesComponent = () => {
     const { userdata } = useSelector((state) => state.user);
     const dispatch = useDispatch();
@@ -23,7 +24,6 @@ const RoutesComponent = () => {
     const token =
         localStorage.getItem("access_token") ||
         sessionStorage.getItem("access_token");
-    
 
     return (
         <Routes>
@@ -53,6 +53,9 @@ const RoutesComponent = () => {
             )}
             {userRole === "employee" && (
                 <Route path="/*" element={<EmployeeRoutes />} />
+            )}
+            {userRole === "manager" && (
+                <Route path="/*" element={<ManagerRoutes />} />
             )}
 
             {/* Fallback Route */}

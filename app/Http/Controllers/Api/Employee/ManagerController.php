@@ -6,7 +6,9 @@ use App\Classes\StatusEnum;
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Employee\CreateEmployeeRequest;
+use App\Http\Requests\Employee\ManagerAssignedEmployees;
 use App\Jobs\Employee\AddEmployeeInvitationJob;
+use App\Models\Employee\Employee;
 use App\Models\Employee\Manager;
 use App\Models\User;
 use Exception;
@@ -38,7 +40,7 @@ class ManagerController extends BaseController
                 'is_active' => StatusEnum::ACTIVE,
                 'status' => StatusEnum::INVITED
             ]);
-            Manager::create([
+            $user->manager()->create([
                 'user_id' => $user->id,
                 'company_code' => $companyCode,
                 'is_active' => StatusEnum::ACTIVE,
@@ -47,7 +49,7 @@ class ManagerController extends BaseController
             $user->assignRole($request->role);
 
             AddEmployeeInvitationJob::dispatch($companyCode, $user, $plainPassword);
-            $user->load('employee');
+            $user->load('manager');
             DB::commit();
             return $this->sendResponse($user, 'Manager successfully added, Mail has been dispatched');
         } catch (Exception $e) {
@@ -143,6 +145,60 @@ class ManagerController extends BaseController
             }
 
             return $this->sendResponse($employees, 'New registered managers displayed successfully');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function activeManagers(Request $request, $companyCode)
+    {
+        try {
+            $paginate = $request->paginate ?? 20;
+
+            $employees = Manager::where('company_code', $companyCode)
+                ->where(['is_active' => StatusEnum::ACTIVE, 'status' => StatusEnum::APPROVED])
+                ->with('user')
+                ->paginate($paginate);
+
+            if ($employees->isEmpty()) {
+                return $this->sendResponse([], 'no Active manager found for this company code', 200);
+            }
+
+            return $this->sendResponse($employees, 'Active managers displayed successfully');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function inActiveManagers(Request $request, $companyCode)
+    {
+        try {
+            $paginate = $request->paginate ?? 20;
+
+            $employees = Manager::where('company_code', $companyCode)
+                ->where(['is_active' => StatusEnum::INACTIVE, 'status' => StatusEnum::APPROVED])
+                ->with('user')
+                ->paginate($paginate);
+
+            if ($employees->isEmpty()) {
+                return $this->sendResponse([], 'No inactive manager found for this company code', 200);
+            }
+
+            return $this->sendResponse($employees, 'Inactive managers displayed successfully');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function managerAssignedEmployees(ManagerAssignedEmployees $request)
+    {
+        try {
+            $employees = Employee::where('manager_id', $request->manager_id)->get();
+            if ($employees->isEmpty()) {
+                return $this->sendResponse([], 'No employee found for this manager');
+            }
+            $employees->load('user');
+            return $this->sendResponse($employees, 'All employees displayed for this manager');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }

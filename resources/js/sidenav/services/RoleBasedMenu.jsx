@@ -146,7 +146,64 @@ const RoleBasedMenu = () => {
                 ),
             ])
         );
-    }
+    } else if (userRole === "manager") {
+        items.push(
+            getItem(
+                <Link to="/rota-manager">ROTA</Link>,
+                "/rota-manager", // Key matching the URL path
+                <FiUsers />
+            ),
+
+            // getItem("Shift", "shift", <IoIosTimer />, [
+            //     getItem(
+            //         <Link to="/shift">Shifts</Link>,
+            //         "/shift", // Key matching the URL path
+            //         <IoTimeOutline />
+            //     ),
+            //     getItem(
+            //         <Link to="/assign-shift">Assign Shift</Link>,
+            //         "/assign-shift", // Key matching the URL path
+            //         <MdOutlineTimer />
+            //     ),
+            //     getItem(
+            //         <Link to="/change-shift">Change Shift</Link>,
+            //         "/change-shift", // Key matching the URL path
+            //         <BiTimer />
+            //     ),
+            // ]),
+            getItem("Employee", "employee", <FiUsers />, [
+                getItem(
+                    <Link to="/active-manager-employee">Active Employees</Link>,
+                    "/active-manager-employee", // Key matching the URL path
+                    <IoTimeOutline />
+                ),
+                getItem(
+                    <Link to="/inactive-manager-employee">
+                        In Active Employees
+                    </Link>,
+                    "/inactive-manager-employee", // Key matching the URL path
+                    <IoTimeOutline />
+                ),
+                getItem(
+                    <Link to="/invited-manager-employee">
+                        Invited Employee
+                    </Link>,
+                    "/invited-manager-employee", // Key matching the URL path
+                    <FcInvite />
+                ),
+                // getItem(
+                //     <Link to="/rejected-employee">Rejected Employee</Link>,
+                //     "/rejected-employee", // Key matching the URL path
+                //     <MdOutlineCancel />
+                // ),
+                // getItem(
+                //     <Link to="/invite-cancel">Invite Canceled Employee</Link>,
+                //     "/invite-cancel", // Key matching the URL path
+                //     <MdOutlineCancelScheduleSend />
+                // ),
+            ])
+        );
+    } 
 
     return items;
 };

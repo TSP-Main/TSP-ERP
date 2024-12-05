@@ -25,11 +25,8 @@ const CheckedIn = () => {
     const fetchAllEmployees = async () => {
         try {
             const code = localStorage.getItem("company_code");
-            const payload = {
-                role: "employee",
-                code: code,
-            };
-            const response = await dispatch(allEmployee(payload)).unwrap();
+          
+            const response = await dispatch(allEmployee(code)).unwrap();
             console.log("response", response);
             setEmployees(response || []);
         } catch (error) {
