@@ -127,7 +127,7 @@ class EmployeeController extends BaseController
             $query = Employee::where('company_code', $companyCode)
                 ->where(['is_active' => StatusEnum::INACTIVE, 'status' => StatusEnum::APPROVED])
                 ->with(['manager.user', 'user']);
-                
+
             // Apply manager_id filter if provided
             if ($managerId) {
                 $query->where('manager_id', $managerId);
@@ -224,18 +224,27 @@ class EmployeeController extends BaseController
     public function invitedEmployees(Request $request, $companyCode)
     {
         try {
-            $paginate = $request->per_page ?? 20;
-            $employees = Employee::where('company_code', $companyCode)
+            $paginate = $request->input('per_page', 20);
+            $managerId = $request->input('manager_id');
+
+            $query = Employee::where('company_code', $companyCode)
                 ->where('status', StatusEnum::INVITED)
-                ->with(['manager.user', 'user'])->paginate($paginate);
+                ->when($managerId, function ($query) use ($managerId) {
+                    $query->where('manager_id', $managerId); // Apply manager filter if provided
+                })
+                ->with(['manager.user', 'user']);
+
+            $employees = $query->paginate($paginate);
             if ($employees->isEmpty()) {
                 return $this->sendResponse([], 'No invited users found');
             }
-            return $this->sendResponse($employees, 'Invited user successfully displayed');
+
+            return $this->sendResponse($employees, 'Invited users successfully displayed');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
     }
+
 
     public function employeeInvitationCancel(User $user)
     {
@@ -279,8 +288,13 @@ class EmployeeController extends BaseController
     {
         try {
             $paginate = $request->per_page ?? 20;
+            $managerId = $request->input('manager_id');
+
             $user = Employee::where('company_code', $companyCode)
                 ->where('status', StatusEnum::CANCELLED)
+                ->when($managerId, function ($user) use ($managerId) {
+                    $user->where('manager_id', $managerId); // Apply manager filter if provided
+                })
                 ->with(['manager.user', 'user'])->paginate($paginate);
             if ($user->isEmpty()) {
                 return $this->sendResponse([], 'No cancelled invitation employee found');
