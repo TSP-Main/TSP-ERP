@@ -14,14 +14,14 @@ export const userData = createAsyncThunk(
         try {
             console.log("usersrsrsrs")
             const response = await axios.get(apiRoutes.userdetails);
-            console.log("useeerrr", response.data.data.roles[0].name);
+            console.log("details", response.data.data)
+            console.log("useeerrssr", response.data.data.roles[0].name);
             const role = response.data.data.roles[0].name;
             localStorage.setItem("role", response.data.data.roles[0].name)
              localStorage.setItem("name", response.data.data.name);
             
            if (
-               role === "company" ||
-               role === "manager"
+               role === "company" 
            ) {
                localStorage.setItem(
                    "company_code",
@@ -36,7 +36,13 @@ export const userData = createAsyncThunk(
                    "employee_id",
                    response?.data?.data?.employee?.id
                );
+           }else if(role ==="manager"){
+            localStorage.setItem(
+                "manager_id",
+                response?.data?.data?.manager?.id
+            )
            }
+
 
                
            

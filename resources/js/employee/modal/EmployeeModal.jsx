@@ -168,7 +168,7 @@ const EmployeeModal = ({ isVisible, onSend, onCancel }) => {
                                 {managers.map((manager) => (
                                     <Select.Option
                                         key={manager.id}
-                                        value={manager.user.id}
+                                        value={manager.id}
                                     >
                                         {manager.user.name}
                                     </Select.Option>

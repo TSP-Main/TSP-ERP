@@ -43,6 +43,17 @@ const Profile = () => {
                   <StatCard icon={absent} total={10} text="Absent" />
               </>
           )}
+          {role == "manager" && (
+              <>
+                  <StatCard
+                      icon={totalemployees}
+                      total={10}
+                      text="Total Employees"
+                  />
+                  <StatCard icon={present} total={10} text="Checked In" />
+                  <StatCard icon={absent} total={10} text="Absent" />
+              </>
+          )}
           {role == "employee" && (
               <>
                   <StatCard
