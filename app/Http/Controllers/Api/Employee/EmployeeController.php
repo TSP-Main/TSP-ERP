@@ -125,7 +125,7 @@ class EmployeeController extends BaseController
 
             $employees = Employee::where('company_code', $companyCode)
                 ->where(['is_active' => StatusEnum::INACTIVE, 'status' => StatusEnum::APPROVED])
-                ->with('user')
+                ->with(['manager.user', 'user'])
                 ->paginate($paginate);
 
             if ($employees->isEmpty()) {
@@ -145,7 +145,7 @@ class EmployeeController extends BaseController
 
             $employees = Employee::where('company_code', $companyCode)
                 ->where(['is_active' => StatusEnum::ACTIVE, 'status' => StatusEnum::APPROVED])
-                ->with(['manager','user'])
+                ->with(['manager.user', 'user'])
                 ->paginate($paginate);
 
             if ($employees->isEmpty()) {
@@ -213,7 +213,7 @@ class EmployeeController extends BaseController
             $paginate = $request->per_page ?? 20;
             $employees = Employee::where('company_code', $companyCode)
                 ->where('status', StatusEnum::INVITED)
-                ->with('user')->paginate($paginate);
+                ->with(['manager.user', 'user'])->paginate($paginate);
             if ($employees->isEmpty()) {
                 return $this->sendResponse([], 'No invited users found');
             }
@@ -267,7 +267,7 @@ class EmployeeController extends BaseController
             $paginate = $request->per_page ?? 20;
             $user = Employee::where('company_code', $companyCode)
                 ->where('status', StatusEnum::CANCELLED)
-                ->with('user')->paginate($paginate);
+                ->with(['manager.user', 'user'])->paginate($paginate);
             if ($user->isEmpty()) {
                 return $this->sendResponse([], 'No cancelled invitation employee found');
             }
@@ -284,7 +284,7 @@ class EmployeeController extends BaseController
 
             $employees = Employee::where('company_code', $companyCode)
                 ->where(['is_active' => StatusEnum::INACTIVE, 'status' => StatusEnum::NOT_APPROVED])
-                ->with('user')
+                ->with(['manager.user', 'user'])
                 ->paginate($paginate);
 
             if ($employees->isEmpty()) {
