@@ -78,9 +78,13 @@ Route::middleware('auth:api')->group(function () {
         Route::get('new-registered-employees/{companyCode}', [EmployeeController::class, 'newSignUpEmployees']);
 
         // Employee manager routes
+        Route::post('add-manager', [ManagerController::class, 'create']);
+        Route::get('manager-assigned-employees', [ManagerController::class, 'managerAssignedEmployees']);
         Route::get('invited-managers/{companyCode}', [ManagerController::class, 'invitedManagers']);
         Route::get('invitation-cancelled-managers/{companyCode}', [ManagerController::class, 'inviteCancelledManager']);
         Route::get('new-registered-managers/{companyCode}', [ManagerController::class, 'newSignUpmanagers']);
+        Route::get('in-active-managers/{companyCode}', [ManagerController::class, 'inActiveManagers']);
+        Route::get('active-managers/{companyCode}', [ManagerController::class, 'activeManagers']);
     });
 
     // Schedule routes
