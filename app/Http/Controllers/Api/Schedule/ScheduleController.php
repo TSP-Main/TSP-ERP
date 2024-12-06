@@ -337,7 +337,7 @@ class ScheduleController extends BaseController
     public function getEmployeeAssignedSchedule($employeeId)
     {
         try {
-            $assignedSchedules = EmployeeSchedule::where('employee_id', $employeeId)->with('employee', 'schedule')->get();
+            $assignedSchedules = EmployeeSchedule::where('employee_id', $employeeId)->with('employee.manager', 'schedule')->get();
 
             if ($assignedSchedules->isEmpty()) {
                 return $this->sendResponse('Schedule not found');
