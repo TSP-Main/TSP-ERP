@@ -191,7 +191,7 @@ class EmployeeController extends BaseController
     public function delete(User $user)
     {
         try {
-            $this->authorize('create-employee');
+            $this->authorize('delete-employee');
             $user->delete();
             return $this->sendResponse([], 'Employee successfully deleted');
         } catch (Exception $e) {
