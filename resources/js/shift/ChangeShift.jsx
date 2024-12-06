@@ -1,17 +1,55 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Table } from "antd";
 import { getChangeRequest } from "./redux/reducer"; // Import your async thunk
-
+import { allEmployee } from "../employee/redux/reducers";
+import { allEmployeeM } from "../manager/redux/reducer";
+// allEmployee
 const ChangeShift = () => {
     const dispatch = useDispatch();
     const { changeRequestData,loading } = useSelector((state) => state.schedule);
     console.log("data", changeRequestData);
+    const [data,setData]=useState([])
     
+   const showData = async () => {
+       const code = localStorage.getItem("company_code");
+       const role = localStorage.getItem("role");
+       const id = localStorage.getItem("manager_id");
+
+       if (role === "company") {
+           // Fetch data for "company" role
+           dispatch(getChangeRequest(code));
+       } else {
+           try {
+               // Fetch shift change requests
+               const response_shift = await dispatch(getChangeRequest(code));
+               const shiftData = response_shift.payload;
+
+               // Fetch employees managed by the manager
+               const response_employee = await dispatch(
+                   allEmployeeM({ code, id })
+               );
+               const employeeData = response_employee.payload;
+
+               // Filter shift data based on employee IDs
+               const filteredData = shiftData.filter((shift) =>
+                   employeeData.some(
+                       (employee) => employee.id === shift.employee_id
+                   )
+               );
+
+               // Update state with filtered data
+               setData(filteredData);
+           } catch (error) {
+               console.error("Error fetching data:", error);
+           }
+       }
+   };
 
     useEffect(() => {
+        showData();
         // Dispatch the action to fetch data when the component mounts
-        dispatch(getChangeRequest(localStorage.getItem("company_code")));
+        
     }, [dispatch]);
 
     // Define the table columns
@@ -44,21 +82,21 @@ const ChangeShift = () => {
     ];
 
     // Data mapping from the API response
-    const data = changeRequestData?.map((item) => ({
-        key: item.employee_id, // Unique key for each record
-        employee_name: item.employee_name,
-        employee_email: item.employee_email,
-        date: item.date,
-        start_time: item.start_time,
-        end_time: item.end_time,
-    }));
-
+const dataa = data?.map((item) => ({
+    key: item.employee_id, // Unique key for each record
+    employee_name: item.employee_name,
+    employee_email: item.employee_email,
+    date: item.date,
+    start_time: item.start_time,
+    end_time: item.end_time,
+}));
+  const role=localStorage.getItem('role')
     return (
         <div>
             <h1>Change Shift</h1>
             <Table
                 columns={columns}
-                dataSource={data}
+                dataSource={role === "company" ? changeRequestData : data}
                 loading={loading} // Show loading state while fetching data
                 pagination={false} // Disable pagination, or configure as needed
             />

@@ -6,7 +6,7 @@ import { useSelector } from "react-redux";
 
 const index = () => {
     const dispatch = useDispatch();
-    const { activeEmployeedata } = useSelector((state) => state.manager);
+    const { inactiveEmployeedata } = useSelector((state) => state.manager);
     const fetchEmployees = async () => {
         // code=localStorage.getItem('company_code')
 
@@ -46,7 +46,7 @@ const index = () => {
     return (
         <>
             <h1>In Active Employees</h1>
-            <Table columns={columns} dataSource={activeEmployeedata} />
+            <Table columns={columns} dataSource={inactiveEmployeedata} />
         </>
     );
 };

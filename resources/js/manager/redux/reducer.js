@@ -10,6 +10,8 @@ const initialState = {
     activeManagersdata: [],
     InActiveManagersdata: [],
     activeEmployeedata: [],
+    inactiveEmployeedata:[],
+    cancelinvitedemployeedata:[],
 };
 
 export const createManager = createAsyncThunk(
@@ -196,6 +198,29 @@ export const getInvitedUsers = createAsyncThunk(
         }
     }
 );
+export const gettCancelledInvitedEmployees = createAsyncThunk(
+    "manager/getCancellesdInvited",
+    async ({code,id}, { rejectWithValue }) => {
+        try {
+            console.log("id", id,"code",code);
+            const response = await axios.get(
+                apiRoutes.employee.getCancelInvited(code),
+                {
+                    params: {
+                        manager_id: id,
+                    },
+                }
+            );
+            console.log("response canceled invites", response.data.data);
+
+            return response.data.data.data;
+        } catch (error) {
+            return rejectWithValue(
+                error.message || "failed to fetch Cancelled Invited Managers"
+            );
+        }
+    }
+);
 
 const managerSlice = createSlice({
     name: "manager",
@@ -282,7 +307,35 @@ const managerSlice = createSlice({
             .addCase(allEmployeeM.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;
-            });
+            })
+            // inActiveEmployeeM;
+            .addCase(inActiveEmployeeM.pending, (state, action) => {
+                state.loading = true;
+                state.error = false;
+            })
+            .addCase(inActiveEmployeeM.fulfilled, (state, action) => {
+                state.inactiveEmployeedata = action.payload;
+                state.loading = false;
+                state.error = false;
+            })
+            .addCase(inActiveEmployeeM.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            // gettCancelledInvitedEmployees;
+             .addCase(gettCancelledInvitedEmployees.pending, (state, action) => {
+                state.loading = true;
+                state.error = false;
+            })
+            .addCase(gettCancelledInvitedEmployees.fulfilled, (state, action) => {
+                state.cancelinvitedemployeedata = action.payload;
+                state.loading = false;
+                state.error = false;
+            })
+            .addCase(gettCancelledInvitedEmployees.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
     },
 });
 

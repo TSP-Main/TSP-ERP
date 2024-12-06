@@ -43,8 +43,7 @@ export const showSchedule = createAsyncThunk(
     async (id, { rejectWithValue }) => {  // Accept `id` as parameter
         try {
             console.log("inside showSchedule");
-            const response = await axios.get(apiRoutes.schedule.show(id)); // Pass `id` directly
-            // Return the data payload if successful
+            const response = await axios.get(apiRoutes.schedule.show(id));
             return response.data.data;
         } catch (error) {
             // Handle error and use rejectWithValue for Redux error state
