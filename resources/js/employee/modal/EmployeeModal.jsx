@@ -165,14 +165,21 @@ const EmployeeModal = ({ isVisible, onSend, onCancel }) => {
                             ]}
                         >
                             <Select placeholder="Select Manager">
-                                {managers.map((manager) => (
-                                    <Select.Option
-                                        key={manager.id}
-                                        value={manager.id}
-                                    >
-                                        {manager.user.name}
+                                {Array.isArray(managers) &&
+                                managers.length > 0 ? (
+                                    managers.map((manager) => (
+                                        <Select.Option
+                                            key={manager.id}
+                                            value={manager.id}
+                                        >
+                                            {manager.user.name}
+                                        </Select.Option>
+                                    ))
+                                ) : (
+                                    <Select.Option disabled value="">
+                                        No Managers Available
                                     </Select.Option>
-                                ))}
+                                )}
                             </Select>
                         </Form.Item>
                     )}

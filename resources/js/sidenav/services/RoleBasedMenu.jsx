@@ -154,23 +154,18 @@ const RoleBasedMenu = () => {
                 <FiUsers />
             ),
 
-            // getItem("Shift", "shift", <IoIosTimer />, [
-            //     getItem(
-            //         <Link to="/shift">Shifts</Link>,
-            //         "/shift", // Key matching the URL path
-            //         <IoTimeOutline />
-            //     ),
-            //     getItem(
-            //         <Link to="/assign-shift">Assign Shift</Link>,
-            //         "/assign-shift", // Key matching the URL path
-            //         <MdOutlineTimer />
-            //     ),
-            //     getItem(
-            //         <Link to="/change-shift">Change Shift</Link>,
-            //         "/change-shift", // Key matching the URL path
-            //         <BiTimer />
-            //     ),
-            // ]),
+            getItem("Shift", "shift", <IoIosTimer />, [
+                getItem(
+                    <Link to="/assign-shift">Assign Shift</Link>,
+                    "/assign-shift", // Key matching the URL path
+                    <MdOutlineTimer />
+                ),
+                getItem(
+                    <Link to="/change-shift">Change Shift</Link>,
+                    "/change-shift", // Key matching the URL path
+                    <BiTimer />
+                ),
+            ]),
             getItem("Employee", "employee", <FiUsers />, [
                 getItem(
                     <Link to="/active-manager-employee">Active Employees</Link>,
@@ -191,16 +186,14 @@ const RoleBasedMenu = () => {
                     "/invited-manager-employee", // Key matching the URL path
                     <FcInvite />
                 ),
-                // getItem(
-                //     <Link to="/rejected-employee">Rejected Employee</Link>,
-                //     "/rejected-employee", // Key matching the URL path
-                //     <MdOutlineCancel />
-                // ),
-                // getItem(
-                //     <Link to="/invite-cancel">Invite Canceled Employee</Link>,
-                //     "/invite-cancel", // Key matching the URL path
-                //     <MdOutlineCancelScheduleSend />
-                // ),
+
+                getItem(
+                    <Link to="/invite-cancel-employee">
+                        Invite Canceled Employee
+                    </Link>,
+                    "/invite-cancel-employee", // Key matching the URL path
+                    <MdOutlineCancelScheduleSend />
+                ),
             ])
         );
     } 

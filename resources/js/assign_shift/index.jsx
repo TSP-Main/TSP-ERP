@@ -56,11 +56,16 @@ function RowHeaderTable() {
     // Fetch employee data
     useEffect(() => {
         const code = localStorage.getItem("company_code");
-        const payload = {
-            role: "employee",
-            code: code,
-        };
-        dispatch(allEmployee(payload));
+        const role=localStorage.getItem("role")
+        const id=localStorage.getItem("manager_id")
+        if(role==="manager")
+        {
+            dispatch(allEmployee({code,id}))
+        }
+        else{
+            dispatch(allEmployee({code}));
+        }
+      
     }, [dispatch]);
 
     // Fetch schedule data once (on component mount)
@@ -88,64 +93,64 @@ function RowHeaderTable() {
     }, [employeedata]);
 
     // Populate selectedShiftsState once assignedSchedules is fetched
-useEffect(() => {
-    if (assignedSchedules && assignedSchedules.length > 0) {
-        const shiftsState = {};
+    useEffect(() => {
+        if (assignedSchedules && assignedSchedules.length > 0) {
+            const shiftsState = {};
 
-        assignedSchedules.forEach((schedule) => {
-            schedule.employees.forEach((employee) => {
-                const employeeId = employee.employee_id;
-                const shiftId = schedule.schedule_id;
+            assignedSchedules.forEach((schedule) => {
+                schedule.employees.forEach((employee) => {
+                    const employeeId = employee.employee_id;
+                    const shiftId = schedule.schedule_id;
 
-                // Parse start_date and end_date as Date objects
-                const startDate = new Date(employee.start_date);
-                const endDate = new Date(employee.end_date);
+                    // Parse start_date and end_date as Date objects
+                    const startDate = new Date(employee.start_date);
+                    const endDate = new Date(employee.end_date);
 
-                if (!shiftsState[employeeId]) {
-                    shiftsState[employeeId] = {};
-                }
-
-                // Iterate through the range of dates
-                let currentDate = new Date(startDate); // Create a copy of the start date
-                while (currentDate <= endDate) {
-                    // Find the index of the date in reorderedDays
-                    const columnIndex = reorderedDays.findIndex(
-                        (day) =>
-                            day.date.toDateString() ===
-                            currentDate.toDateString()
-                    );
-
-                    if (columnIndex !== -1) {
-                        const columnKey = `col${columnIndex + 1}`;
-
-                        // If columnKey doesn't exist, initialize as an array
-                        if (!shiftsState[employeeId][columnKey]) {
-                            shiftsState[employeeId][columnKey] = [];
-                        }
-
-                        // Add the shiftId to the column
-                        if (
-                            !shiftsState[employeeId][columnKey].includes(
-                                shiftId
-                            )
-                        ) {
-                            shiftsState[employeeId][columnKey].push(shiftId);
-                        }
+                    if (!shiftsState[employeeId]) {
+                        shiftsState[employeeId] = {};
                     }
 
-                    // Increment the current date by 1 day
-                    currentDate.setDate(currentDate.getDate() + 1);
-                }
+                    // Iterate through the range of dates
+                    let currentDate = new Date(startDate); // Create a copy of the start date
+                    while (currentDate <= endDate) {
+                        // Find the index of the date in reorderedDays
+                        const columnIndex = reorderedDays.findIndex(
+                            (day) =>
+                                day.date.toDateString() ===
+                                currentDate.toDateString()
+                        );
+
+                        if (columnIndex !== -1) {
+                            const columnKey = `col${columnIndex + 1}`;
+
+                            // If columnKey doesn't exist, initialize as an array
+                            if (!shiftsState[employeeId][columnKey]) {
+                                shiftsState[employeeId][columnKey] = [];
+                            }
+
+                            // Add the shiftId to the column
+                            if (
+                                !shiftsState[employeeId][columnKey].includes(
+                                    shiftId
+                                )
+                            ) {
+                                shiftsState[employeeId][columnKey].push(
+                                    shiftId
+                                );
+                            }
+                        }
+
+                        // Increment the current date by 1 day
+                        currentDate.setDate(currentDate.getDate() + 1);
+                    }
+                });
             });
-        });
 
-        setSelectedShiftsState(shiftsState);
-    }
-}, [assignedSchedules]);
+            setSelectedShiftsState(shiftsState);
+        }
+    }, [assignedSchedules]);
 
-
-
- console.log("shift state", selectedShiftsState);
+    console.log("shift state", selectedShiftsState);
 
     const handleSubmit = () => {
         const payload = [];
@@ -273,7 +278,7 @@ useEffect(() => {
                     <Select
                         style={{
                             width: "100%",
-                             // Default compact width
+                            // Default compact width
                         }}
                         dropdownStyle={{
                             width: "auto", // Allow dropdown to expand
@@ -339,7 +344,6 @@ useEffect(() => {
                 bordered
                 scroll={{ x: "max-content", y: 500 }}
                 rowKey="key"
-               
             />
 
             <div

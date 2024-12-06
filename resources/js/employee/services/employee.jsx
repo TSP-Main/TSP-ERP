@@ -31,22 +31,13 @@ function Employee() {
     const dispatch = useDispatch();
 
     // Fetch employees whenever the selected role changes
-    useEffect(() => {
-        const fetchEmployees = async () => {
-            try {
-                const code = localStorage.getItem("company_code");
-                await dispatch(allEmployee(code));
-            } catch (error) {
-                console.error("Error fetching employees:", error);
-            }
-        };
 
-        fetchEmployees();
-    }, [dispatch]);
     useEffect(() => {
+         const code = localStorage.getItem("company_code");
+         console.log("code",code)
         const fetchManagers = async () => {
             try {
-                const code = localStorage.getItem("company_code");
+               
                 await dispatch(gettActiveManagers(code));
             } catch (error) {
                 console.error("Error fetching employees:", error);
@@ -54,6 +45,17 @@ function Employee() {
         };
 
         fetchManagers();
+         const fetchEmployees = async () => {
+             try {
+                  console.log("wedbeb")
+                //  const code = localStorage.getItem("company_code");
+                 await dispatch(allEmployee({code}));
+             } catch (error) {
+                 console.error("Error fetching employees:", error);
+             }
+         };
+
+         fetchEmployees();
     }, [dispatch]);
 
     // Show the delete confirmation modal

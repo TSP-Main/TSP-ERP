@@ -1,35 +1,68 @@
-import { notification, Table } from "antd";
+import { notification, Table, Tooltip, Button, Modal } from "antd";
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { allEmployeeM, getInvitedUsers, inActiveEmployeeM } from "./redux/reducer";
-import { useSelector } from "react-redux";
+import { getInvitedUsers } from "./redux/reducer";
+import { MdCancelPresentation } from "react-icons/md";
+import { cancelInvite } from "../employee/redux/reducers";
 
-const index = () => {
+const Index = () => {
     const dispatch = useDispatch();
-    const [inviteddata,setInvitedData]=useState([])
-    // const { activeEmployeedata } = useSelector((state) => state.manager);
-    const fetchEmployees = async () => {
-        // code=localStorage.getItem('company_code')
+    const [inviteddata, setInvitedData] = useState([]);
 
+    const fetchEmployees = async () => {
         const payload = {
             code: "CPM-67175A6A1BGKT",
             id: localStorage.getItem("manager_id"),
         };
-        console.log("jnsjddddd payload", payload);
         try {
             const response = await dispatch(getInvitedUsers(payload));
-             console.log("invited data", response.payload);
-            setInvitedData(response.payload)
-           
+            setInvitedData(response.payload);
         } catch (error) {
             notification.error({
                 message: error.response?.errors || "Failed to fetch data",
             });
         }
     };
+
     useEffect(() => {
         fetchEmployees();
     }, []);
+
+    const handleCancelInvite = async (id) => {
+        try {
+            const response = await dispatch(cancelInvite(id));
+            if (!response.error) {
+                notification.success({
+                    description: "Invite Cancelled Successfully",
+                    duration: 1.5,
+                });
+                fetchEmployees(); // Refresh the list after canceling
+            }
+        } catch (error) {
+            notification.error({
+                description: error || "Failed to Cancel Invite",
+                duration: 1.5,
+            });
+        }
+    };
+
+    const confirmCancelInvite = (id) => {
+        Modal.confirm({
+            title: "Cancel Invite",
+            content: "Are you sure you want to cancel this invite?",
+            okText: "Yes",
+            okButtonProps: {
+                style: {
+                    backgroundColor: "red",
+                    color: "white",
+                    border: "none",
+                },
+            },
+            cancelText: "No",
+            onOk: () => handleCancelInvite(id),
+        });
+    };
+
     const columns = [
         {
             title: "Name",
@@ -46,13 +79,37 @@ const index = () => {
             dataIndex: ["manager", "user", "name"],
             key: "manager",
         },
+        {
+            title: "Actions",
+            key: "actions",
+            render: (text, record) => (
+                <div style={{ display: "flex", gap: "8px" }}>
+                    <Tooltip title="Cancel Invite" trigger="hover">
+                        <Button
+                            style={{
+                                border: "none",
+                                background: "red",
+                                color: "white",
+                            }}
+                            onClick={() => confirmCancelInvite(record?.user_id)}
+                            icon={<MdCancelPresentation />}
+                        />
+                    </Tooltip>
+                </div>
+            ),
+        },
     ];
+
     return (
         <>
             <h1>Invited Employees</h1>
-            <Table columns={columns} dataSource={inviteddata} />
+            <Table
+                columns={columns}
+                dataSource={inviteddata}
+                rowKey={(record) => record.user_id}
+            />
         </>
     );
 };
 
-export default index;
+export default Index;

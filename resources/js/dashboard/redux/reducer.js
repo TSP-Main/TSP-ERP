@@ -39,8 +39,17 @@ export const userData = createAsyncThunk(
            }else if(role ==="manager"){
             localStorage.setItem(
                 "manager_id",
-                response?.data?.data?.manager?.id
+                response?.data?.data?.manager?.company?.id
             )
+
+            localStorage.setItem(
+                "company_code",
+                response?.data?.data?.manager?.company_code
+            );
+             localStorage.setItem(
+                 "company_id",
+                 response?.data?.data?.manager?.company?.id
+             );
            }
 
 

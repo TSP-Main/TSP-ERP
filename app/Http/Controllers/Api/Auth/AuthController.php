@@ -278,13 +278,21 @@ class AuthController extends BaseController
     {
         $user = auth()->user();
 
-        $user->load(['employee', 'manager', 'company', 'roles']);
-
-        if ($user) {
-            return $this->sendResponse($user, 'User details retrieved successfully.');
-        } else {
-            return $this->sendResponse('User is not authenticated.');
+        if (!$user) {
+            return $this->sendResponse(null, 'User is not authenticated.');
         }
+
+        $user->load(['roles']);
+
+        if ($user->hasRole(StatusEnum::MANAGER) && $user->manager) {
+            $user->load(['manager.company']);
+        } elseif ($user->hasRole(StatusEnum::EMPLOYEE) && $user->employee) {
+            $user->load(['employee.company']);
+        } elseif ($user->hasRole(StatusEnum::COMPANY) && $user->company) {
+            $user->load(['company']);
+        }
+
+        return $this->sendResponse($user, 'User details retrieved successfully');
     }
 
     public function getAllUsers(GetAllUserRequest $request)
