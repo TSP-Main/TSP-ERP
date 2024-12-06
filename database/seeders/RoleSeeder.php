@@ -46,6 +46,7 @@ class RoleSeeder extends Seeder
             'update-employee',
             'checkedin-employees',
             'reject-employee',
+            'delete-employee',
 
             //schedule
             'create-schedule',
@@ -72,6 +73,7 @@ class RoleSeeder extends Seeder
             'approve-employee',
             'create-employee',
             'update-employee',
+            'delete-employee',
             'create-schedule',
             'update-schedule',
             'delete-schedule',
@@ -87,6 +89,8 @@ class RoleSeeder extends Seeder
         $manager->syncPermissions([
             'approve-employee',
             'create-employee',
+            'update-employee',
+            'delete-employee',
             'update-schedule',
             'show-employees',
             'assign-schedule',
