@@ -9,56 +9,141 @@ use App\Http\Requests\Employee\CompanyEmployeeRequest;
 use App\Http\Requests\Employee\CreateEmployeeRequest;
 use App\Http\Requests\Employee\UpdateEmployeeRequest;
 use App\Jobs\Employee\AddEmployeeInvitationJob;
+use App\Models\Company\CompanyModel;
 use App\Models\Employee\Employee;
 use App\Models\Employee\Manager;
 use App\Models\User;
+use App\Services\StripeService;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-
+use Stripe\PaymentIntent;
+use Stripe\Stripe;
 
 class EmployeeController extends BaseController
 {
-    public function create(CreateEmployeeRequest $request)
+    // public function create(CreateEmployeeRequest $request)
+    // {
+    //     DB::beginTransaction();
+    //     $roleName = $request->role;
+    //     try {
+    //         $this->authorize('create-employee');
+    //         $plainPassword = Str::random(8);
+    //         $companyCode = $request->company_code;
+    //         $user = User::create([
+    //             'name' => $request->name,
+    //             'email' => $request->email,
+    //             'password' => bcrypt($plainPassword), // Auto-generated 8-character password
+    //             'is_active' => StatusEnum::ACTIVE,
+    //             'status' => StatusEnum::INVITED
+    //         ]);
+    //         if ($roleName == StatusEnum::EMPLOYEE) {
+    //             Employee::create([
+    //                 'user_id' => $user->id,
+    //                 'manager_id' => $request->manager_id,
+    //                 'company_code' => $companyCode,
+    //                 'is_active' => StatusEnum::ACTIVE,
+    //                 'status' => StatusEnum::INVITED
+    //             ]);
+    //             $user->assignRole($roleName);
+    //         } elseif ($roleName == StatusEnum::MANAGER) {
+    //             Manager::create([
+    //                 'user_id' => $user->id,
+    //                 'company_code' => $companyCode,
+    //                 'is_active' => StatusEnum::ACTIVE,
+    //                 'status' => StatusEnum::INVITED
+    //             ]);
+    //             $user->assignRole($roleName);
+    //         }
+
+    //         AddEmployeeInvitationJob::dispatch($companyCode, $user, $plainPassword);
+    //         $user->load(['employee', 'manager']);
+    //         DB::commit();
+    //         return $this->sendResponse($user, 'Employee successfully added, Mail has been dispatched');
+    //     } catch (Exception $e) {
+    //         DB::rollBack();
+    //         return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+    //     }
+    // }
+
+    public function create(CreateEmployeeRequest $request, StripeService $stripeService)
     {
         DB::beginTransaction();
-        $roleName = $request->role;
         try {
             $this->authorize('create-employee');
-            $plainPassword = Str::random(8);
+            $roleName = $request->role;
             $companyCode = $request->company_code;
+
+            // Get the company and its employee count
+            $company = CompanyModel::where('code', $companyCode)->firstOrFail();
+            $currentEmployeeCount = Employee::where('company_code', $companyCode)->count()
+            + Manager::where('company_code', $companyCode)->count();;
+
+            // Check if the employee count exceeds the standard limit
+            if ($currentEmployeeCount >= StatusEnum::COMPANY_FREE_EMPLOYEES) {
+                $amount = StatusEnum::PER_EMPLOYEE_CHARGE;
+                $currency = StatusEnum::currency;
+
+                if (!$company->payment_method_id) {
+                    return $this->sendError('Payment method is required for adding additional employees.', 400);
+                }
+
+                // Attempt payment
+                try {
+                    Stripe::setApiKey(env('STRIPE_SECRET'));
+
+                    // Create a payment intent
+                    PaymentIntent::create([
+                        'amount' => $amount,
+                        'currency' => $currency,
+                        'customer' => $company->user->stripe_id,
+                        'payment_method' => $company->payment_method_id,
+                        'off_session' => true,
+                        'confirm' => true,
+                    ]);
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    return $this->sendError('Payment failed: ' . $e->getMessage(), 400);
+                }
+            }
+
+            // Create the user and assign roles
+            $plainPassword = Str::random(8);
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
-                'password' => bcrypt($plainPassword), // Auto-generated 8-character password
+                'password' => bcrypt($plainPassword), // Auto-generated password
                 'is_active' => StatusEnum::ACTIVE,
-                'status' => StatusEnum::INVITED
+                'status' => StatusEnum::INVITED,
             ]);
+
             if ($roleName == StatusEnum::EMPLOYEE) {
                 Employee::create([
                     'user_id' => $user->id,
                     'manager_id' => $request->manager_id,
                     'company_code' => $companyCode,
                     'is_active' => StatusEnum::ACTIVE,
-                    'status' => StatusEnum::INVITED
+                    'status' => StatusEnum::INVITED,
                 ]);
-                $user->assignRole($roleName);
             } elseif ($roleName == StatusEnum::MANAGER) {
                 Manager::create([
                     'user_id' => $user->id,
                     'company_code' => $companyCode,
                     'is_active' => StatusEnum::ACTIVE,
-                    'status' => StatusEnum::INVITED
+                    'status' => StatusEnum::INVITED,
                 ]);
-                $user->assignRole($roleName);
             }
 
+            $user->assignRole($roleName);
+
+            // Dispatch invitation email
             AddEmployeeInvitationJob::dispatch($companyCode, $user, $plainPassword);
+
             $user->load(['employee', 'manager']);
             DB::commit();
-            return $this->sendResponse($user, 'Employee successfully added, Mail has been dispatched');
+            return $this->sendResponse($user, 'Employee successfully added. Mail has been dispatched.');
         } catch (Exception $e) {
             DB::rollBack();
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);

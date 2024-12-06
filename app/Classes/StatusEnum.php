@@ -2,6 +2,8 @@
 
 namespace App\Classes;
 
+use App\Models\Employee\Employee;
+use App\Models\Employee\Manager;
 use Illuminate\Support\Carbon;
 
 class StatusEnum
@@ -10,7 +12,7 @@ class StatusEnum
     public const USER = "user";
     public const GUEST = "guest";
 
-    public const currency = "USD";
+    public const currency = "usd";
     public const SUCCESS = "SUCCESS";
     public const PAYPALSUCCESSWITHWARNING = "SUCCESSWITHWARNING";
     public const SHIPPINGADDRESSCREATED = "Shipping address created successfully";
@@ -42,4 +44,10 @@ class StatusEnum
     public const INVITED = 'invited';
     public const CANCELLED = 'cancelled';
     public const REJECTED = 'rejected';
+
+    public const COMPANY_FREE_EMPLOYEES = 10;
+    public const PER_EMPLOYEE_CHARGE = 19900; // $199 in cents for Stripe
+
+    // public const EMPLOYEES_MANAGERS_COUNT_OF_COMPANY = Employee::where('company_code', $companyCode)->count()
+    //     + Manager::where('company_code', $companyCode)->count();
 }
