@@ -292,13 +292,15 @@ const Register = () => {
                                     name="package"
                                     placeholder="Package"
                                     type="select"
+                                    value="standard"
+                                    disabled
                                     options={[
-                                        { value: "basic", label: "Basic" },
+                                        // { value: "basic", label: "Basic" },
                                         {
                                             value: "standard",
                                             label: "Standard",
                                         },
-                                        { value: "premium", label: "Premium" },
+                                        // { value: "premium", label: "Premium" },
                                     ]}
                                     rules={[
                                         {
@@ -311,9 +313,11 @@ const Register = () => {
                                     name="plan"
                                     placeholder="Plan"
                                     type="select"
+                                    value="monthly"
+                                    disabled
                                     options={[
                                         { value: "monthly", label: "Monthly" },
-                                        { value: "yearly", label: "Yearly" },
+                                        // { value: "yearly", label: "Yearly" },
                                     ]}
                                     rules={[
                                         {
