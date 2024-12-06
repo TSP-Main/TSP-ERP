@@ -284,10 +284,12 @@ class AuthController extends BaseController
 
         $user->load(['roles']);
 
-        if ($user->hasRole('manager') && $user->manager) {
+        if ($user->hasRole(StatusEnum::MANAGER) && $user->manager) {
             $user->load(['manager.company']);
-        } elseif ($user->hasRole('employee') && $user->employee) {
+        } elseif ($user->hasRole(StatusEnum::EMPLOYEE) && $user->employee) {
             $user->load(['employee.company']);
+        } elseif ($user->hasRole(StatusEnum::COMPANY) && $user->company) {
+            $user->load(['company']);
         }
 
         return $this->sendResponse($user, 'User details retrieved successfully');
