@@ -30,7 +30,11 @@ const InActive = () => {
         (state) => state.employee
     );
     const { activeManagersdata } = useSelector((state) => state.manager); // Assuming you have this state for managers
-
+const fetchEmployees=()=>{
+    const code = localStorage.getItem("company_code");
+    dispatch(newSignups(code));
+    dispatch(gettActiveManagers(code)); // Fetch active managers
+}
     useEffect(() => {
         // Fetch new signups and active managers when component mounts
         const code = localStorage.getItem("company_code");
@@ -94,6 +98,7 @@ const InActive = () => {
                 duration: 3,
             });
             setIsModalVisible(false); // Close modal
+            fetchEmployees();
         } catch (error) {
             notification.error({
                 message: "Error",
