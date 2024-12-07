@@ -12,7 +12,7 @@ class StatusEnum
     public const USER = "user";
     public const GUEST = "guest";
 
-    public const currency = "usd";
+    public const CURRENCY = "usd";
     public const SUCCESS = "SUCCESS";
     public const PAYPALSUCCESSWITHWARNING = "SUCCESSWITHWARNING";
     public const SHIPPINGADDRESSCREATED = "Shipping address created successfully";
