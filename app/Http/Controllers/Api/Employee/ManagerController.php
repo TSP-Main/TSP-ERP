@@ -8,13 +8,17 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Employee\CreateEmployeeRequest;
 use App\Http\Requests\Employee\ManagerAssignedEmployees;
 use App\Jobs\Employee\AddEmployeeInvitationJob;
+use App\Models\Company\CompanyModel;
 use App\Models\Employee\Employee;
 use App\Models\Employee\Manager;
 use App\Models\User;
+use App\Services\StripeService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Stripe\PaymentIntent;
+use Stripe\Stripe;
 
 class ManagerController extends BaseController
 {
@@ -26,13 +30,16 @@ class ManagerController extends BaseController
     /**
      * Show the form for creating a new resource.
      */
-    public function create(CreateEmployeeRequest $request)
+    public function create(CreateEmployeeRequest $request, StripeService $stripeService)
     {
         DB::beginTransaction();
         try {
             $this->authorize('create-employee');
             $plainPassword = Str::random(8);
             $companyCode = $request->company_code;
+
+            $stripeService->handleAdditionalUserPayment($companyCode);
+
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,

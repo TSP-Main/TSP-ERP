@@ -142,37 +142,7 @@ class StripePaymentController extends BaseController
                         return $this->sendError('Employee does not belong to a valid company.', 400);
                     }
 
-                    // Count total employees and managers
-                    $currentUserCount = Employee::where('company_code', $company->code)->count()
-                        + Manager::where('company_code', $company->code)->count();
-
-                    // Check if the user count exceeds the standard limit
-                    if ($currentUserCount >= 10) {
-                        $amount = 19900; // $199 in cents for Stripe
-                        $currency = 'usd';
-
-                        if (!$company->payment_method_id) {
-                            DB::rollBack();
-                            return $this->sendError('Payment method is required for adding additional employees.', 400);
-                        }
-
-                        try {
-                            Stripe::setApiKey(env('STRIPE_SECRET'));
-
-                            // Create a payment intent
-                            PaymentIntent::create([
-                                'amount' => $amount,
-                                'currency' => $currency,
-                                'customer' => $company->user->stripe_id, // Assuming the company owner is the Stripe customer
-                                'payment_method' => $company->payment_method_id,
-                                'off_session' => true,
-                                'confirm' => true,
-                            ]);
-                        } catch (\Exception $e) {
-                            DB::rollBack();
-                            return $this->sendError('Payment failed: ' . $e->getMessage(), 400);
-                        }
-                    }
+                    $stripeService->handleAdditionalUserPayment($companyCode);
 
                     // Approve the employee
                     EmployeeApproveEmailJob::dispatch($user->email);

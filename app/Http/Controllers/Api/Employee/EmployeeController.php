@@ -76,38 +76,7 @@ class EmployeeController extends BaseController
             $roleName = $request->role;
             $companyCode = $request->company_code;
 
-            // Get the company and its employee count
-            $company = CompanyModel::where('code', $companyCode)->firstOrFail();
-            $currentEmployeeCount = Employee::where('company_code', $companyCode)->count()
-            + Manager::where('company_code', $companyCode)->count();;
-
-            // Check if the employee count exceeds the standard limit
-            if ($currentEmployeeCount >= StatusEnum::COMPANY_FREE_EMPLOYEES) {
-                $amount = StatusEnum::PER_EMPLOYEE_CHARGE;
-                $currency = StatusEnum::currency;
-
-                if (!$company->payment_method_id) {
-                    return $this->sendError('Payment method is required for adding additional employees.', 400);
-                }
-
-                // Attempt payment
-                try {
-                    Stripe::setApiKey(env('STRIPE_SECRET'));
-
-                    // Create a payment intent
-                    PaymentIntent::create([
-                        'amount' => $amount,
-                        'currency' => $currency,
-                        'customer' => $company->user->stripe_id,
-                        'payment_method' => $company->payment_method_id,
-                        'off_session' => true,
-                        'confirm' => true,
-                    ]);
-                } catch (\Exception $e) {
-                    DB::rollBack();
-                    return $this->sendError('Payment failed: ' . $e->getMessage(), 400);
-                }
-            }
+            $stripeService->handleAdditionalUserPayment($companyCode);
 
             // Create the user and assign roles
             $plainPassword = Str::random(8);
