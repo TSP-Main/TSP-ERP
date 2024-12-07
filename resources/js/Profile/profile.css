@@ -1,0 +1,55 @@
+.profile-dash{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    /* display: "flex",
+              flex-direction: "row",
+              justifyContent: "space-between",
+              alignItems: "center", */
+}
+.book-icon{
+    width: 50px;
+    height: 50px;
+}
+.card-text{
+    margin: 0;
+     font-size: 14px;
+      color: #7E7E7E 
+}
+.card-total{
+     margin: 0;
+    font-size: 24px;
+     font-weight: bold
+}
+.star-card{
+    text-align: left;
+   
+}
+.starr-card{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+@media screen and (max-width: 426px) {
+    .profile-dash{
+        flex-direction: column;
+    /* justify-content: space-between; */
+    }
+    .book-icon{
+        width: 25px;
+        height: 25px;
+    }
+    .card-total{
+        font-size: 15px;
+    }
+    .star-card{
+        line-height: 20px;
+         /* flex-direction: row; */
+        justify-content: space-around; 
+    }
+    .starr-card{
+        flex-direction: column;
+    }
+
+}

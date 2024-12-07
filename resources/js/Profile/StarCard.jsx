@@ -1,6 +1,6 @@
 import React from "react";
 // import book from "./book.png"; // Adjust the path based on your file structure
-
+import './profile.css'
 const StatCard = ({text,icon,total}) => {
     return (
         <div
@@ -12,20 +12,26 @@ const StatCard = ({text,icon,total}) => {
         >
             {/* Book Icon */}
             <img
+                className="book-icon"
                 src={icon}
                 alt="Book Icon"
-                style={{
-                    width: "50px",
-                    height: "50px",
-                }}
+                // style={{
+                //     width: "50px",
+                //     height: "50px",
+                // }}
             />
 
-           
-            <div style={{ textAlign: "left" }}>
-                <p style={{ margin: 0, fontSize: "14px", color: "#7E7E7E" }}>
+            <div className="star-card" >
+                <p
+                    className="card-text"
+                    // style={{ margin: 0, fontSize: "14px", color: "#7E7E7E" }}
+                >
                     {text}
                 </p>
-                <p style={{ margin: 0, fontSize: "24px", fontWeight: "bold" }}>
+                <p
+                    className="card-total"
+                    // style={{ margin: 0, fontSize: "24px", fontWeight: "bold" }}
+                >
                     {total}
                 </p>
             </div>
