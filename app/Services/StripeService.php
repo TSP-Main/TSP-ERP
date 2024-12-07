@@ -31,8 +31,10 @@ class StripeService
         $company = CompanyModel::where('code', $companyCode)->firstOrFail();
 
         // Count total employees and managers
-        $currentUserCount = Employee::where('company_code', $companyCode)->count()
-            + Manager::where('company_code', $companyCode)->count();
+        $currentUserCount = Employee::where('company_code', $companyCode)
+            ->where('status', StatusEnum::APPROVED)->count()
+            + Manager::where('company_code', $companyCode)
+            ->where('status', StatusEnum::APPROVED)->count();
 
         // Check if the user count exceeds the standard limit
         if ($currentUserCount >= StatusEnum::COMPANY_FREE_EMPLOYEES) {
