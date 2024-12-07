@@ -45,7 +45,7 @@ class StatusEnum
     public const CANCELLED = 'cancelled';
     public const REJECTED = 'rejected';
 
-    public const COMPANY_FREE_EMPLOYEES = 2;
+    public const COMPANY_FREE_EMPLOYEES = 10;
     public const PER_EMPLOYEE_CHARGE = 199; // $1.99 in cents for Stripe
 
     // public const EMPLOYEES_MANAGERS_COUNT_OF_COMPANY = Employee::where('company_code', $companyCode)->count()
