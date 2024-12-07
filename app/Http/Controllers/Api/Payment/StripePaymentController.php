@@ -142,6 +142,7 @@ class StripePaymentController extends BaseController
                         return $this->sendError('Employee does not belong to a valid company.', 400);
                     }
 
+                    $companyCode = $company->code;
                     $stripeService->handleAdditionalUserPayment($companyCode);
 
                     // Approve the employee
