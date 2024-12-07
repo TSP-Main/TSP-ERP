@@ -13,7 +13,16 @@ const Employee = () => {
     const dispatch = useDispatch();
     const [Loading, setLoading] = useState(false);
     //    const {error,loading,employeedata} =useSelector((state)=>state.employee)
+   const refetchEmployees = async () => {
+       const code = localStorage.getItem("company_code");
 
+       await dispatch(allEmployee(code)); // Dispatch the action to fetch employees
+   };
+   const refetchManagers = async () => {
+       const code = localStorage.getItem("company_code");
+
+       await dispatch(gettActiveManagers(code)); // Dispatch the action to fetch employees
+   };
     // Show Modal
     const showModal = () => {
         setIsModalVisible(true);
@@ -45,6 +54,8 @@ const Employee = () => {
                description: "Invite sent successfully",
                duration: 3,
            });
+           refetchManagers();
+        //    window.location.reload();
        } catch (error) {
            notification.error({
                message: "Error",
@@ -57,6 +68,8 @@ const Employee = () => {
            hideModal();
        }
    };
+
+  
 
     return (
         <>

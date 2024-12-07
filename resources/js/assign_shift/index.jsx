@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Table, Spin, Button, Select } from "antd";
+import { Table, Spin, Button, Select, notification } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { allEmployee } from "../employee/redux/reducers";
 import { showSchedule, getAssignedSchedules } from "../shift/redux/reducer";
@@ -56,16 +56,13 @@ function RowHeaderTable() {
     // Fetch employee data
     useEffect(() => {
         const code = localStorage.getItem("company_code");
-        const role=localStorage.getItem("role")
-        const id=localStorage.getItem("manager_id")
-        if(role==="manager")
-        {
-            dispatch(allEmployee({code,id}))
+        const role = localStorage.getItem("role");
+        const id = localStorage.getItem("manager_id");
+        if (role === "manager") {
+            dispatch(allEmployee({ code, id }));
+        } else {
+            dispatch(allEmployee({ code }));
         }
-        else{
-            dispatch(allEmployee({code}));
-        }
-      
     }, [dispatch]);
 
     // Fetch schedule data once (on component mount)
@@ -152,7 +149,7 @@ function RowHeaderTable() {
 
     console.log("shift state", selectedShiftsState);
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         const payload = [];
         const employeeIds = Object.keys(selectedShiftsState);
 
@@ -195,8 +192,20 @@ function RowHeaderTable() {
                 });
             });
         });
-
-        dispatch(assignSchedule(payload));
+        try {
+            const response = await dispatch(assignSchedule(payload));
+            if (!response.error) {
+                notification.success({
+                    description: "Schedule assigned successfully",
+                    duration: 3,
+                });
+            }
+        } catch (error) {
+            notification.error({
+                description: error || "Problem assigning schedule. Try again.",
+                duration: 3,
+            });
+        }
 
         console.log("Generated Payload:", payload);
     };
