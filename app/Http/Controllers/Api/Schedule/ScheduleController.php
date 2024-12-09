@@ -53,7 +53,7 @@ class ScheduleController extends BaseController
             $schedule = Schedule::findOrFail($id);
 
             $ipAddress = $request->ip();
-            $timezone = getUserTimezone($ipAddress);
+            $timezone = getUserTimezone($request);
 
             // Convert provided time into UTC based on the detected timezone
             $startTime = Carbon::parse($request->start_time, $timezone);
@@ -90,7 +90,7 @@ class ScheduleController extends BaseController
     {
         try {
             $ipAddress = $request->ip(); // UK-based server IP is 51.15.112.35 (if you want to use), pakistan 119.73.100.157
-            $timezone = getUserTimezone($ipAddress);
+            $timezone = getUserTimezone($request);
 
             $schedules = [];
 
@@ -118,7 +118,7 @@ class ScheduleController extends BaseController
     public function checkIn($employeeId, Request $request)
     {
         $ipAddress = $request->ip();
-        $timezone = getUserTimezone($ipAddress);
+        $timezone = getUserTimezone($request);
         try {
             $today = Carbon::today($timezone);
 
@@ -162,7 +162,7 @@ class ScheduleController extends BaseController
     public function checkOut($employeeId, Request $request)
     {
         $ipAddress = $request->ip();
-        $timezone = getUserTimezone($ipAddress);
+        $timezone = getUserTimezone($request);
         try {
             $attendance = Attendance::where('employee_id', $employeeId)
                 ->whereDate('date', Carbon::today('UTC')->toDateString())
@@ -219,7 +219,7 @@ class ScheduleController extends BaseController
     {
 
         $ipAddress = $request->ip();
-        $timezone = getUserTimezone($ipAddress);
+        $timezone = getUserTimezone($request);
         try {
             $date = $request->date ? Carbon::parse($request->date) : Carbon::today($timezone);
 
@@ -538,7 +538,7 @@ class ScheduleController extends BaseController
     {
         try {
             $ipAddress = $request->ip();
-            $timezone = getUserTimezone($ipAddress);
+            $timezone = getUserTimezone($request);
 
             $attendance = Attendance::where('employee_id', $request->employee_id)
                 ->whereNull('time_out')
