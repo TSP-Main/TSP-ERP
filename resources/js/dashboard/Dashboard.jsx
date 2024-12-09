@@ -11,6 +11,7 @@ import {
 } from "@ant-design/icons";
 import { Button, notification } from "antd";
 import { useNavigate } from "react-router-dom";
+import Loading from "../Loading";
 
 const Dashboard = () => {
     const { error, loading, userdata } = useSelector((state) => state.user);
@@ -74,7 +75,8 @@ const Dashboard = () => {
                 <h1 className="profile-title">User Profile</h1>
 
                 {/* Loading State */}
-                {loading && <p>Loading...</p>}
+                {loading && <Loading/>}
+                
 
                 {/* Error State */}
                 {error && (

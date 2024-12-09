@@ -50,8 +50,9 @@ export const approveUserAction = createAsyncThunk(
             console.log("approved user",response.data.data);
             return response.data.data; // Return data to update state if needed
         } catch (error) {
+            console.log("Error", error.response?.data?.errors);
             return rejectWithValue(
-                error.response?.data?.message || "Failed to approve user"
+                error.response?.data?.errors || "Failed to approve user"
             );
         }
     }

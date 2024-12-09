@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Table, Spin, Alert } from "antd";
 import { activeUsersData } from "./redux/reducer";
+import Loading from "../Loading";
 
 
 const OnBoard = () => {
@@ -34,7 +35,7 @@ const OnBoard = () => {
         },
     ];
 
-    if (loading) return <Spin tip="Loading data..." />;
+    if (loading) return <Loading/>;
     if (error)
         return (
             <Alert

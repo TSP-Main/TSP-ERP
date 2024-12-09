@@ -5,6 +5,7 @@ import { FaArrowRight } from "react-icons/fa";
 import { allEmployee } from "../employee/redux/reducers";
 import { showSchedule, getAssignedSchedules } from "../shift/redux/reducer";
 import { assignSchedule } from "../attendance/redux/reducer";
+import Loading from "../Loading";
 
 const EmployeeScheduleTable = () => {
     const [dataSource, setDataSource] = useState([]);
@@ -188,7 +189,7 @@ const EmployeeScheduleTable = () => {
     ];
 
     if (employeeLoading || scheduleLoading)
-        return <Spin size="large" tip="Loading..." />;
+        return <Loading/>;
 
     return (
         <>

@@ -17,6 +17,7 @@ import {
 } from "../redux/reducer";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
+import Loading from "../../Loading";
 
 const ScheduleTable = () => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -146,7 +147,7 @@ const fetchSchedules = async () => {
     ];
 
     // Loading state
-    if (loading) return <Spin size="large" tip="Loading..." />;
+    if (loading) return <Loading/>;
 
     // Error state
     if (error)

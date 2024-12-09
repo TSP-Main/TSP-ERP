@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Table, Spin, Alert,Button,notification } from "antd";
 import { inactiveUsersData,approveUserAction } from "./redux/reducer";
-
+import Loading from "../Loading"
 
 const InActive = () => {
     const dispatched = useDispatch();
@@ -12,24 +12,31 @@ const InActive = () => {
     const handleApprove = async (id) => {
         console.log(id);
         try {
-             console.log('inside try');
+            console.log("inside try");
             // Dispatch the action to approve the user
-            dispatched(approveUserAction(id));
-            notification.success({
-                message: "Success",
-                description: "User approved successfully.",
-                duration: 3,
-            });
-
-            // Optionally refresh the inactive users data
-            dispatched(inactiveUsersData());
-           
+            const response = await dispatched(approveUserAction(id));
+            console.log("response", response);
+            if (response.error) {
+                notification.error({
+                    description: response.payload || "Failed to approve user.",
+                    duration: 3,
+                });
+            } else {
+                notification.success({
+                    description: "User approved successfully.",
+                    duration: 3,
+                });
+            }
         } catch (error) {
+            console.log("error in catch block", error);
             notification.error({
                 message: "Error",
-                description: error || "Failed to approve user.",
+                description: error.message || "An unexpected error occurred.",
                 duration: 3,
             });
+        } finally {
+            // Optionally refresh inactive users data
+            dispatched(inactiveUsersData());
         }
     };
 
@@ -77,9 +84,11 @@ const InActive = () => {
         },
     ];
 
-    if (loading) return <Spin tip="Loading data..." size="large" style={{
-        alignContent: "center"
-    }}/>;
+   if (loading) {
+       return (
+          <Loading/>
+       );
+   }
    
     if (error)
         return (
