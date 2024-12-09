@@ -27,7 +27,7 @@ class ScheduleController extends BaseController
     public function create(CreateScheduleRequest $request)
     {
         $ipAddress = $request->ip();
-        $timezone = getUserTimezone($ipAddress);
+        $timezone = getUserTimezone($request);
 
         $startTime  = Carbon::parse($request->start_time, $timezone);
         $endTime  = Carbon::parse($request->end_time, $timezone);
