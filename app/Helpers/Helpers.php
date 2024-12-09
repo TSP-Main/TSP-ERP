@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Company\CompanyModel;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -26,7 +27,7 @@ function generateCompanySlug($companyName)
     return $slug;
 }
 
-function getUserTimezone($request)
+function getUserTimezone(Request $request)
 {
     try {
         $token = env('IPINFO_SECRET');

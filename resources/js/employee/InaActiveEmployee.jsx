@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import {  inActiveEmployee,approveUserAction } from "./redux/reducers";
 import { useSelector } from "react-redux";
 import { TiTickOutline } from "react-icons/ti";
+import Loading from "../Loading";
 const InvitedEmployee = () => {
     const { error, loading, inactivedata } = useSelector(
         (state) => state.employee
@@ -88,13 +89,13 @@ const InvitedEmployee = () => {
         //     ),
         // },
     ];
-       if (loading) return <Spin size="large" tip="Loading..." />;
+       if (loading) return <Loading/>;
 
        // Show error state
        if (error)
            return <Alert message="Error" description={error} type="error" />;
 
-    if (loading) return <Spin />;
+    if (loading) return <Loading/>;
     return (
         <>
             <h1>In Active Employee</h1>

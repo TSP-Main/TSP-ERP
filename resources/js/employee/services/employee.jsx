@@ -15,6 +15,7 @@ import {
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { gettActiveManagers } from "../../manager/redux/reducer";
+import Loading from "../../Loading";
 
 function Employee() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -197,7 +198,7 @@ const refetchManagers = async () => {
     ];
 
     // Show loading state
-    if (loading) return <Spin size="large" tip="Loading..." />;
+    if (loading) return <Loading/>;
 
     // Show error state
     if (error)

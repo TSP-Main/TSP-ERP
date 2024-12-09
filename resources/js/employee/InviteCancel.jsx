@@ -4,6 +4,7 @@ import { MdCancelPresentation } from "react-icons/md";
 import { useDispatch,useSelector } from "react-redux";
 import { cancelInvitedEmloyee } from "./redux/reducers";
 import InvitedCanceledManagers from "../manager/InviteCanceledManagers";
+import Loading from "../Loading";
 const InvitCancel = () => {
     const dispatch=useDispatch();
    
@@ -25,7 +26,7 @@ const InvitCancel = () => {
     useEffect(()=>{
         fetchCancelInvitedEmployees();
     },[])
-       if (loading) return <Spin size="large" tip="Loading..." />;
+       if (loading) return <Loading/>;
 
        // Show error state
        if (error)

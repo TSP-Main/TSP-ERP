@@ -2,23 +2,34 @@ import { notification, Table } from "antd";
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { allEmployee, checkedinEmployee } from "./redux/reducers";
+import { useSelector } from "react-redux";
 
 const CheckedIn = () => {
     const dispatch = useDispatch();
     const [employees, setEmployees] = useState([]); // State for all employees
-    const [checkedInIds, setCheckedInIds] = useState([]); // State for checked-in employees' IDs
-
+    const [checkedInIds, setCheckedInIds] = useState([]); // State for checked-in employees' IDs\
+     const [checkinDataMap, setCheckinDataMap] = useState({});
+    const {checkinData}=useSelector((state)=>state.employee)
+    console.log("CheckedIn",checkinData);
     const columns = [
         {
             title: "Name",
-            dataIndex: ["user","name"],
+            dataIndex: ["user", "name"],
             key: "name",
         },
         {
             title: "Email",
-            dataIndex: ["user","email"],
+            dataIndex: ["user", "email"],
             key: "email",
-        }
+        },
+        {
+            title: "Time In",
+            key: "timeIn",
+            render: (text, record) =>
+                checkedInIds.includes(record.id)
+                    ? checkinDataMap[record.id]?.time_in || "-"
+                    : "-", // Show Time In if the employee is checked in
+        },
     ];
 
     // Fetch all employees
@@ -26,7 +37,7 @@ const CheckedIn = () => {
         try {
             const code = localStorage.getItem("company_code");
           
-            const response = await dispatch(allEmployee(code)).unwrap();
+            const response = await dispatch(allEmployee({code})).unwrap();
             console.log("response", response);
             setEmployees(response || []);
         } catch (error) {
@@ -38,29 +49,48 @@ const CheckedIn = () => {
     };
 
     // Fetch checked-in employees
-    const fetchCheckedInEmployees = async () => {
-        try {
-            const id = localStorage.getItem("company_id");
-            const payload = {
-                company_id: id,
-            };
-            if (id) {
-                const response = await dispatch(
-                    checkedinEmployee(payload)
-                ).unwrap();
-                console.log("response", response);
-                const checkedInEmployeeIds =
-                    response?.map((emp) => emp.employee_id) || [];
-                setCheckedInIds(checkedInEmployeeIds);
-                console.log("checkedInEmployeeIds", checkedInEmployeeIds || []);
-            }
-        } catch (error) {
-            notification.error({
-                message: "Error",
-                description: "Error fetching checked-in employees",
-            });
+const fetchCheckedInEmployees = async () => {
+    const id = localStorage.getItem("company_id");
+
+    try {
+        const role = localStorage.getItem("role");
+        let response = []; // Initialize response variable
+
+        if (role === "company") {
+            response = await dispatch(checkedinEmployee({ id })).unwrap();
+        } else if (role === "manager") {
+            const manager_id = localStorage.getItem("manager_id");
+            response = await dispatch(
+                checkedinEmployee({ id, manager_id })
+            ).unwrap();
         }
-    };
+
+        console.log("API response:", response);
+        const checkinMap = response?.reduce((map, emp) => {
+            map[emp.employee_id] = {
+                time_in: emp.time_in,
+            };
+            return map;
+        }, {});
+
+        setCheckinDataMap(checkinMap);
+
+        // Check if response is valid before mapping
+        const checkedInEmployeeIds =
+            response?.map((emp) => emp.employee_id) || [];
+
+        setCheckedInIds(checkedInEmployeeIds);
+
+        console.log("checkedInEmployeeIds", checkedInEmployeeIds);
+    } catch (error) {
+        console.error("Error fetching checked-in employees", error);
+        notification.error({
+            message: "Error",
+            description: "Error fetching checked-in employees",
+        });
+    }
+};
+
 
     // Fetch both employee lists on component mount
     useEffect(() => {
@@ -70,7 +100,7 @@ const CheckedIn = () => {
 
     // Set row class for checked-in employees
     const rowClassName = (record) => {
-        return checkedInIds.includes(record.user.id) ? "checked-in-row" : "";
+        return checkedInIds.includes(record.id) ? "checked-in-row" : "";
     };
     
 

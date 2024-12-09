@@ -12,6 +12,7 @@ const initialState = {
     inactivedata:null,
     getCancelInvitedUsers:null,
     newsignupsdata: null,
+    checkinData: null,
 };
 export const deleteEmployee = createAsyncThunk(
     "employee/delete",
@@ -105,18 +106,22 @@ export const inActiveEmployee = createAsyncThunk(
     }
 );
 export const checkedinEmployee = createAsyncThunk(
-    "user/employee",
-    async (payload, { rejectWithValue }) => {
+    "user/employee/checkedin",
+    async ({ id, manager_id }, { rejectWithValue }) => {
         try {
-            // console.log("Users", code, role);
-            // console.log("Employeeseses", { role });
-            const response = await axios.get(
-                apiRoutes.employee.checkedin,
-                payload
-            );
-            console.log("ched in employee", response.data);
-            if(response.data.length==0|| !response.data){
-                return []
+            // Dynamically include manager_id only if it is provided
+            const params = {
+                company_id: id,
+                ...(manager_id && { manager_id }), // Include only if manager_id is truthy
+            };
+
+            const response = await axios.get(apiRoutes.employee.checkedin, {
+                params,
+            });
+
+            console.log("checked-in employee", response.data.data);
+            if (!response.data || response.data.length === 0) {
+                return [];
             }
             return response.data.data;
         } catch (error) {
@@ -127,6 +132,7 @@ export const checkedinEmployee = createAsyncThunk(
         }
     }
 );
+
 export const getInvitedUsers = createAsyncThunk(
     "user/getInvitedUsers",
     async (code, { rejectWithValue }) => {
@@ -320,7 +326,21 @@ const employeeSlice = createSlice({
             .addCase(newSignups.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;
+            })
+            .addCase(checkedinEmployee.pending, (state, action) => {
+                state.loading = true;
+                state.error = false;
+            })
+            .addCase(checkedinEmployee.fulfilled, (state, action) => {
+                state.checkinData = action.payload;
+                state.loading = false;
+                state.error = false;
+            })
+            .addCase(checkedinEmployee.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
             });
+
     },
 });
 

@@ -5,6 +5,7 @@ import { allEmployee } from "../employee/redux/reducers";
 import { showSchedule, getAssignedSchedules } from "../shift/redux/reducer";
 import { assignSchedule } from "../attendance/redux/reducer";
 import { FaArrowRight } from "react-icons/fa";
+import Loading from "../Loading";
 
 function RowHeaderTable() {
     const [dataSource, setDataSource] = useState([]);
@@ -333,7 +334,7 @@ function RowHeaderTable() {
     // }
 
     if (scheduleLoading) {
-        return <Spin />;
+        return <Loading/>;
     }
 
     console.log("data source: ", dataSource);

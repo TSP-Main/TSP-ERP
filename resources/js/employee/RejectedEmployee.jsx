@@ -3,6 +3,7 @@ import { Table, Button,Spin,Alert } from "antd";
 import { TiTick } from "react-icons/ti";
 import { useDispatch,useSelector } from "react-redux";
 import { getRejectedUser } from "./redux/reducers";
+import Loading from "../Loading";
 const RejectedEmployee = () => {
      const { error, loading, rejecteddata } = useSelector(
          (state) => state.employee
@@ -22,7 +23,7 @@ const RejectedEmployee = () => {
     //         employee: { company_code: "12345" },
     //     },
     // ];
-       if (loading) return <Spin size="large" tip="Loading..." />;
+       if (loading) return <Loading/>;
 
        // Show error state
        if (error)
