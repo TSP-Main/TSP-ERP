@@ -55,7 +55,7 @@ function getStripePriceId($package, $plan)
 {
     $prices = [
         'basic' => ['monthly' => 'price_1QJvoWRwCYjkbSmYSvf0oJjd', 'yearly' => 'price_1QJxPhRwCYjkbSmYyrTG68El'],
-        'standard' => ['monthly' => 'price_1QJxKcRwCYjkbSmYU3mDyUKI', 'yearly' => 'price_1QJxKcRwCYjkbSmYhuzkDU3D'],
+        'standard' => ['monthly' => 'price_1QU06pHWHPJ6xkIOTw8RUttQ', 'yearly' => 'price_1QJxKcRwCYjkbSmYhuzkDU3D'],
         'premium' => ['monthly' => 'price_1QJxMCRwCYjkbSmYGEn2dfkc', 'yearly' => 'price_1QJxOkRwCYjkbSmYjvvihtyO'],
     ];
 
