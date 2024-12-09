@@ -20,7 +20,7 @@ return [
     // 'allowed_origins' => ['https://rota.tspsolution.com','http://127.0.0.1:8000'], // Replace with your frontend URL
     'allowed_origins' => [
         env('APP_URL'),
-        'http://127.0.0.1:8000', // Keep this for local development if necessary
+        'https://rota.tspsolution.com/', // Keep this for local development if necessary
     ],
     'allowed_origins_patterns' => [],
     'allowed_headers' => ['*'],
