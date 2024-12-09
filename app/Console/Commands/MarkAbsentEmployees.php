@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Http\Client\Request;
+use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -36,10 +37,10 @@ class MarkAbsentEmployees extends Command
         parent::__construct();
     }
 
-    public function handle()
+    public function handle(HttpRequest $request)
     {
         $ipAddress = request()->ip(); // Use request helper to fetch the IP address
-        $timezone = getUserTimezone($ipAddress);
+        $timezone = getUserTimezone($request);
 
         DB::beginTransaction();
         try {
