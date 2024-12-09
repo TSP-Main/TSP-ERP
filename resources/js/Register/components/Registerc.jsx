@@ -21,7 +21,8 @@ const Register = () => {
     const elements = useElements();
     const dispatch = useDispatch();
     const { error, loading } = useSelector((state) => state.auth);
-
+    const stripeKey = process.env.STRIPE_KEY;
+    console.log("key: ",stripeKey);
     const onUserTypeChange = (value) => {
         setUserType(value);
     };

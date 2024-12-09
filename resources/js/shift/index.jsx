@@ -4,6 +4,8 @@ import ShiftModal from "./components/modal";
 import './styles/shift.css'
 import Tablee from './components/Table'
 import { showSchedule } from "./redux/reducer";
+import Loading from "../Loading";
+import TimePickerr from "./components/TimePicker";
 const index = () => {
         const [isModalVisible, setIsModalVisible] = useState(false);
 const showModal = () => {
@@ -42,6 +44,7 @@ const hideModal = () => {
                 // loading={loading}
                 onCancel={hideModal}
             />
+           
         </>
     );
 };
