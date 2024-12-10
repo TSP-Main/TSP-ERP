@@ -8,12 +8,12 @@ import InvitedEmployess from "../manager/InvitedEmployees.jsx"
 import InviteCanceledEmployee from "../manager/InviteCanceledEmployee.jsx";
 import AssignShift from "../assign_shift/index.jsx";
 import ChangeShift from "../shift/ChangeShift.jsx";
-
+import CheckedIn from "../employee/CheckedIn.jsx";
 const ManagerRoutes = () => {
     return (
         <Routes>
             <Route path="/" element={<DefaultLayout />}>
-                <Route path="rota-manager" element={<RotaManager />} />
+                <Route path="rota-manager" element={<CheckedIn />} />
                 <Route
                     path="active-manager-employee"
                     element={<ActiveEmployee />}

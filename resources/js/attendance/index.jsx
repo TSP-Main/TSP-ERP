@@ -172,55 +172,62 @@ const Index = () => {
         console.log("getCheckInStatus")
         getCheckInStatus()
     },[])
-    useEffect(() => {
-        if (Array.isArray(dataa) && dataa.length > 0) {
-            const generatedDates = generateDates();
+   useEffect(() => {
+       if (Array.isArray(dataa) && dataa.length > 0) {
+           const generatedDates = generateDates();
 
-            const updatedDates = generatedDates.map((dateItem) => {
-                let updatedItem = { ...dateItem };
+           const updatedDates = generatedDates.map((dateItem) => {
+               let updatedItem = { ...dateItem };
 
-                dataa.forEach((schedule) => {
-                    const scheduleStartDate = moment(schedule.start_date);
-                    const scheduleEndDate = moment(schedule.end_date);
+               dataa.forEach((schedule) => {
+                   const scheduleStartDate = moment(schedule.start_date);
+                   const scheduleEndDate = moment(schedule.end_date);
 
-                    if (
-                        scheduleStartDate.isSameOrBefore(
-                            dateItem.date,
-                            "day"
-                        ) &&
-                        scheduleEndDate.isSameOrAfter(dateItem.date, "day")
-                    ) {
-                        const scheduleExists = updatedItem.schedules.some(
-                            (existingSchedule) =>
-                                existingSchedule.schedule_id ===
-                                schedule.schedule_id
-                        );
+                   if (
+                       scheduleStartDate.isSameOrBefore(dateItem.date, "day") &&
+                       scheduleEndDate.isSameOrAfter(dateItem.date, "day")
+                   ) {
+                       const scheduleExists = updatedItem.schedules.some(
+                           (existingSchedule) =>
+                               existingSchedule.schedule_id ===
+                               schedule.schedule_id
+                       );
 
-                        if (!scheduleExists) {
-                            updatedItem.schedules.push({
-                                schedule_id: schedule.schedule_id,
-                                start_time: moment(
-                                    schedule.schedule.start_time,
-                                    "HH:mm:ss"
-                                ).format("hh:mm A"),
-                                end_time: moment(
-                                    schedule.schedule.end_time,
-                                    "HH:mm:ss"
-                                ).format("hh:mm A"),
-                                name: schedule.schedule.name,
-                            });
-                        }
-                    }
-                });
+                       if (!scheduleExists) {
+                           updatedItem.schedules.push({
+                               schedule_id: schedule.schedule_id,
+                               start_time: moment(
+                                   schedule.schedule.start_time,
+                                   "HH:mm:ss"
+                               ).format("hh:mm A"),
+                               end_time: moment(
+                                   schedule.schedule.end_time,
+                                   "HH:mm:ss"
+                               ).format("hh:mm A"),
+                               name: schedule.schedule.name,
+                           });
+                       }
+                   }
+               });
 
-                return updatedItem;
-            });
+               return updatedItem;
+           });
 
-            setData(updatedDates);
-        } else {
-            setData(generateDates());
-        }
-    }, [dataa]);
+           // Filter out days without schedules
+           const filteredDates = updatedDates.filter(
+               (dateItem) => dateItem.schedules.length > 0
+           );
+
+           setData(filteredDates);
+       } else {
+           setData(
+               generateDates().filter(
+                   (dateItem) => dateItem.schedules.length > 0
+               )
+           );
+       }
+   }, [dataa]);
+
 
     // Auto Check Out Effect
     useEffect(() => {

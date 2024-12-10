@@ -103,7 +103,7 @@ export const gettActiveManagers = createAsyncThunk(
             const response = await axios.get(
                 apiRoutes.manager.getActiveManagers(code)
             );
-            console.log("response", response.data.data);
+            console.log("response manager", response.data.data.data);
 
             return response.data.data.data;
         } catch (error) {

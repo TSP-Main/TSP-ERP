@@ -85,10 +85,14 @@ export const updateSchedule = createAsyncThunk(
 );
 export const getChangeRequest = createAsyncThunk(
     "schedule/getChangeRequest",
-    async (code, { rejectWithValue }) => {
+    async ({code,id}, { rejectWithValue }) => {
         try {
             console.log("inside chnage request api");
-            const response = await axios.get(apiRoutes.schedule.change(code));
+            const response = await axios.get(apiRoutes.schedule.change(code),{
+                params:{
+                    manager_id:id
+                }
+            });
             console.log(response.data.data);
             return response.data.data;
         } catch (error) {

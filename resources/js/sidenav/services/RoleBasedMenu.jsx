@@ -123,6 +123,18 @@ const RoleBasedMenu = () => {
                     "/invite-cancel", // Key matching the URL path
                     <MdOutlineCancelScheduleSend />
                 ),
+            ]),
+            getItem("Reports", "reports", <MdCoPresent />, [
+                getItem(
+                    <Link to="/employee-reports-present">Present</Link>,
+                    "/employee-reports-present", // Key matching the URL path
+                    <MdCoPresent />
+                ),
+                getItem(
+                    <Link to="/employee-reports-absent">Absent</Link>,
+                    "/employee-reports-absent", // Key matching the URL path
+                    <MdCoPresent />
+                ),
             ])
         );
     } else if (userRole === "employee") {

@@ -9,6 +9,7 @@ const apiRoutes = {
         inactive: "/company/in-active-companies",
         onboard: "/company/active-companies",
         approved: (id) => `/approve-user/${id}`,
+        reports: (code) => `/schedule/attendance-report/${code}`,
     },
     employee: {
         showAssignedSchedule: (id) => `/schedule/employee-schedule/${id}`,

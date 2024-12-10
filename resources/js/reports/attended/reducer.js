@@ -7,14 +7,16 @@ const initialState = {
     error: false,
     loading: false,
     employeedata: [],
-    missed:[]
+    missed: [],
+    present: [],
 };
 export const missedSchedule = createAsyncThunk(
     "employee/schedule/missed",
     async (id, { rejectWithValue }) => {
         try {
-           
-            const response = await axios.get(apiRoutes.schedule.missedAttended(id));
+            const response = await axios.get(
+                apiRoutes.schedule.missedAttended(id)
+            );
             console.log("missed schedule", response.data.data.missed_schedules);
             return response.data.missed_schedules;
         } catch (error) {
@@ -26,14 +28,44 @@ export const missedSchedule = createAsyncThunk(
 
 export const attendedSchedule = createAsyncThunk(
     "employee/schedule/attended",
-    async ({id,payload}, { rejectWithValue }) => {
+    async ({ id, payload }, { rejectWithValue }) => {
         try {
-             console.log("id", id, payload);
+            console.log("id", id, payload);
             const response = await axios.get(
                 apiRoutes.schedule.missedAttended(id),
                 { params: payload }
             );
-            console.log("employee data from API",response.data.data);
+            console.log("employee data from API", response.data.data);
+            return response.data.data;
+        } catch (error) {
+            console.log("redux error: " + error.response.errors);
+
+            return rejectWithValue(error.response || "Failed to fetch data");
+        }
+    }
+);
+export const presentEmployees = createAsyncThunk(
+    "presentEmployees",
+    async ({code,payload}, { rejectWithValue }) => {
+        try {
+            // console.log("id", id, payload);
+            const response = await axios.get(apiRoutes.company.reports(code),{params: payload});
+            console.log("employee data from API", response.data.data);
+            return response.data.data;
+        } catch (error) {
+            console.log("redux error: " + error.response.errors);
+
+            return rejectWithValue(error.response || "Failed to fetch data");
+        }
+    }
+);
+export const absentEmployees = createAsyncThunk(
+    "absentEmployees",
+    async (code, { rejectWithValue }) => {
+        try {
+            console.log("id", id, payload);
+            const response = await axios.get(apiRoutes.company.reports(code));
+            console.log("employee data from API", response.data.data);
             return response.data.data;
         } catch (error) {
             console.log("redux error: " + error.response.errors);
@@ -71,6 +103,33 @@ const scheduleEmployeeSlice = createSlice({
                 state.error = false;
             })
             .addCase(missedSchedule.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+
+            .addCase(presentEmployees.pending, (state, action) => {
+                state.loading = true;
+                state.error = false;
+            })
+            .addCase(presentEmployees.fulfilled, (state, action) => {
+                state.present = action.payload;
+                state.loading = false;
+                state.error = false;
+            })
+            .addCase(presentEmployees.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            .addCase(absentEmployees.pending, (state, action) => {
+                state.loading = true;
+                state.error = false;
+            })
+            .addCase(absentEmployees.fulfilled, (state, action) => {
+                state.absent = action.payload;
+                state.loading = false;
+                state.error = false;
+            })
+            .addCase(absentEmployees.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;
             });

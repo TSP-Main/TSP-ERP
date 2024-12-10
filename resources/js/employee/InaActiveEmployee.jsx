@@ -6,16 +6,21 @@ import {  inActiveEmployee,approveUserAction } from "./redux/reducers";
 import { useSelector } from "react-redux";
 import { TiTickOutline } from "react-icons/ti";
 import Loading from "../Loading";
-const InvitedEmployee = () => {
+import { gettInActiveManagers } from "../manager/redux/reducer";
+// gettActiveManagers
+const InactiveEmployee = () => {
     const { error, loading, inactivedata } = useSelector(
         (state) => state.employee
     );
+    const {InActiveManagersdata} = useSelector((state) => state.manager);
     console.log("inactive", inactivedata);
+    console.log("manager", InActiveManagersdata)
     const dispatch = useDispatch();
     const handleInactive = async (id) => {
         try {
              
-             await dispatch(inActiveEmployee(localStorage.getItem("company_code")));
+             const response=await dispatch(inActiveEmployee(localStorage.getItem("company_code")));
+             console.log("manager",response);
             }
         catch (error) {
             notification.error({
@@ -24,6 +29,17 @@ const InvitedEmployee = () => {
             });
         }
     };
+    const getActiveManagers = async () => {
+        try{
+            const response = await dispatch(gettInActiveManagers(localStorage.getItem("company_code")));
+        }catch(error)
+        {
+            notification.error({
+                description: error || "Failed to Fetch users",
+                duration: 1.5,
+            });
+        }
+    }
     // const handleStatusChange=(id)=>{
     //       console.log("user id", id);
     //       try {
@@ -51,6 +67,7 @@ const InvitedEmployee = () => {
     //   };
     useEffect(() => {
         handleInactive();
+        getActiveManagers;
     }, []);
     const columns = [
         {
@@ -98,7 +115,15 @@ const InvitedEmployee = () => {
     if (loading) return <Loading/>;
     return (
         <>
-            <h1>In Active Employee</h1>
+            <h1>In Active Staff</h1>
+            <h4 style={{ textAlign: "center" }}>Manager</h4>
+            <Table
+                columns={columns} // Pass the columns here
+                dataSource={InActiveManagersdata} // Pass the employee data here
+                // rowKey={(record) => record.employee.company_code}
+                pagination={false}
+             />
+            <h4 style={{ textAlign: "center" }}>Employees</h4>
             <Table
                 columns={columns} // Pass the columns here
                 dataSource={inactivedata} // Pass the employee data here
@@ -109,4 +134,4 @@ const InvitedEmployee = () => {
     );
 };
 
-export default InvitedEmployee;
+export default InactiveEmployee;

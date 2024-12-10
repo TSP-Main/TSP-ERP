@@ -97,9 +97,10 @@ const Attended = () => {
 
     // Disable dates from tomorrow onwards
     const disabledDate = (current) => {
+        console.log("start date",startDate)
         return current && current > moment().endOf("day");
     };
-
+    
     // Handle start date change
     const handleStartDateChange = (date) => {
         setStartDate(date);

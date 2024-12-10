@@ -13,6 +13,8 @@ import CheckedIn from "../employee/CheckedIn.jsx";
 import InvitCancel from "../employee/InviteCancel.jsx";
 import InActive from "../employee/InaActiveEmployee.jsx";
 import Example from "../employee/Example.jsx";
+import Reports from "../reports/index.jsx"
+import Absent from "../reports/Absent.jsx"
 const CompanyRoutes = () => {
     return (
         <Routes>
@@ -27,14 +29,14 @@ const CompanyRoutes = () => {
                 <Route path="new-registration" element={<NewRegistration />} />
                 <Route path="invites" element={<InvitedEmployee />} />
                 <Route path="invite-cancel" element={<InvitCancel />} />
-
+                <Route path="employee-reports-present" element={<Reports />} />
+                <Route path="employee-reports-absent" element={<Absent />} />
                 <Route
                     path="rejected-employee"
                     element={<RejectedEmployee />}
                 />
                 <Route path="change-shift" element={<ChangeShift />} />
                 <Route path="example" element={<Example />} />
-
                 {/* Add other company-specific routes here */}
             </Route>
         </Routes>

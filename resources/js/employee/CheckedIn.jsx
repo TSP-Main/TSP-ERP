@@ -34,12 +34,25 @@ const CheckedIn = () => {
 
     // Fetch all employees
     const fetchAllEmployees = async () => {
+
         try {
-            const code = localStorage.getItem("company_code");
-          
-            const response = await dispatch(allEmployee({code})).unwrap();
-            console.log("response", response);
-            setEmployees(response || []);
+            const role=localStorage.getItem("role");
+             const code = localStorage.getItem("company_code");
+
+            if(role==="company"){
+               
+
+                const response = await dispatch(allEmployee({ code })).unwrap();
+                console.log("response", response);
+                setEmployees(response || []);
+            }
+            else{
+                const id=localStorage.getItem("manager_id");
+                const response = await dispatch(allEmployee({ code,id })).unwrap();
+                console.log("response", response);
+                setEmployees(response || []);
+            }
+            
         } catch (error) {
             notification.error({
                 message: "Error",

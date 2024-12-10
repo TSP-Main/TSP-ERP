@@ -22,21 +22,10 @@ const ChangeShift = () => {
        } else {
            try {
                // Fetch shift change requests
-               const response_shift = await dispatch(getChangeRequest(code));
-               const shiftData = response_shift.payload;
-
-               // Fetch employees managed by the manager
-               const response_employee = await dispatch(
-                   allEmployeeM({ code, id })
-               );
-               const employeeData = response_employee.payload;
-
-               // Filter shift data based on employee IDs
-               const filteredData = shiftData.filter((shift) =>
-                   employeeData.some(
-                       (employee) => employee.id === shift.employee_id
-                   )
-               );
+               const response_shift = await dispatch(getChangeRequest({code,id}));
+               const filteredData = response_shift.payload;
+               
+               // Fetch employees managed by the manag
 
                // Update state with filtered data
                setData(filteredData);
