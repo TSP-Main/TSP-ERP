@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Schedule;
 use App\Classes\StatusEnum;
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Employee\AssignSchedueRequest;
+use App\Http\Requests\Schedule\AttendanceReportRequest;
 use App\Http\Requests\Schedule\CheckInCheckOutTimeRequest;
 use App\Http\Requests\Schedule\CreateScheduleRequest;
 use App\Http\Requests\Schedule\EmployeeAvailabilityRequest;
@@ -556,6 +557,36 @@ class ScheduleController extends BaseController
             }
 
             return response()->json(['status' => 'absent'], 200);
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function scheduleReport($companyCode, AttendanceReportRequest $request)
+    {
+        try {
+            $query = Attendance::whereBetween('date', [$request->start_date, $request->end_date])
+                ->whereHas('employee', function ($query) use ($companyCode) {
+                    $query->where('company_code', $companyCode);
+                })
+                ->with(['employee', 'schedule']);
+                if ($request->filled('employee_id')) {
+                    $query->where('employee_id', $request->employee_id);
+                }
+                $report = $query->get();
+
+            // Group attendance data by status (Present, Absent)
+            $presentRecords = $report->where('status', StatusEnum::PRESENT);
+            $absentRecords = $report->where('status', StatusEnum::ABSENT);
+
+            // Prepare detailed data for the response
+            $data = [
+                'total_records' => $report->count(),
+                'present' => $presentRecords,
+                'absent' => $absentRecords
+            ];
+
+            return $this->sendResponse($data, 'Report successfully displayed');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }

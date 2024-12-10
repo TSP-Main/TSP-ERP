@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Employee;
 use App\Classes\StatusEnum;
 use App\Http\Controllers\Api\BaseController;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Employee\ChangeManagerRequest;
 use App\Http\Requests\Employee\CreateEmployeeRequest;
 use App\Http\Requests\Employee\ManagerAssignedEmployees;
 use App\Jobs\Employee\AddEmployeeInvitationJob;
@@ -206,6 +207,22 @@ class ManagerController extends BaseController
             }
             $employees->load('user');
             return $this->sendResponse($employees, 'All employees displayed for this manager');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
+
+    public function changeManager(ChangeManagerRequest $request)
+    {
+        try {
+            $this->authorize('change-manager');
+            $employees = Employee::where('manager_id', $request->manager_to_remove)->get();
+            if ($employees->isEmpty()) {
+                return $this->sendError('No employees found under this manager.', 404);
+            }
+            Employee::where('manager_id', $request->manager_to_remove)
+                ->update(['manager_id' => $request->manager_to_add]);
+            return $this->sendResponse([], 'Manager updated successfully');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
