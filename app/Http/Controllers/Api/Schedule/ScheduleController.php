@@ -569,7 +569,7 @@ class ScheduleController extends BaseController
                 ->whereHas('employee', function ($query) use ($companyCode) {
                     $query->where('company_code', $companyCode);
                 })
-                ->with(['employee', 'schedule']);
+                ->with('employee.user');
                 if ($request->filled('employee_id')) {
                     $query->where('employee_id', $request->employee_id);
                 }
