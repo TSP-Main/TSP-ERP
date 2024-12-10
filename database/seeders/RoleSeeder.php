@@ -38,6 +38,7 @@ class RoleSeeder extends Seeder
 
             //manager
             'approve-manager',
+            'change-manager',
 
             //employee
             'approve-employee',
@@ -82,6 +83,7 @@ class RoleSeeder extends Seeder
             'checkedin-employees',
             'employee-availability',
             'reject-employee',
+            'change-manager',
         ];
         $company->givePermissionTo($companyPermission);
 

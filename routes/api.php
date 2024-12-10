@@ -85,6 +85,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('new-registered-managers/{companyCode}', [ManagerController::class, 'newSignUpmanagers']);
         Route::get('in-active-managers/{companyCode}', [ManagerController::class, 'inActiveManagers']);
         Route::get('active-managers/{companyCode}', [ManagerController::class, 'activeManagers']);
+        Route::get('change-manager', [ManagerController::class, 'changeManager']);
     });
 
     // Schedule routes
@@ -104,6 +105,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('all-assigned-schedule/{id}', [ScheduleController::class, 'getCompanyassignedSchedule']);
         Route::get('missed-attended-schedule/{id}', [ScheduleController::class, 'missedAndAttendedSchedule']);
         Route::get('employee-attendance-status', [ScheduleController::class, 'getCheckInStatus']);
+        Route::get('attendance-report/{companyCode}', [ScheduleController::class, 'scheduleReport']);
 
         //temprary store data
         Route::post('/add-employee-availability', [ScheduleController::class, 'submitAvailability']);
