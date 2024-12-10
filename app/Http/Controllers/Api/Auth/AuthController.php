@@ -24,13 +24,13 @@ use App\Models\User;
 use Illuminate\Auth\Events\Authenticated;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Str;
 
 
@@ -413,8 +413,8 @@ class AuthController extends BaseController
     public function rejectedUser(Request $request, $companyCode)
     {
         try {
-            $paginate = $request->input('per_page', 20);
-            $managerId = $request->input('manager_id');
+            $paginate = $request->per_page ?? 20;
+            $managerId = $request->manager_id;
 
             $query = Employee::where('company_code', $companyCode)
                 ->where('status', StatusEnum::REJECTED)
