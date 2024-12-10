@@ -379,8 +379,28 @@ class EmployeeController extends BaseController
         }
     }
 
-    public function subscribedEmployee()
+    public function subscribedEmployee($companyCode)
     {
-        
+        try {
+            // Count approved employees
+            $employeeCount = Employee::where('company_code', $companyCode)
+                ->where('status', StatusEnum::APPROVED)
+                ->count();
+
+            // Count approved managers
+            $managerCount = Employee::where('company_code', $companyCode)
+                ->where('status', StatusEnum::APPROVED)
+                ->count();
+
+            $data = [
+                'total_user' => $employeeCount + $managerCount,
+                'total_employees' => $employeeCount,
+                'total_managers' => $managerCount,
+            ];
+
+            return $this->sendResponse($data, 'Employee and Manager counts retrieved successfully');
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
+        }
     }
 }
