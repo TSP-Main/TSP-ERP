@@ -21,7 +21,21 @@ export const userReject=createAsyncThunk("user/reject",
         }
     }
 )
+export const total=createAsyncThunk(
+    "total",
+    async(code,{rejectWithValue})=>{
+        try{
+            const response=await axios.get(apiRoutes.employee.total(code));
+            return response.data.data;
+        }catch(error){
+             console.log("error");
+             return rejectWithValue(
+                 error.response?.errors || "Failed to fetch data"
+             );
 
+        }
+    }
+)
 export const inactiveEmployee=createAsyncThunk(
     "employee/inactive",
     async(code,{rejectWithValue})=>{
