@@ -39,7 +39,7 @@ export const userData = createAsyncThunk(
            }else if(role ==="manager"){
             localStorage.setItem(
                 "manager_id",
-                response?.data?.data?.manager?.company?.id
+                response?.data?.data?.manager?.id
             )
 
             localStorage.setItem(
