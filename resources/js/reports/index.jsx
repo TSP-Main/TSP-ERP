@@ -53,7 +53,7 @@ const Reports = () => {
     // Prepare data for the table
     const data =
         present?.present?.map((schedule, index) => ({
-            key: index,
+        key: index,
            name: schedule?.employee?.user?.name,
             time_in: schedule.time_in || "-",
             time_out: schedule.time_out || "-",

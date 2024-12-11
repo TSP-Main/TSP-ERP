@@ -9,6 +9,7 @@ const initialState = {
     employeedata: [],
     missed: [],
     present: [],
+    absent:[]
 };
 export const missedSchedule = createAsyncThunk(
     "employee/schedule/missed",
@@ -50,7 +51,8 @@ export const presentEmployees = createAsyncThunk(
         try {
             // console.log("id", id, payload);
             const response = await axios.get(apiRoutes.company.reports(code),{params: payload});
-            console.log("employee data from API", response.data.data);
+            console.log("present data from API", response.data.data);
+    
             return response.data.data;
         } catch (error) {
             console.log("redux error: " + error.response.errors);
@@ -61,10 +63,10 @@ export const presentEmployees = createAsyncThunk(
 );
 export const absentEmployees = createAsyncThunk(
     "absentEmployees",
-    async (code, { rejectWithValue }) => {
+    async ({code,payload}, { rejectWithValue }) => {
         try {
-            console.log("id", id, payload);
-            const response = await axios.get(apiRoutes.company.reports(code));
+            // console.log("id", id, payload);
+            const response = await axios.get(apiRoutes.company.reports(code),{params: payload});
             console.log("employee data from API", response.data.data);
             return response.data.data;
         } catch (error) {
@@ -112,7 +114,7 @@ const scheduleEmployeeSlice = createSlice({
                 state.error = false;
             })
             .addCase(presentEmployees.fulfilled, (state, action) => {
-                state.present = action.payload;
+                state.present = action.payload || [];
                 state.loading = false;
                 state.error = false;
             })
@@ -125,7 +127,7 @@ const scheduleEmployeeSlice = createSlice({
                 state.error = false;
             })
             .addCase(absentEmployees.fulfilled, (state, action) => {
-                state.absent = action.payload;
+                state.absent = action.payload || [];
                 state.loading = false;
                 state.error = false;
             })
