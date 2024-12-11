@@ -6,6 +6,7 @@ import { deleteEmployee, sendInvite, updateEmployee } from "../employee/redux/re
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 const Index = () => {
+    const [istotal, setTotal] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [employeeToDelete, setEmployeeToDelete] = useState(null);
@@ -111,7 +112,16 @@ const Index = () => {
             });
         }
     };
-
+    const fetchTotal = async () => {
+        const response = await dispatch(
+            total(localStorage.getItem("company_code"))
+        );
+        console.log("Fetch", response);
+        setTotal(response.payload.total_user);
+    };
+    useEffect(() => {
+        fetchTotal();
+    });
     const handleFormSubmit = async () => {
         try {
             const values = await form.validateFields();
@@ -124,19 +134,56 @@ const Index = () => {
                 role: values.role,
             };
 
-            // Mock API call to handle form submission
-            console.log("Form Values:", payload);
-            await dispatch(sendInvite(payload));
+            const submitInvite = async () => {
+                // Mock API call to handle form submission
+                console.log("Form Values:", payload);
+                await dispatch(sendInvite(payload));
 
-            notification.success({
-                message: "Success",
-                description: "Employee added successfully",
-                duration: 3,
-            });
+                notification.success({
+                    message: "Success",
+                    description: "Employee added successfully",
+                    duration: 3,
+                });
 
-            hideModal();
+                hideModal();
+            };
+
+            if (istotal > 10) {
+                Modal.confirm({
+                    title: "Additional Charge Confirmation",
+                    content:
+                        "Your Companies total employees exceed the limit of 10. Additional charges will apply. Do you wish to proceed?",
+                    okText: "Yes, Proceed",
+                    cancelText: "No, Cancel",
+                    onOk: async () => {
+                        try {
+                            await submitInvite();
+                        } catch (error) {
+                            notification.error({
+                                message: "Error",
+                                description:
+                                    error.message ||
+                                    "Failed to add employee. Please try again.",
+                                duration: 3,
+                            });
+                        } finally {
+                            setLoading(false);
+                        }
+                    },
+                    onCancel: () => {
+                        setLoading(false); // Reset loading state if the user cancels
+                    },
+                });
+            } else {
+                await submitInvite();
+            }
         } catch (error) {
             console.error("Form Validation Failed:", error);
+            notification.error({
+                message: "Validation Error",
+                description: "Please check the form fields and try again.",
+                duration: 3,
+            });
         } finally {
             setLoading(false);
         }

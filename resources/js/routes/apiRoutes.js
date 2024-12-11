@@ -31,7 +31,7 @@ const apiRoutes = {
             `/employee/invitation-cancelled-employees/${code}`,
         newSignups: (code) => `/employee/new-registered-employees/${code}`,
         ischeckin: "/schedule/employee-attendance-status",
-      
+        total:(code)=>`/employee/employee_limit/${code}`,
     },
     schedule: {
         create: "/schedule/create-schedule",

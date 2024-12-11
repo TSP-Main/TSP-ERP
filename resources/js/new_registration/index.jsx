@@ -11,12 +11,13 @@ import {
     Form,
     Select,
 } from "antd";
-import { userReject } from "./redux/reducer";
+import { total, userReject } from "./redux/reducer";
 import { approveUserAction } from "../company/redux/reducer";
 import { newSignups } from "../employee/redux/reducers"; // Ensure getActiveManagers is imported
 import { SiTicktick } from "react-icons/si";
 import { RxCross1 } from "react-icons/rx";
 import { assignManager, gettActiveManagers } from "../manager/redux/reducer"; // Assuming getActiveManagers exists
+import { use } from "react";
 
 const InActive = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -24,12 +25,13 @@ const InActive = () => {
     const [userId, setUserId] = useState(null);
     const [employeeId, setEmployeeId] = useState(null);
     const [loadingModal, setLoadingModal] = useState(false); // For loading state in modal
-
+    const [istotal,setTotal]=useState(null)
     const dispatch = useDispatch();
     const { error, loading, newsignupsdata } = useSelector(
         (state) => state.employee
     );
     const { activeManagersdata } = useSelector((state) => state.manager); // Assuming you have this state for managers
+    console.log("total",istotal)
 const fetchEmployees=()=>{
     const code = localStorage.getItem("company_code");
     dispatch(newSignups(code));
@@ -49,6 +51,14 @@ const fetchEmployees=()=>{
         setIsModalVisible(true);
     };
 
+    const fetchTotal=async()=>{
+        const response =await dispatch(total(localStorage.getItem('company_code')))
+        console.log("Fetch",response)
+        setTotal(response.payload.total_user)
+    }
+    useEffect(()=>{
+        fetchTotal();
+    })
     const handleRejected = (id) => {
         Modal.confirm({
             title: "Confirm Rejection",
@@ -57,6 +67,7 @@ const fetchEmployees=()=>{
             cancelText: "No",
             onOk: async () => {
                 try {
+                    
                     const response = await dispatch(userReject(id));
                     if (!response.error) {
                         notification.success({
@@ -74,43 +85,88 @@ const fetchEmployees=()=>{
         });
     };
 
-    const handleModalOk = async () => {
-        if (!selectedManager) {
-            notification.error({ message: "Please select a manager" });
-            return;
-        }
+   const handleModalOk = async () => {
+       if (!selectedManager) {
+           notification.error({ message: "Please select a manager" });
+           return;
+       }
 
-        setLoadingModal(true);
+       setLoadingModal(true);
 
-        try {
-            // Call two APIs: one for assigning the manager, and another for approving the user
-            await dispatch(approveUserAction(userId)); // Approve user
-            const payload={
-                employee_id: employeeId,
-                manager_id: selectedManager,
-            }
-            // Pass both employeeId and selectedManager (managerId)
-            await dispatch(assignManager(payload));
+       try {
+           // Check if total employees exceed the limit
+           if (istotal > 10) {
+               Modal.confirm({
+                   title: "Additional Charge Confirmation",
+                   content:
+                       "Your total employees exceed the limit of 10. Additional charges will apply. Do you wish to proceed?",
+                   okText: "Yes, Proceed",
+                   cancelText: "No, Cancel",
+                   onOk: async () => {
+                       try {
+                         const payload = {
+                               employee_id: employeeId,
+                               manager_id: selectedManager,
+                           };
+                           // Assign manager
+                           await dispatch(assignManager(payload));
+                           // Approve user
+                           await dispatch(approveUserAction(userId));
+                          
 
-            notification.success({
-                message: "Success",
-                description: "User approved and manager assigned.",
-                duration: 3,
-            });
-            setIsModalVisible(false); // Close modal
-            fetchEmployees();
-        } catch (error) {
-            notification.error({
-                message: "Error",
-                description:
-                    error.message ||
-                    "Failed to approve user and assign manager.",
-                duration: 3,
-            });
-        } finally {
-            setLoadingModal(false);
-        }
-    };
+                           notification.success({
+                          message: "Success",
+                               description:
+                                   "User approved and manager assigned.",
+                               duration: 3,
+                           });
+                           setIsModalVisible(false); // Close modal
+                           fetchEmployees();
+                       } catch (error) {
+                           notification.error({
+                               message: "Error",
+                               description:
+                                   error.message ||
+                                   "Failed to approve user and assign manager.",
+                               duration: 3,
+                           });
+                       }
+                   },
+                   onCancel: () => {
+                       setLoadingModal(false);
+                   },
+               });
+           } else {
+               const payload = {
+                   employee_id: employeeId,
+                   manager_id: selectedManager,
+               };
+               // Assign manager
+               await dispatch(assignManager(payload));
+               // Proceed without additional charge confirmation
+               await dispatch(approveUserAction(userId));
+            
+
+               notification.success({
+                   message: "Success",
+                   description: "User approved and manager assigned.",
+                   duration: 3,
+               });
+               setIsModalVisible(false); // Close modal
+               fetchEmployees();
+           }
+       } catch (error) {
+           notification.error({
+               message: "Error",
+               description:
+                   error.message ||
+                   "Failed to approve user and assign manager.",
+               duration: 3,
+           });
+       } finally {
+           setLoadingModal(false);
+       }
+   };
 
     const handleModalCancel = () => {
         setIsModalVisible(false);
