@@ -52,7 +52,7 @@ export const allEmployee = createAsyncThunk(
     "user/employee",
     async ({code,id}, { rejectWithValue }) => {
         try {
-            console.log("code", code);
+            console.log("code", code,id);
             // console.log("Employeeseses", { role });
               const params = id ? { manager_id: id } : {};
             const response = await axios.get(apiRoutes.employee.active(code),{

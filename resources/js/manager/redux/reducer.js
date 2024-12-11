@@ -96,6 +96,23 @@ export const assignManager = createAsyncThunk(
         }
     }
 );
+export const changeManager = createAsyncThunk(
+    "manager/assign",
+    async ({ manager_to_remove, manager_to_add }, { rejectWithValue }) => {
+        try {
+            const response = await axios.get(apiRoutes.manager.changeManager, {
+                params: {
+                    manager_to_remove: manager_to_remove,
+                    manager_to_add:manager_to_add
+                },
+            });
+        } catch (error) {
+            return rejectWithValue(
+                error || "failed to fetch Cancelled Invited Managers"
+            );
+        }
+    }
+);
 export const gettActiveManagers = createAsyncThunk(
     "manager/getActiveManagers",
     async (code, { rejectWithValue }) => {

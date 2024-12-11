@@ -58,6 +58,7 @@ const apiRoutes = {
         getInActiveManagers: (code) => `/employee/active-managers/${code}`,
         create: "/employee/add-manager",
         assignManager: "/employee/assign-manager",
+        changeManager: "/employee/change-manager",
     },
 };
 
