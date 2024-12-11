@@ -565,25 +565,36 @@ class ScheduleController extends BaseController
     public function scheduleReport($companyCode, AttendanceReportRequest $request)
     {
         try {
+            $paginate = $request->per_page ?? 2;
+
             $query = Attendance::whereBetween('date', [$request->start_date, $request->end_date])
                 ->whereHas('employee', function ($query) use ($companyCode) {
                     $query->where('company_code', $companyCode);
                 })
-                ->with('employee.user');
-                if ($request->filled('employee_id')) {
-                    $query->where('employee_id', $request->employee_id);
-                }
-                $report = $query->get();
+                ->with(['employeeSchedule.schedule', 'employee.user']);
 
-            // Group attendance data by status (Present, Absent)
-            $presentRecords = $report->where('status', StatusEnum::PRESENT);
-            $absentRecords = $report->where('status', StatusEnum::ABSENT);
+            if ($request->filled('employee_id')) {
+                $query->where('employee_id', $request->employee_id);
+            }
 
-            // Prepare detailed data for the response
+            $report = $query->paginate($paginate);
+
+            // Convert items to a collection to use filter()
+            $currentPageRecords = collect($report->items());
+
+            $presentRecords = $currentPageRecords->filter(function ($item) {
+                return $item->status === StatusEnum::PRESENT;
+            });
+            $absentRecords = $currentPageRecords->filter(function ($item) {
+                return $item->status === StatusEnum::ABSENT;
+            });
+
             $data = [
-                'total_records' => $report->count(),
-                'present' => $presentRecords,
-                'absent' => $absentRecords
+                'current_page' => $report->currentPage(),
+                'per_page' => $report->perPage(),
+                'total_records' => $report->total(),
+                'present' => $presentRecords->values(),
+                'absent' => $absentRecords->values(),
             ];
 
             return $this->sendResponse($data, 'Report successfully displayed');
