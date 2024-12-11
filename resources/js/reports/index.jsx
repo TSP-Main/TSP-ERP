@@ -48,16 +48,25 @@ const Reports = () => {
             dataIndex: "working_hours",
             key: "working-hours",
         },
+        {
+            title: "Assigned Schedule",
+            // dataIndex: ["employee_schedule", "schedule", "start_time"],
+            key: "Assigned_Schedule",
+            render: (record) => record.Assigned_Schedule || "",
+        },
     ];
 
     // Prepare data for the table
     const data =
         present?.present?.map((schedule, index) => ({
-        key: index,
-           name: schedule?.employee?.user?.name,
+            key: index,
+            name: schedule?.employee?.user?.name || "N/A", // Provide a default value if name is undefined
             time_in: schedule.time_in || "-",
             time_out: schedule.time_out || "-",
             working_hours: schedule.working_hours || "-",
+            Assigned_Schedule: `${
+                schedule?.employee_schedule?.schedule?.start_time || "-"
+            } - ${schedule?.employee_schedule?.schedule?.end_time || "-"}`, // Correctly concatenate with separator
         })) || [];
 
     // Disable dates from tomorrow onwa

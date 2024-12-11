@@ -33,6 +33,12 @@ const Absent = () => {
             key: "name",
             render: (record) => record.name || "-",
         },
+        {
+            title: "Assigned Schedule",
+            // dataIndex: ["employee_schedule", "schedule", "start_time"],
+            key: "Assigned_Schedule",
+            render: (record) => record.Assigned_Schedule || "",
+        },
         // {
         //     title: "Check-In Time",
         //     dataIndex: "time_in",
@@ -55,6 +61,9 @@ const Absent = () => {
         absent?.absent?.map((schedule, index) => ({
             key: index,
             name: schedule?.employee?.user?.name,
+            Assigned_Schedule: `${
+                schedule?.employee_schedule?.schedule?.start_time || "-"
+            } - ${schedule?.employee_schedule?.schedule?.end_time || "-"}`, // Correctly concatenate with separator
             // time_in: schedule.time_in || "-",
             // time_out: schedule.time_out || "-",
             // working_hours: schedule.working_hours || "-",

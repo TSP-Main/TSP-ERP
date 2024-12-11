@@ -14,10 +14,12 @@ import {
 } from "antd";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
-import { gettActiveManagers } from "../../manager/redux/reducer";
+import { assignManager, createManager, gettActiveManagers } from "../../manager/redux/reducer";
 import Loading from "../../Loading";
 
 function Employee() {
+    const [isChangeManagerModalOpen,setIsChangeManagerModalOpen]=useState(false)
+    const [managerChange,setManagerChange]=useState(null)
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [employeeToDelete, setEmployeeToDelete] = useState(null);
@@ -134,6 +136,48 @@ const refetchManagers = async () => {
             });
         }
     };
+    const handleChangeManager = async () => {
+        if (!managerChange?.manager_id || !managerChange?.id) {
+            notification.error({
+                description: "Please select a manager and an employee",
+                duration: 2,
+            });
+            return;
+        }
+
+        const payload = {
+            employee_id: managerChange.id,
+            manager_id: managerChange.manager_id,
+        };
+        console.log("Update Manager",payload)
+
+        try {
+            // Send the payload to the API
+            const response = await dispatch(assignManager(payload)); // Dispatch the action
+            if (!response.error) {
+                notification.success({
+                    description: "Manager updated successfully",
+                    duration: 2,
+                });
+                refetchEmployees(); // Refresh employees list
+                refetchManagers();
+                
+            }
+        } catch (error) {
+            notification.error({
+                description: error || "Failed to update manager",
+                duration: 2,
+            });
+        }
+
+        setIsChangeManagerModalOpen(false);
+    };
+
+  const showManagerChangeModal = (id) => {
+      setManagerChange({ id }); // Set the employee ID in the state
+      setIsChangeManagerModalOpen(true);
+  };
+    
     const columnsM = [
         {
             title: "Name",
@@ -158,7 +202,9 @@ const refetchManagers = async () => {
                         icon={<MdDelete />}
                         onClick={() => showDeleteModal(record?.user_id)}
                     />
+                   
                 </div>
+
             ),
         },
     ];
@@ -175,8 +221,8 @@ const refetchManagers = async () => {
             key: "email",
         },
         {
-            title:"Manager",
-            dataIndex:["manager","user","name"],
+            title: "Manager",
+            dataIndex: ["manager", "user", "name"],
             key: "manager",
         },
         {
@@ -192,11 +238,19 @@ const refetchManagers = async () => {
                         icon={<MdDelete />}
                         onClick={() => showDeleteModal(record?.user_id)}
                     />
+                    <Button onClick={()=>showManagerChangeModal(record?.id)}>
+                        Change Manager
+                    </Button>
                 </div>
             ),
         },
     ];
-
+const handleManagerSelect = (value) => {
+    setManagerChange((prev) => ({
+        ...prev,
+        manager_id: value, // Set the selected manager ID
+    }));
+};
     // Show loading state
     if (loading) return <Loading/>;
 
@@ -221,7 +275,43 @@ const refetchManagers = async () => {
                 rowKey={(record) => record.id}
                 pagination={false}
             />
-
+            <Modal
+                title="Change Manager"
+                open={isChangeManagerModalOpen}
+                onOk={handleChangeManager}
+                onCancel={() => setIsChangeManagerModalOpen(false)}
+            >
+                <Form form={editForm} layout="vertical">
+                    <Form.Item
+                        style={{ flex: 1 }}
+                        name="manager_id"
+                        label="Manager"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please select a manager",
+                            },
+                        ]}
+                    >
+                        <Select placeholder="Select Manager" onChange={handleManagerSelect}>
+                            {Array.isArray(activeManagersdata) && activeManagersdata.length > 0 ? (
+                                activeManagersdata.map((manager) => (
+                                    <Select.Option
+                                        key={manager.id}
+                                        value={manager.id}
+                                    >
+                                        {manager.user.name}
+                                    </Select.Option>
+                                ))
+                            ) : (
+                                <Select.Option disabled value="">
+                                    No Managers Available
+                                </Select.Option>
+                            )}
+                        </Select>
+                    </Form.Item>
+                </Form>
+            </Modal>
             {/* Delete Confirmation Modal */}
             <Modal
                 title="Confirm Deletion"
@@ -238,6 +328,7 @@ const refetchManagers = async () => {
                 onOk={handleEdit}
                 onCancel={() => setIsEditModalOpen(false)}
             >
+                <p>Select Manager</p>
                 <Form form={editForm} layout="vertical">
                     <Form.Item
                         label="Name"
