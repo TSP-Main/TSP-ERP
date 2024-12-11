@@ -7,6 +7,7 @@ import { IoTimeOutline } from "react-icons/io5";
 import { userData } from "../../dashboard/redux/reducer";
 import { RiHomeOfficeFill } from "react-icons/ri";
 import { BiTimer } from "react-icons/bi";
+
 import {
     MdWorkOutline,
     MdOutlineCoPresent,
@@ -14,6 +15,7 @@ import {
     MdOutlineCancel,
     MdOutlineCancelScheduleSend,
     MdCoPresent,
+    MdCancelPresentation,
 } from "react-icons/md";
 import { FcInvite } from "react-icons/fc";
 import { GrDocumentMissing } from "react-icons/gr";
@@ -133,7 +135,7 @@ const RoleBasedMenu = () => {
                 getItem(
                     <Link to="/employee-reports-absent">Absent</Link>,
                     "/employee-reports-absent", // Key matching the URL path
-                    <MdCoPresent />
+                    <MdCancelPresentation />
                 ),
             ])
         );
