@@ -1,28 +1,40 @@
 import React, { useState, useEffect } from "react";
 import Button from "../components/Button";
-import { Table, notification } from "antd";
+import { Modal, Table, notification } from "antd";
 import SendInviteModal from "./modal/EmployeeModal";
 import { useDispatch } from "react-redux";
 import { allEmployee, sendInvite } from "./redux/reducers";
 import { useSelector } from "react-redux";
 import Employe from "./services/employee";
 import { createManager } from "../manager/redux/reducer";
+import { total } from "../new_registration/redux/reducer";
 // import { createManager } from "../manager/redux/reducer";
 const Employee = () => {
+    const [istotal, setTotal] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const dispatch = useDispatch();
     const [Loading, setLoading] = useState(false);
     //    const {error,loading,employeedata} =useSelector((state)=>state.employee)
-   const refetchEmployees = async () => {
-       const code = localStorage.getItem("company_code");
+    const refetchEmployees = async () => {
+        const code = localStorage.getItem("company_code");
 
-       await dispatch(allEmployee(code)); // Dispatch the action to fetch employees
-   };
-   const refetchManagers = async () => {
-       const code = localStorage.getItem("company_code");
+        await dispatch(allEmployee(code)); // Dispatch the action to fetch employees
+    };
+    const fetchTotal = async () => {
+        const response = await dispatch(
+            total(localStorage.getItem("company_code"))
+        );
+        console.log("Fetch", response);
+        setTotal(response.payload.total_user);
+    };
+    useEffect(() => {
+        fetchTotal();
+    });
+    const refetchManagers = async () => {
+        const code = localStorage.getItem("company_code");
 
-       await dispatch(gettActiveManagers(code)); // Dispatch the action to fetch employees
-   };
+        await dispatch(gettActiveManagers(code)); // Dispatch the action to fetch employees
+    };
     // Show Modal
     const showModal = () => {
         setIsModalVisible(true);
@@ -34,10 +46,11 @@ const Employee = () => {
     };
     // Handle Form Submission
    const handleSendInvite = async (values, selectedRole) => {
-     console.log("values",values);
-     
+       console.log("values", values);
+
        setLoading(true);
-       try {
+
+       const sendInviteRequest = async () => {
            let response;
            if (selectedRole === "employee") {
                response = await dispatch(sendInvite(values));
@@ -55,7 +68,39 @@ const Employee = () => {
                duration: 3,
            });
            refetchManagers();
-        //    window.location.reload();
+           hideModal();
+       };
+
+       try {
+           if (istotal > 10) {
+               Modal.confirm({
+                   title: "Additional Charge Confirmation",
+                   content:
+                       "Your total employees exceed the limit of 10. Additional charges will apply. Do you wish to proceed?",
+                   okText: "Yes, Proceed",
+                   cancelText: "No, Cancel",
+                   onOk: async () => {
+                       try {
+                           await sendInviteRequest();
+                       } catch (error) {
+                           notification.error({
+                               message: "Error",
+                               description:
+                                   error.message ||
+                                   "Problem sending invite. Try again.",
+                               duration: 3,
+                           });
+                       } finally {
+                           setLoading(false);
+                       }
+                   },
+                   onCancel: () => {
+                       setLoading(false); // Reset loading state if the user cancels
+                   },
+               });
+           } else {
+               await sendInviteRequest();
+           }
        } catch (error) {
            notification.error({
                message: "Error",
@@ -65,11 +110,9 @@ const Employee = () => {
            });
        } finally {
            setLoading(false);
-           hideModal();
        }
    };
 
-  
 
     return (
         <>
