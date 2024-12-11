@@ -76,6 +76,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('invited-employees/{companyCode}', [EmployeeController::class, 'invitedEmployees']);
         Route::get('invitation-cancelled-employees/{companyCode}', [EmployeeController::class, 'inviteCancelledEmployee']);
         Route::get('new-registered-employees/{companyCode}', [EmployeeController::class, 'newSignUpEmployees']);
+        Route::get('employee_limit/{companyCode}', [EmployeeController::class, 'subscribedEmployee']);
 
         // Employee manager routes
         Route::post('add-manager', [ManagerController::class, 'create']);
