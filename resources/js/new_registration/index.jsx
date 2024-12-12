@@ -61,6 +61,7 @@ const fetchEmployees=()=>{
     })
     const handleRejected = (id) => {
         Modal.confirm({
+        
             title: "Confirm Rejection",
             content: "Are you sure you want to reject this user?",
             okText: "Yes",
@@ -99,11 +100,12 @@ const fetchEmployees=()=>{
                Modal.confirm({
                    title: "Additional Charge Confirmation",
                    content:
-                       "Your total employees exceed the limit of 10. Additional charges will apply. Do you wish to proceed?",
+                       "Your total employees exceed the limit of 10. Additional charges will apply ($1.99). Do you wish to proceed?",
                    okText: "Yes, Proceed",
                    cancelText: "No, Cancel",
                    onOk: async () => {
                        try {
+                        console.log("inside total")
                          const payload = {
                                employee_id: employeeId,
                                manager_id: selectedManager,
@@ -137,6 +139,7 @@ const fetchEmployees=()=>{
                    },
                });
            } else {
+            console.log("else tottal")
                const payload = {
                    employee_id: employeeId,
                    manager_id: selectedManager,

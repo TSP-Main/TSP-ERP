@@ -13,8 +13,9 @@ import {
 } from "@stripe/react-stripe-js";
 import { stripePromise } from "../../stripe";
 import axios from "../../services/axiosService";
-
+import { useNavigate } from "react-router-dom";
 const Register = () => {
+    const navigate = useNavigate();
     const [form] = Form.useForm();
     const [role, setUserType] = useState(null);
     const stripe = useStripe();
@@ -22,138 +23,141 @@ const Register = () => {
     const dispatch = useDispatch();
     const { error, loading } = useSelector((state) => state.auth);
     const stripeKey = process.env.STRIPE_KEY;
-    console.log("key: ",stripeKey);
+    console.log("key: ", stripeKey);
     const onUserTypeChange = (value) => {
         setUserType(value);
     };
 
-  const onFinish = async (values) => {
-      if (role === "company" && stripe && elements) {
-          try {
-              // Step 1: Get price and client_secret
-            //   const response = await dispatch(
-            //       getPrice({
-            //           package: values.package,
-            //           plan: values.plan,
-            //           name: values.name,
-            //           email: values.email,
-            //       })
-            //   );
+    const onFinish = async (values) => {
+        if (role === "company" && stripe && elements) {
+            try {
+                // Step 1: Get price and client_secret
+                //   const response = await dispatch(
+                //       getPrice({
+                //           package: values.package,
+                //           plan: values.plan,
+                //           name: values.name,
+                //           email: values.email,
+                //       })
+                //   );
 
-            //   if (!response.payload || !response.payload.data.client_secret) {
-            //       notification.error({
-            //           message: "Error",
-            //           description: "Failed to fetch payment details",
-            //           duration: 3,
-            //       });
-            //       return;
-            //   }
-            //   console.log("register ", response.payload.data)
-            //   const customer_id = response.payload.data.customer_id;
-            //   const clientSecret = response.payload.data.client_secret;
-            //   console.log("Client Secret:", clientSecret);
+                //   if (!response.payload || !response.payload.data.client_secret) {
+                //       notification.error({
+                //           message: "Error",
+                //           description: "Failed to fetch payment details",
+                //           duration: 3,
+                //       });
+                //       return;
+                //   }
+                //   console.log("register ", response.payload.data)
+                //   const customer_id = response.payload.data.customer_id;
+                //   const clientSecret = response.payload.data.client_secret;
+                //   console.log("Client Secret:", clientSecret);
 
-           console.log("Step 2: Confirm payment"); 
-             const cardElement = elements.getElement(CardElement);
-             const responsestripe = await stripe.createPaymentMethod(
-                 "card",cardElement,
-                 
-             );
-             
+                console.log("Step 2: Confirm payment");
+                const cardElement = elements.getElement(CardElement);
+                const responsestripe = await stripe.createPaymentMethod(
+                    "card",
+                    cardElement
+                );
 
-              if (responsestripe.error) {
-                  notification.error({
-                      message: "Payment Error",
-                      description: result.error.message,
-                      duration: 3,
-                  });
-                  return;
-              }
+                if (responsestripe.error) {
+                    notification.error({
+                        message: "Payment Error",
+                        description: result.error.message,
+                        duration: 3,
+                    });
+                    return;
+                }
 
-              // Step 3: Use payment method ID for registration
-              const paymentMethodId = responsestripe.paymentMethod.id;
-             
-              console.log(
-                  "Payment Method ID:",
-                  responsestripe.paymentMethod.id
-              );
+                // Step 3: Use payment method ID for registration
+                const paymentMethodId = responsestripe.paymentMethod.id;
 
-              const registrationData = {
-                  role: values.role,
-                  name: values.name,
-                  email: values.email,
-                  password: values.password,
-                  password_confirmation: values.password_confirmation,
-                  company_name: values.company_name,
-                  package: values.package,
-                  plan: values.plan,
-                
-                  payment_method_id: paymentMethodId,
-              };
+                console.log(
+                    "Payment Method ID:",
+                    responsestripe.paymentMethod.id
+                );
 
-              const registrationResponse = await dispatch(
-                  SignUp(registrationData)
-              );
+                const registrationData = {
+                    role: values.role,
+                    name: values.name,
+                    email: values.email,
+                    password: values.password,
+                    password_confirmation: values.password_confirmation,
+                    company_name: values.company_name,
+                    package: values.package,
+                    plan: values.plan,
 
-              if (registrationResponse.error) {
-                  notification.error({
-                      message: "Registration Error",
-                      description:
-                          registrationResponse.payload ||
-                          "Registration failed due to server error",
-                      duration: 3,
-                  });
-                  return;
-              }
+                    payment_method_id: paymentMethodId,
+                };
 
-              notification.success({
-                  message: "Registration Successful",
-                  description:
-                      "You have successfully registered. Please wait for approval.",
-                  duration: 3,
-              });
-          } catch (error) {
-              notification.error({
-                  message: "Error",
-                  description: error.message || "An unexpected error occurred.",
-                  duration: 3,
-              });
-          }
-      } else {
-          // Employee registration logic (without payment)
-          try {
-              const response = await dispatch(SignUp(values));
-              if (response.error) {
-                  notification.error({
-                      message: "Registration Error",
-                      description: response.payload || "Registration failed",
-                      duration: 3,
-                  });
-                  return;
-              }
+                const registrationResponse = await dispatch(
+                    SignUp(registrationData)
+                );
 
-              notification.success({
-                  message: "Registration Successful",
-                  description:
-                      "You have successfully registered. Please wait for approval.",
-                  duration: 3,
-              });
-          } catch (error) {
-              notification.error({
-                  message: "Error",
-                  description: error.message || "An unexpected error occurred.",
-                  duration: 3,
-              });
-          }
-      }
-  };
+                if (registrationResponse.error) {
+                    notification.error({
+                        message: "Registration Error",
+                        description:
+                            registrationResponse.payload ||
+                            "Registration failed due to server error",
+                        duration: 3,
+                    });
+                    return;
+                } else {
+                    notification.success({
+                        message: "Registration Successful",
+                        description:
+                            "You have successfully registered. Please wait for approval.",
+                        duration: 3,
+                    });
+                    navigate("/login");
+                }
+            } catch (error) {
+                notification.error({
+                    message: "Error",
+                    description:
+                        error.message || "An unexpected error occurred.",
+                    duration: 3,
+                });
+            }
+        } else {
+            // Employee registration logic (without payment)
+            try {
+                const response = await dispatch(SignUp(values));
+                if (response.error) {
+                    notification.error({
+                        message: "Registration Error",
+                        description: response.payload || "Registration failed",
+                        duration: 3,
+                    });
+                    return;
+                }
 
-
+                notification.success({
+                    message: "Registration Successful",
+                    description:
+                        "You have successfully registered. Please wait for approval.",
+                    duration: 3,
+                });
+            } catch (error) {
+                notification.error({
+                    message: "Error",
+                    description:
+                        error.message || "An unexpected error occurred.",
+                    duration: 3,
+                });
+            }
+        }
+    };
 
     return (
         <div className={styles.loginContainer}>
             <WelcomePage
-                containerStyle={{height: '450px',borderRadius: '8px 0px 0px 8px'}}
+                containerStyle={{
+                    height: "450px",
+                    borderRadius: "8px 0px 0px 8px",
+                }}
                 title="Hello Friend"
                 description="Sign In to access your personalized dashboard and features."
                 buttonText="Sign In"
