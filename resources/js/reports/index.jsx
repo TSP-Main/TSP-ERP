@@ -7,24 +7,34 @@ import { presentEmployees } from "./attended/reducer";
 const Reports = () => {
     const dispatch = useDispatch();
     const { present } = useSelector((state) => state.scheduleEmployee);
-    console.log("present",present.present)
-    // Default to today's date
-    const [selectedDate, setSelectedDate] = useState(moment());
 
-    // Fetch attended schedule for a specific date
-    const fetchAttendedSchedule = (date) => {
+    const [selectStartDate, setStartData] = useState(moment());
+    const [selectEndDate, setEndDate] = useState(moment());
+
+    // Fetch attended schedule for a specific date range
+    const fetchAttendedSchedule = (startDate, endDate) => {
         const code = localStorage.getItem("company_code");
         const payload = {
-            start_date: date.format("YYYY-MM-DD"),
-            end_date: date.format("YYYY-MM-DD"),
+            start_date: startDate.format("YYYY-MM-DD"),
+            end_date: endDate.format("YYYY-MM-DD"),
         };
-        console.log("Payload:", payload);
         dispatch(presentEmployees({ code, payload })).unwrap();
     };
 
+    // Default fetch for today's date
     useEffect(() => {
-        fetchAttendedSchedule(moment()); // Fetch data for today by default
+        fetchAttendedSchedule(moment(), moment());
     }, []);
+
+    // Handle Start Date Change
+    const handleStartDateChange = (date) => {
+        setStartData(date);
+    };
+
+    // Handle End Date Change
+    const handleEndDateChange = (date) => {
+        setEndDate(date);
+    };
 
     // Columns for the table
     const columns = [
@@ -50,9 +60,8 @@ const Reports = () => {
         },
         {
             title: "Assigned Schedule",
-            // dataIndex: ["employee_schedule", "schedule", "start_time"],
             key: "Assigned_Schedule",
-            render: (record) => record.Assigned_Schedule || "",
+            render: (record) => record.Assigned_Schedule || "-",
         },
     ];
 
@@ -60,21 +69,14 @@ const Reports = () => {
     const data =
         present?.present?.map((schedule, index) => ({
             key: index,
-            name: schedule?.employee?.user?.name || "N/A", // Provide a default value if name is undefined
+            name: schedule?.employee?.user?.name || "N/A",
             time_in: schedule.time_in || "-",
             time_out: schedule.time_out || "-",
             working_hours: schedule.working_hours || "-",
             Assigned_Schedule: `${
                 schedule?.employee_schedule?.schedule?.start_time || "-"
-            } - ${schedule?.employee_schedule?.schedule?.end_time || "-"}`, // Correctly concatenate with separator
+            } - ${schedule?.employee_schedule?.schedule?.end_time || "-"}`,
         })) || [];
-
-    // Disable dates from tomorrow onwa
-    // Handle date change
-    const handleDateChange = (date) => {
-        setSelectedDate(date);
-        fetchAttendedSchedule(date);
-    };
 
     return (
         <>
@@ -83,15 +85,28 @@ const Reports = () => {
                     <Col span={5}>
                         <DatePicker
                             picker="day"
-                            value={selectedDate}
-                            onChange={handleDateChange}
-                            placeholder="Select Date"
+                            value={selectStartDate}
+                            onChange={handleStartDateChange}
+                            placeholder="Select Start Date"
+                        />
+                    </Col>
+                    <Col span={5}>
+                        <DatePicker
+                            picker="day"
+                            value={selectEndDate}
+                            onChange={handleEndDateChange}
+                            placeholder="Select End Date"
                         />
                     </Col>
                     <Col span={2}>
                         <Button
                             type="primary"
-                            onClick={() => fetchAttendedSchedule(selectedDate)}
+                            onClick={() =>
+                                fetchAttendedSchedule(
+                                    selectStartDate,
+                                    selectEndDate
+                                )
+                            }
                         >
                             Submit
                         </Button>
@@ -102,7 +117,7 @@ const Reports = () => {
                 style={{ marginTop: 16 }}
                 columns={columns}
                 dataSource={data}
-                pagination={false} // Show all data without pagination
+                pagination={false}
             />
         </>
     );
