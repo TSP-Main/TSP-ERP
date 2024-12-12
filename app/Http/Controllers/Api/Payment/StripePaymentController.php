@@ -146,7 +146,7 @@ class StripePaymentController extends BaseController
                     $stripeService->handleAdditionalUserPayment($companyCode);
 
                     // Approve the employee
-                    EmployeeApproveEmailJob::dispatch($user->email);
+                    EmployeeApproveEmailJob::dispatch($user);
                     $user->update([
                         'is_active' => StatusEnum::ACTIVE,
                         'status' => StatusEnum::APPROVED,
