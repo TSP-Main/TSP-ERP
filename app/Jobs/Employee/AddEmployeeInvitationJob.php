@@ -2,6 +2,7 @@
 
 namespace App\Jobs\Employee;
 
+use App\Classes\StatusEnum;
 use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -18,11 +19,11 @@ class AddEmployeeInvitationJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    private $companyCode, $employee, $plainPassword;
-    public function __construct($companyCode, $employee, $plainPassword)
+    private $companyCode, $user, $plainPassword;
+    public function __construct($companyCode, $user, $plainPassword)
     {
         $this->companyCode = $companyCode;
-        $this->employee = $employee;
+        $this->user = $user;
         $this->plainPassword = $plainPassword;
     }
 
@@ -32,16 +33,32 @@ class AddEmployeeInvitationJob implements ShouldQueue
     public function handle(): void
     {
         try {
+            $email = $this->user->email;
+
+            // Determine the "from" email based on the user's role
+            $fromEmail = null;
+
+            if ($this->user->roles->first()->name == StatusEnum::MANAGER) {
+                $fromEmail = optional($this->user->manager->company->user)->email;
+            } elseif ($this->user->roles->first()->name == StatusEnum::EMPLOYEE) {
+                $fromEmail = optional($this->user->employee->company->user)->email;
+            }
+
+            // Default "from" email fallback
+            if (!$fromEmail) {
+                $fromEmail = config('mail.from.address', 'no-reply@example.com');
+            }
+
             $data = [
                 'companyCode' => $this->companyCode,
-                'employee' => $this->employee,
+                'employee' => $this->user,
                 'plainPassword' => $this->plainPassword,
             ];
 
             // Send the email using the data array
-            Mail::send('emails.employee.AddEmployeeEmail', $data, function ($m) {
-                $m->from(config('mail.from.address'), config('app.name', 'APP Name'));
-                $m->to($this->employee->email)->subject('Add Employee');
+            Mail::send('emails.employee.AddEmployeeEmail', $data, function ($m) use ($fromEmail, $email) {
+                $m->from($fromEmail, config('app.name', 'APP Name'));
+                $m->to($email)->subject('Add Employee');
             });
         } catch (Exception $e) {
             // Log the error if the email fails
