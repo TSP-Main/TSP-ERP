@@ -28,9 +28,9 @@ class Kernel extends ConsoleKernel
 
         // Define an array of commands and their scheduling methods
         $commands = [
-            'inactivate-expired-schedules' => 'daily',
-            'activate-schedules' => 'daily',
-            'user-logout' => 'hourly',
+            // 'inactivate-expired-schedules' => 'daily',
+            // 'activate-schedules' => 'daily',
+            // 'user-logout' => 'hourly',
             'attendance:mark-absent' => 'daily',
         ];
 

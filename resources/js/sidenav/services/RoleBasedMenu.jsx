@@ -16,6 +16,7 @@ import {
     MdOutlineCancelScheduleSend,
     MdCoPresent,
     MdCancelPresentation,
+    MdEventAvailable,
 } from "react-icons/md";
 import { FcInvite } from "react-icons/fc";
 import { GrDocumentMissing } from "react-icons/gr";
@@ -71,9 +72,9 @@ const RoleBasedMenu = () => {
     } else if (userRole === "company") {
         items.push(
             getItem(
-                <Link to="/rota">ROTA</Link>,
-                "/rota", // Key matching the URL path
-                <FiUsers />
+                <Link to="/assign-shift">ROTA</Link>,
+                "/assign-shift", // Key matching the URL path
+                <MdOutlineTimer />
             ),
 
             getItem("Shift", "shift", <IoIosTimer />, [
@@ -82,17 +83,18 @@ const RoleBasedMenu = () => {
                     "/shift", // Key matching the URL path
                     <IoTimeOutline />
                 ),
-                getItem(
-                    <Link to="/assign-shift">Assign Shift</Link>,
-                    "/assign-shift", // Key matching the URL path
-                    <MdOutlineTimer />
-                ),
+
                 getItem(
                     <Link to="/change-shift">Change Shift</Link>,
                     "/change-shift", // Key matching the URL path
                     <BiTimer />
                 ),
             ]),
+            getItem(
+                <Link to="/rota">CheckedIn Employees</Link>,
+                "/rota", // Key matching the URL path
+                <FiUsers />
+            ),
             getItem("Employee", "employee", <FiUsers />, [
                 getItem(
                     <Link to="/employee">Active Employees</Link>,
@@ -145,6 +147,11 @@ const RoleBasedMenu = () => {
                 <Link to="/attendance">Attendance</Link>,
                 "/attendance", // Key matching the URL path
                 <MdCoPresent />
+            ),
+            getItem(
+                <Link to="/availibility">Availibility</Link>,
+                "/availibility", // Key matching the URL path
+                <MdEventAvailable />
             ),
             getItem("Report", "reports", <TbReport />, [
                 getItem(

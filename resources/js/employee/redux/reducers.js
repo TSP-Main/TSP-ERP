@@ -120,10 +120,10 @@ export const checkedinEmployee = createAsyncThunk(
             });
 
             console.log("checked-in employee", response.data.data);
-            if (!response.data || response.data.length === 0) {
-                return [];
-            }
-            return response.data.data;
+            // if (!response.data || response.data.length === 0) {
+            //     return [];
+            // }
+            return response?.data?.data;
         } catch (error) {
             console.log("redux error: " + error);
             return rejectWithValue(

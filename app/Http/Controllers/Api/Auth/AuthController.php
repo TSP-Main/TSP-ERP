@@ -14,8 +14,6 @@ use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Http\Requests\Auth\verifyForgetPasswordOtpRequest;
 use App\Http\Requests\Auth\VerifyOtpRequest;
-use App\Jobs\Company\CompanyApprovedEmailJob;
-use App\Jobs\Company\EmployeeApproveEmailJob;
 use App\Models\Company\CompanyModel;
 use App\Models\Employee\Employee;
 use App\Models\Employee\Manager;
@@ -299,7 +297,7 @@ class AuthController extends BaseController
     {
         $paginate = $request->per_page ?? 20;
         $this->authorize('get-all-users');
-        $users = User::paginate($paginate);
+        $users = User::with(['employee', 'manager', 'company'])->paginate($paginate);
         if (!$users) {
             return $this->sendResponse('No user found');
         }

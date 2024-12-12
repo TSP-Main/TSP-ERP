@@ -5,7 +5,7 @@ import Attendance from "../attendance/index.jsx";
 import { Outlet } from "react-router-dom";
 import Missed from '../reports/missed/index.jsx'
 import Attended from '../reports/attended/index.jsx'
-
+import Availibility from "../attendance/Availibility.jsx";
 const EmployeeRoutes = () => {
     return (
         <Routes>
@@ -14,7 +14,7 @@ const EmployeeRoutes = () => {
                 <Route path="attendance" element={<Attendance />} />
                 <Route path="missed" element={<Missed />} />
                 <Route path="attended" element={<Attended />} />
-              
+                <Route path="availibility" element={<Availibility />} />
                 {/* Add other employee-specific routes here */}
             </Route>
         </Routes>
