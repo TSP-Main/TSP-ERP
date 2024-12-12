@@ -2,6 +2,7 @@
 
 namespace App\Jobs\Company;
 
+use App\Classes\StatusEnum;
 use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -18,10 +19,11 @@ class EmployeeApproveEmailJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    private $email;
-    public function __construct($email)
+    // dd('here', $user->employee->company->user->email);
+    private $user;
+    public function __construct($user)
     {
-        $this->email = $email;
+        $this->user = $user;
     }
 
     /**
@@ -30,13 +32,30 @@ class EmployeeApproveEmailJob implements ShouldQueue
     public function handle(): void
     {
         try {
+            $email = $this->user->email;
+
+            // Determine the "from" email based on the user's role
+            $fromEmail = null;
+
+            if ($this->user->roles->first()->name == StatusEnum::MANAGER) {
+                $fromEmail = optional($this->user->manager->company->user)->email;
+            } elseif ($this->user->roles->first()->name == StatusEnum::EMPLOYEE) {
+                $fromEmail = optional($this->user->employee->company->user)->email;
+            }
+
+            // Default "from" email fallback
+            if (!$fromEmail) {
+                $fromEmail = config('mail.from.address', 'no-reply@example.com');
+            }
+
             $data = [
-                'email' => $this->email,
+                'email' => $email,
             ];
 
-            Mail::send('emails.company.ApproveEmployeeEmail', $data, function ($m) {
-                $m->from(config('mail.from.address'), config('app.name', 'APP Name'));
-                $m->to($this->email)->subject('Employee Approved.');
+            // Send email
+            Mail::send('emails.company.ApproveEmployeeEmail', $data, function ($m) use ($email, $fromEmail) {
+                $m->from($fromEmail, config('app.name', 'APP Name'));
+                $m->to($email)->subject('Employee Approved');
             });
         } catch (Exception $e) {
             Log::error('Failed to send employee approval email: ' . $e->getMessage());
