@@ -1,17 +1,26 @@
-import React, { useEffect } from "react";
+import React, { useEffect,useState,useMemo } from "react";
 import { Table, notification } from "antd";
-
 import { useDispatch, useSelector } from "react-redux";
 import { gettCancelledInvitedEmployees } from "./redux/reducer";
+import FilterComponent from "../components/FilterComponent";
 
 const InvitedCanceledEmployee = () => {
     const dispatch = useDispatch();
     const { cancelinvitedemployeedata } = useSelector((state) => state.manager);
+     const [filterText, setFilterText] = useState("");
     console.log("cancelinvitedemployeedata", cancelinvitedemployeedata);
     useEffect(() => {
         fetchInvitedCanceledEmployee();
     }, []);
-
+ const handleFilterChange = (value) => {
+     setFilterText(value);
+ };
+ const filteredItems = useMemo(() => {
+     if (cancelinvitedemployeedata == null) return [];
+     return cancelinvitedemployeedata.filter((item) =>
+         JSON.stringify(item).toLowerCase().includes(filterText.toLowerCase())
+     );
+ }, [cancelinvitedemployeedata, filterText]);
     const fetchInvitedCanceledEmployee = async () => {
         try {
             const payload={
@@ -57,8 +66,22 @@ const InvitedCanceledEmployee = () => {
 
     return (
         <>
+        <h1>Invite Canceled Employees</h1>
+            <FilterComponent style=
+            {{
+                // marginBottom: "16px",
+                display: "flex",
+                flexDirection: "row-reverse",
+                justifyContent: "flex-end",
+                alignItems: "flex-start",
+            }}
+            filterText={filterText}
+            onFilter={handleFilterChange}
+            // onClear={handleClearFilter}
+            />
             <Table
-                dataSource={cancelinvitedemployeedata}
+                style={{ marginTop: "16px" }}
+                dataSource={filteredItems}
                 columns={columns}
                 pagination={false}
             />

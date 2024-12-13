@@ -107,7 +107,7 @@ const InvitCancel = () => {
                     }}
                     filterText={filterText}
                     onFilter={handleFilterChange}
-                    onClear={handleClearFilter}
+                    // onClear={handleClearFilter}
                 />
             </Flex>
             {selectedValue === "Manager" && (

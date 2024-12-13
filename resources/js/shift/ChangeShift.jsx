@@ -47,11 +47,23 @@ const ChangeShift = () => {
             title: "Employee Name",
             dataIndex: "employee_name",
             key: "employee_name",
+            defaultSortOrder: "ascend", // Sets the default sorting order
+            sorter: (a, b) => {
+                const nameA = a.employee_name?.toLowerCase() || ""; // Handle undefined or null values
+                const nameB = b.employee_name?.toLowerCase() || ""; // Handle undefined or null values
+                return nameA.localeCompare(nameB); // Use localeCompare for string sorting
+            },
         },
         {
             title: "Employee Email",
             dataIndex: "employee_email",
             key: "employee_email",
+            defaultSortOrder: "ascend", // Sets the default sorting order
+            sorter: (a, b) => {
+                const nameA = a.employee_email?.toLowerCase() || ""; // Handle undefined or null values
+                const nameB = b.employee_email?.toLowerCase() || ""; // Handle undefined or null values
+                return nameA.localeCompare(nameB); // Use localeCompare for string sorting
+            },
         },
         {
             title: "Date",
@@ -87,7 +99,7 @@ const dataa = data?.map((item) => ({
                 columns={columns}
                 dataSource={role === "company" ? changeRequestData : data}
                 loading={loading} // Show loading state while fetching data
-                pagination={false} // Disable pagination, or configure as needed
+                pagination={true} // Disable pagination, or configure as needed
             />
         </div>
     );

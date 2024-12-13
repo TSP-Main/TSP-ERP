@@ -1,16 +1,28 @@
 import { notification, Table } from "antd";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useMemo } from "react";
 import { useDispatch } from "react-redux";
 import { allEmployee, checkedinEmployee } from "./redux/reducers";
 import { useSelector } from "react-redux";
+import FilterComponent from "../components/FilterComponent";
 
 const CheckedIn = () => {
+     const [filterText, setFilterText] = useState("");
     const dispatch = useDispatch();
     const [employees, setEmployees] = useState([]); // State for all employees
     const [checkedInIds, setCheckedInIds] = useState([]); // State for checked-in employees' IDs\
      const [checkinDataMap, setCheckinDataMap] = useState({});
     const {checkinData}=useSelector((state)=>state.employee)
     console.log("CheckedIn",checkinData);
+    const handleFilterChange = (value) => {
+        setFilterText(value);
+    };
+       const filteredItemsM = useMemo(() => {
+            return employees.filter((item) =>
+                JSON.stringify(item)
+                    .toLowerCase()
+                    .includes(filterText.toLowerCase())
+            );
+        }, [employees, filterText]);
     const columns = [
         {
             title: "Name",
@@ -132,9 +144,22 @@ const fetchCheckedInEmployees = async () => {
     return (
         <>
             <h1>Checked-In Employees</h1>
+            <FilterComponent
+                style={{
+                    // marginBottom: "16px",
+                    display: "flex",
+                    flexDirection: "row-reverse",
+                    justifyContent: "flex-end",
+                    alignItems: "flex-start",
+                }}
+                filterText={filterText}
+                onFilter={handleFilterChange}
+                // onClear={handleClearFilter}
+            />
             <Table
+            style={{marginTop:"20px"}}
                 columns={columns}
-                dataSource={employees}
+                dataSource={filteredItemsM}
                 rowKey={(record) => record.id}
                 rowClassName={rowClassName}
                 pagination={true}

@@ -28,7 +28,6 @@ function getItem(label, key, icon, children) {
         icon,
         children,
         label,
-    
     };
 }
 
@@ -170,23 +169,22 @@ const RoleBasedMenu = () => {
     } else if (userRole === "manager") {
         items.push(
             getItem(
-                <Link to="/rota-manager">ROTA</Link>,
+                <Link to="/assign-shift">ROTA</Link>,
+                "/assign-shift", // Key matching the URL path
+                <MdOutlineTimer />
+            ),
+            getItem(
+                <Link to="/rota-manager">Checked-In Employees</Link>,
                 "/rota-manager", // Key matching the URL path
                 <FiUsers />
             ),
 
-            getItem("Shift", "shift", <IoIosTimer />, [
-                getItem(
-                    <Link to="/assign-shift">Assign Shift</Link>,
-                    "/assign-shift", // Key matching the URL path
-                    <MdOutlineTimer />
-                ),
-                getItem(
-                    <Link to="/change-shift">Change Shift</Link>,
-                    "/change-shift", // Key matching the URL path
-                    <BiTimer />
-                ),
-            ]),
+            getItem(
+                <Link to="/change-shift">Change Shift</Link>,
+                "/change-shift", // Key matching the URL path
+                <BiTimer />
+            ),
+
             getItem("Employee", "employee", <FiUsers />, [
                 getItem(
                     <Link to="/active-manager-employee">Active Employees</Link>,
@@ -217,7 +215,7 @@ const RoleBasedMenu = () => {
                 ),
             ])
         );
-    } 
+    }
 
     return items;
 };

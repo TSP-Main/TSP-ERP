@@ -65,7 +65,7 @@ const RejectedEmployee = () => {
                     }}
                     filterText={filterText}
                     onFilter={handleFilterChange}
-                    onClear={handleClearFilter}
+                    // onClear={handleClearFilter}
                 />
             {/* </Flex> */}
             <hr />

@@ -144,7 +144,7 @@ const Reports = () => {
                         <FilterComponent
                             filterText={filterText}
                             onFilter={handleFilterChange}
-                            onClear={handleClearFilter}
+                            // onClear={handleClearFilter}
                         />
                     </Col>
                 </Row>

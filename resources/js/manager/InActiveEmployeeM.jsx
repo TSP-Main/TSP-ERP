@@ -1,12 +1,14 @@
 import { notification, Table } from "antd";
-import React, { useEffect } from "react";
+import React, { useEffect,useState,useMemo } from "react";
 import { useDispatch } from "react-redux";
 import { allEmployeeM, inActiveEmployeeM } from "./redux/reducer";
 import { useSelector } from "react-redux";
+import FilterComponent from "../components/FilterComponent";
 
 const index = () => {
     const dispatch = useDispatch();
     const { inactiveEmployeedata } = useSelector((state) => state.manager);
+     const [filterText, setFilterText] = useState("");
     const fetchEmployees = async () => {
         // code=localStorage.getItem('company_code')
 
@@ -23,6 +25,18 @@ const index = () => {
             });
         }
     };
+    const handleFilterChange = (value) => {
+        setFilterText(value);
+    };
+      const filteredItems = useMemo(() => {
+        if (inactiveEmployeedata==null) return [];
+             if (inactiveEmployeedata == null) return [];
+          return inactiveEmployeedata.filter((item) =>
+              JSON.stringify(item)
+                  .toLowerCase()
+                  .includes(filterText.toLowerCase())
+          );
+      }, [inactiveEmployeedata, filterText]);
     useEffect(() => {
         fetchEmployees();
     }, []);
@@ -58,7 +72,23 @@ const index = () => {
     return (
         <>
             <h1>In Active Employees</h1>
-            <Table columns={columns} dataSource={inactiveEmployeedata} />
+            <FilterComponent
+                style={{
+                    // marginBottom: "16px",
+                    display: "flex",
+                    flexDirection: "row-reverse",
+                    justifyContent: "flex-end",
+                    alignItems: "flex-start",
+                }}
+                filterText={filterText}
+                onFilter={handleFilterChange}
+                // onClear={handleClearFilter}
+            />
+            <Table
+                style={{ marginTop: "16px" }}
+                columns={columns}
+                dataSource={filteredItems}
+            />
         </>
     );
 };

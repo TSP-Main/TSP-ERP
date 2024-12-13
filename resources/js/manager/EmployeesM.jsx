@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useMemo } from "react";
 import { notification, Table, Modal, Form, Input, Select, Button } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { allEmployeeM, gettActiveManagers } from "./redux/reducer";
 import { deleteEmployee, sendInvite, updateEmployee } from "../employee/redux/reducers";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
+import FilterComponent from "../components/FilterComponent";
+import { total } from "../new_registration/redux/reducer";
 const Index = () => {
     const [istotal, setTotal] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -17,10 +19,13 @@ const Index = () => {
     const [selectedRole, setSelectedRole] = useState("employee");
     const [managers, setManagers] = useState([]); // Example managers list
     const [loading, setLoading] = useState(false); // For modal submit button
+    const [filterText, setFilterText] = useState("");
     const dispatch = useDispatch();
 
     const { activeEmployeedata } = useSelector((state) => state.manager);
-
+const handleFilterChange = (value) => {
+    setFilterText(value);
+};
     // Simulated company code
     const company_code = localStorage.getItem("company_code");
 
@@ -39,6 +44,14 @@ const Index = () => {
             });
         }
     };
+    const filteredItems = useMemo(() => {
+        if (activeEmployeedata == null) return [];
+        return activeEmployeedata.filter((item) =>
+            JSON.stringify(item)
+                .toLowerCase()
+                .includes(filterText.toLowerCase())
+        );
+    }, [activeEmployeedata, filterText]);
 
     useEffect(() => {
         fetchEmployees();
@@ -335,10 +348,22 @@ const Index = () => {
                     </div>
                 </Form>
             </Modal>
-
+            <FilterComponent
+                style={{
+                    // marginBottom: "16px",
+                    display: "flex",
+                    flexDirection: "row-reverse",
+                    justifyContent: "flex-end",
+                    alignItems: "flex-start",
+                }}
+                filterText={filterText}
+                onFilter={handleFilterChange}
+                // onClear={handleClearFilter}
+            />
             <Table
+                style={{ marginTop: "16px" }}
                 columns={columns}
-                dataSource={activeEmployeedata}
+                dataSource={filteredItems}
                 rowKey={(record) => record.id}
             />
             <Modal
