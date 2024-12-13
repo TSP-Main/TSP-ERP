@@ -117,6 +117,12 @@ const fetchSchedules = async () => {
             title: "Name",
             dataIndex: "name",
             key: "name",
+            defaultSortOrder: "ascend", // Sets the default sorting order
+            sorter: (a, b) => {
+                const nameA = a.name?.toLowerCase() || ""; // Handle undefined or null values
+                const nameB = b.name?.toLowerCase() || ""; // Handle undefined or null values
+                return nameA.localeCompare(nameB); // Use localeCompare for string sorting
+            },
         },
         {
             title: "Start Time",

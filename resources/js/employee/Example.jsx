@@ -113,6 +113,12 @@ const EmployeeScheduleTable = () => {
             title: "Employee",
             dataIndex: "name",
             key: "employee",
+            defaultSortOrder: "ascend", // Sets the default sorting order
+            sorter: (a, b) => {
+                const nameA = a.name?.toLowerCase() || ""; // Handle undefined or null values
+                const nameB = b.name?.toLowerCase() || ""; // Handle undefined or null values
+                return nameA.localeCompare(nameB); // Use localeCompare for string sorting
+            },
             // fixed: "left",
             render: (text, record) => (
                 <
@@ -140,7 +146,7 @@ const EmployeeScheduleTable = () => {
             ),
             dataIndex: `col${dayIndex + 1}`,
             key: `col-${day.day}-${dayIndex}`,
-            render:(text,record)=>{
+            render: (text, record) => {
                 return (
                     <Select
                         style={{
@@ -156,7 +162,7 @@ const EmployeeScheduleTable = () => {
                         <Select.Option value={1}>Schedule 1</Select.Option>
                     </Select>
                 );
-            }
+            },
             // render: (text, record) => {
             //     const shiftId =
             //         selectedShiftsState[record.key]?.[`col${dayIndex + 1}`];

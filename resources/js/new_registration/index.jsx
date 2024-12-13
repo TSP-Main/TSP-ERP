@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
     Table,
@@ -18,8 +18,10 @@ import { SiTicktick } from "react-icons/si";
 import { RxCross1 } from "react-icons/rx";
 import { assignManager, gettActiveManagers } from "../manager/redux/reducer"; // Assuming getActiveManagers exists
 import { use } from "react";
+import FilterComponent from "../components/FilterComponent";
 
 const InActive = () => {
+    const [filterText, setFilterText] = useState("");
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedManager, setSelectedManager] = useState(null);
     const [userId, setUserId] = useState(null);
@@ -43,7 +45,25 @@ const fetchEmployees=()=>{
         dispatch(newSignups(code));
         dispatch(gettActiveManagers(code)); // Fetch active managers
     }, [dispatch]);
+const handleSelectedValue = (value) => {
+        setSelectedValue(value);
+        console.log("Selected Value:", value); // You can perform other actions with the selected value
+    };
+   
+    // Handle filter changes
+    const handleFilterChange = (value) => {
+        setFilterText(value);
+    };
 
+    // Clear the filter text
+      const filteredItemsM = useMemo(() => {
+        if(newsignupsdata==null) return []
+          return newsignupsdata.filter((item) =>
+              JSON.stringify(item)
+                  .toLowerCase()
+                  .includes(filterText.toLowerCase())
+          );
+      }, [newsignupsdata, filterText]);
     const handleApprove = (id, employeeId) => {
         // Show modal when Approve button is clicked
         setUserId(id);
@@ -180,11 +200,23 @@ const fetchEmployees=()=>{
             title: "Employee Name",
             dataIndex: ["user", "name"],
             key: "name",
+            defaultSortOrder: "ascend", // Sets the default sorting order
+            sorter: (a, b) => {
+                const nameA = a.user?.name?.toLowerCase() || ""; // Handle undefined or null values
+                const nameB = b.user?.name?.toLowerCase() || ""; // Handle undefined or null values
+                return nameA.localeCompare(nameB); // Use localeCompare for string sorting
+            },
         },
         {
             title: "Email",
             dataIndex: ["user", "email"],
             key: "email",
+            defaultSortOrder: "ascend", // Sets the default sorting order
+            sorter: (a, b) => {
+                const nameA = a.user?.email?.toLowerCase() || ""; // Handle undefined or null values
+                const nameB = b.user?.email?.toLowerCase() || ""; // Handle undefined or null values
+                return nameA.localeCompare(nameB); // Use localeCompare for string sorting
+            },
         },
         {
             title: "Company Code",
@@ -229,9 +261,21 @@ const fetchEmployees=()=>{
     return (
         <div>
             <h1>New Registrations</h1>
+            <FilterComponent
+                style={{
+                    // marginBottom: "16px",
+                    display: "flex",
+                    flexDirection: "row-reverse",
+                    justifyContent: "flex-end",
+                    alignItems: "flex-start",
+                }}
+                filterText={filterText}
+                onFilter={handleFilterChange}
+            />
             <Table
+                style={{ marginTop: "16px" }}
                 columns={columns}
-                dataSource={newsignupsdata}
+                dataSource={filteredItemsM}
                 rowKey={(record) => record.id}
                 pagination={{ pageSize: 10 }}
             />

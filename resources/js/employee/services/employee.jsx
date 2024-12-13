@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { allEmployee, deleteEmployee, updateEmployee } from "../redux/reducers";
+import Selection from "../../components/Selection";
 import {
     Table,
     Spin,
@@ -11,6 +12,7 @@ import {
     Form,
     Input,
     notification,
+    Flex,
 } from "antd";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
@@ -22,6 +24,7 @@ import {
 } from "../../manager/redux/reducer";
 import Loading from "../../Loading";
 import { ColumnHeightOutlined } from "@ant-design/icons";
+import FilterComponent from "../../components/FilterComponent";
 
 function Employee() {
     const [isChangeManagerModalOpen, setIsChangeManagerModalOpen] =
@@ -41,9 +44,40 @@ function Employee() {
     const [managerRemove, setManagerRemove] = useState(null); // For deleting
     const [selectedRole, setSelectedRole] = useState("");
     const [managerTeam, setManagerTeam] = useState([]);
+    const [selectedValue, setSelectedValue] = useState("Employee");
+    const [filterText, setFilterText] = useState("");
+    const handleSelectedValue = (value) => {
+        setSelectedValue(value);
+        console.log("Selected Value:", value); // You can perform other actions with the selected value
+    };
+
     const dispatch = useDispatch();
-    console.log("activeManagersdata", activeManagersdata);
+    console.log("activeManagersdata", employeedata);
     // Fetch employees whenever the selected role changes
+
+    // Handle filter changes
+    const handleFilterChange = (value) => {
+        setFilterText(value);
+    };
+
+    // Clear the filter text
+    const handleClearFilter = () => {
+        setFilterText("");
+    };
+    const filteredItemsM = useMemo(() => {
+        return activeManagersdata.filter((item) =>
+            JSON.stringify(item)
+                .toLowerCase()
+                .includes(filterText.toLowerCase())
+        );
+    }, [activeManagersdata, filterText]);
+    const filteredItems = useMemo(() => {
+        return employeedata.filter((item) =>
+            JSON.stringify(item)
+                .toLowerCase()
+                .includes(filterText.toLowerCase())
+        );
+    }, [employeedata, filterText]);
 
     useEffect(() => {
         const code = localStorage.getItem("company_code");
@@ -248,14 +282,14 @@ function Employee() {
                         description: "Manager Deleted Successfully",
                         duration: 1.5,
                     });
-                     await refetchEmployees();
-                     await refetchManagers();
+                    await refetchEmployees();
+                    await refetchManagers();
                 }
             } catch (error) {
                 notification.error({
                     description: "Manager Deleted failed",
-                    duration:1.5
-                })
+                    duration: 1.5,
+                });
             }
         }
 
@@ -269,11 +303,23 @@ function Employee() {
             title: "Name",
             dataIndex: ["user", "name"],
             key: "name",
+            defaultSortOrder: "ascend", // Sets the default sorting order
+            sorter: (a, b) => {
+                const nameA = a.user?.name?.toLowerCase() || ""; // Handle undefined or null values
+                const nameB = b.user?.name?.toLowerCase() || ""; // Handle undefined or null values
+                return nameA.localeCompare(nameB); // Use localeCompare for string sorting
+            },
         },
         {
             title: "Email",
             dataIndex: ["user", "email"],
             key: "email",
+            defaultSortOrder: "ascend", // Sets the default sorting order
+            sorter: (a, b) => {
+                const nameA = a.user?.email?.toLowerCase() || ""; // Handle undefined or null values
+                const nameB = b.user?.email?.toLowerCase() || ""; // Handle undefined or null values
+                return nameA.localeCompare(nameB); // Use localeCompare for string sorting
+            },
         },
         {
             title: "Actions",
@@ -300,11 +346,23 @@ function Employee() {
             title: "Name",
             dataIndex: ["user", "name"],
             key: "name",
+            defaultSortOrder: "ascend", // Sets the default sorting order
+            sorter: (a, b) => {
+                const nameA = a.user?.name?.toLowerCase() || ""; // Handle undefined or null values
+                const nameB = b.user?.name?.toLowerCase() || ""; // Handle undefined or null values
+                return nameA.localeCompare(nameB); // Use localeCompare for string sorting
+            },
         },
         {
             title: "Email",
             dataIndex: ["user", "email"],
             key: "email",
+            defaultSortOrder: "ascend", // Sets the default sorting order
+            sorter: (a, b) => {
+                const nameA = a.user?.email?.toLowerCase() || ""; // Handle undefined or null values
+                const nameB = b.user?.email?.toLowerCase() || ""; // Handle undefined or null values
+                return nameA.localeCompare(nameB); // Use localeCompare for string sorting
+            },
         },
         {
             title: "Manager",
@@ -347,20 +405,45 @@ function Employee() {
     // Render the Table with data and role filter
     return (
         <>
-            <h4 style={{ textAlign: "center" }}>Manager</h4>
-            <Table
-                columns={columnsM}
-                dataSource={activeManagersdata}
-                rowKey={(record) => record.id}
-                pagination={false}
-            />
-            <h4 style={{ textAlign: "center" }}>Employees</h4>
-            <Table
-                columns={columns}
-                dataSource={employeedata}
-                rowKey={(record) => record.id}
-                pagination={false}
-            />
+            <Flex style={{ justifyContent: "space-between" }}>
+                <Selection onSelect={handleSelectedValue} />
+                <FilterComponent
+                    style={{
+                        // marginBottom: "16px",
+                        display: "flex",
+                        flexDirection: "row-reverse",
+                        justifyContent: "flex-end",
+                        alignItems: "flex-start",
+                    }}
+                    filterText={filterText}
+                    onFilter={handleFilterChange}
+                    onClear={handleClearFilter}
+                />
+            </Flex>
+            <hr />
+
+            {/**/}
+            {selectedValue === "Manager" && (
+                <>
+                    <Table
+                        columns={columnsM}
+                        dataSource={filteredItemsM}
+                        rowKey={(record) => record.id}
+                        // title={() => <h4 style={{ textAlign: "center" }}>Managers</h4>}
+                        pagination={true}
+                    />
+                </>
+            )}
+            {selectedValue === "Employee" && (
+                <Table
+                    columns={columns}
+                    dataSource={filteredItems}
+                    rowKey={(record) => record.id}
+                    // title={() => <h4 style={{ textAlign: "center" }}>Employees</h4>}
+                    pagination={false}
+                />
+            )}
+
             <Modal
                 title="Change Manager"
                 open={isChangeManagerModalOpen}
