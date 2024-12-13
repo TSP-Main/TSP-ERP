@@ -64,12 +64,25 @@ const InActive = () => {
             title: "Name",
             dataIndex: ["company", "name"], // Access nested 'name' in 'company'
             key: "companyName",
+            defaultSortOrder: "ascend", // Sets the default sorting order
+            sorter: (a, b) => {
+                const nameA = a.company?.name?.toLowerCase() || ""; // Handle undefined or null values
+                const nameB = b.company?.name?.toLowerCase() || ""; // Handle undefined or null values
+                return nameA.localeCompare(nameB); // Use localeCompare for string sorting
+            },
         },
         {
             title: "Email",
             dataIndex: "email", // Access 'email' directly from main object
             key: "companyEmail",
+            defaultSortOrder: "ascend", // Sets the default sorting order
+            sorter: (a, b) => {
+                const nameA = a.name?.toLowerCase() || ""; // Handle undefined or null values
+                const nameB = b.name?.toLowerCase() || ""; // Handle undefined or null values
+                return nameA.localeCompare(nameB); // Use localeCompare for string sorting
+            },
         },
+
         {
             title: "Code",
             dataIndex: ["company", "code"], // Access nested 'code' in 'company'

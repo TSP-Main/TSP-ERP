@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Button from "../components/Button";
-import { Modal, Table, notification } from "antd";
+import { Modal, Table, notification,Flex } from "antd";
 import SendInviteModal from "./modal/EmployeeModal";
 import { useDispatch } from "react-redux";
 import { allEmployee, sendInvite } from "./redux/reducers";
@@ -8,12 +8,16 @@ import { useSelector } from "react-redux";
 import Employe from "./services/employee";
 import { createManager } from "../manager/redux/reducer";
 import { total } from "../new_registration/redux/reducer";
+import Selection from "../components/Selection";
+// Selection
 // import { createManager } from "../manager/redux/reducer";
 const Employee = () => {
+  
     const [istotal, setTotal] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const dispatch = useDispatch();
     const [Loading, setLoading] = useState(false);
+  
     //    const {error,loading,employeedata} =useSelector((state)=>state.employee)
     const refetchEmployees = async () => {
         const code = localStorage.getItem("company_code");
@@ -122,6 +126,13 @@ const Employee = () => {
                 onClick={showModal}
                 style={{ backgroundColor: "Black", color: "white" }}
             />
+            {/* <Flex style={{
+                justifyContent: "space-between",
+            }}> */}
+
+           
+            {/* </Flex> */}
+
             <Employe />
             <SendInviteModal
                 isVisible={isModalVisible}

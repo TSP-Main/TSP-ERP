@@ -1,39 +1,69 @@
-import React, { useState, useEffect } from "react";
-import { Table, Row, Col, DatePicker, Button } from "antd";
+import React, { useState, useEffect,useMemo } from "react";
+import { Table, Row, Col, DatePicker, Select } from "antd";
 import moment from "moment";
 import { useDispatch, useSelector } from "react-redux";
 import { presentEmployees } from "./attended/reducer";
+import { allEmployee } from "../employee/redux/reducers";
+import FilterComponent from "../components/FilterComponent";
+const { RangePicker } = DatePicker;
 
 const Reports = () => {
     const dispatch = useDispatch();
     const { present } = useSelector((state) => state.scheduleEmployee);
+    const { employeedata } = useSelector((state) => state.employee);
+    const [employee, setEmployee] = useState(null); // State to store selected employee ID
+    const [dateRange, setDateRange] = useState([moment(), moment()]); // Default to today's date range
+      const [filterText, setFilterText] = useState("");
 
-    const [selectStartDate, setStartData] = useState(moment());
-    const [selectEndDate, setEndDate] = useState(moment());
+      // Handle filter changes
+      const handleFilterChange = (value) => {
+          setFilterText(value);
+      };
 
-    // Fetch attended schedule for a specific date range
-    const fetchAttendedSchedule = (startDate, endDate) => {
+      // Clear the filter text
+    //   const handleClearFilter = () => {
+    //       setFilterText("");
+    //   };
+
+      // Memoized filtered items
+     
+    // Fetch attended schedule for a specific date range and employee
+    const fetchAttendedSchedule = (startDate, endDate, employeeId = null) => {
         const code = localStorage.getItem("company_code");
         const payload = {
             start_date: startDate.format("YYYY-MM-DD"),
             end_date: endDate.format("YYYY-MM-DD"),
+            employee_id: employeeId, // Include employee ID in the payload
         };
         dispatch(presentEmployees({ code, payload })).unwrap();
     };
 
-    // Default fetch for today's date
-    useEffect(() => {
-        fetchAttendedSchedule(moment(), moment());
-    }, []);
-
-    // Handle Start Date Change
-    const handleStartDateChange = (date) => {
-        setStartData(date);
+    const fetchEmployees = () => {
+        const code = localStorage.getItem("company_code");
+        dispatch(allEmployee({ code }));
     };
 
-    // Handle End Date Change
-    const handleEndDateChange = (date) => {
-        setEndDate(date);
+    useEffect(() => {
+        fetchEmployees();
+    }, []);
+
+    // Default fetch for today's date range
+    useEffect(() => {
+        fetchAttendedSchedule(dateRange[0], dateRange[1]);
+    }, []);
+
+    // Handle RangePicker Change
+    const handleDateRangeChange = (dates) => {
+        setDateRange(dates);
+        if (dates && dates.length === 2) {
+            fetchAttendedSchedule(dates[0], dates[1], employee); // Fetch on date range change
+        }
+    };
+
+    // Handle Employee Selection
+    const handleEmployeeChange = (value) => {
+        setEmployee(value);
+        fetchAttendedSchedule(dateRange[0], dateRange[1], value); // Fetch on employee selection
     };
 
     // Columns for the table
@@ -42,6 +72,7 @@ const Reports = () => {
             title: "Name",
             key: "name",
             render: (record) => record.name || "-",
+            
         },
         {
             title: "Check-In Time",
@@ -77,46 +108,62 @@ const Reports = () => {
                 schedule?.employee_schedule?.schedule?.start_time || "-"
             } - ${schedule?.employee_schedule?.schedule?.end_time || "-"}`,
         })) || [];
+         const filteredItems = useMemo(() => {
+             return data.filter((item) =>
+                 JSON.stringify(item)
+                     .toLowerCase()
+                     .includes(filterText.toLowerCase())
+             );
+         }, [data, filterText]);
 
     return (
         <>
-            <div>
-                <Row gutter={12}>
-                    <Col span={5}>
-                        <DatePicker
-                            picker="day"
-                            value={selectStartDate}
-                            onChange={handleStartDateChange}
-                            placeholder="Select Start Date"
-                        />
-                    </Col>
-                    <Col span={5}>
-                        <DatePicker
-                            picker="day"
-                            value={selectEndDate}
-                            onChange={handleEndDateChange}
-                            placeholder="Select End Date"
-                        />
-                    </Col>
-                    <Col span={2}>
-                        <Button
-                            type="primary"
-                            onClick={() =>
-                                fetchAttendedSchedule(
-                                    selectStartDate,
-                                    selectEndDate
-                                )
-                            }
-                        >
-                            Submit
-                        </Button>
-                    </Col>
-                </Row>
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                }}
+            >
+                <div>
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <RangePicker
+                                value={dateRange}
+                                onChange={handleDateRangeChange} // Trigger fetch on range change
+                                placeholder={["Start Date", "End Date"]}
+                            />
+                        </Col>
+                        <Col span={8}>
+                            <Select
+                                style={{ width: "100%" }}
+                                placeholder="Select Employee"
+                                onChange={handleEmployeeChange} // Trigger fetch on employee selection
+                            >
+                                {employeedata?.map((data) => (
+                                    <Select.Option
+                                        key={data.id}
+                                        value={data.id}
+                                    >
+                                        {data.user.name}
+                                    </Select.Option>
+                                ))}
+                            </Select>
+                        </Col>
+                        
+                    </Row>
+                </div>
+                {/* <div> */}
+                    <FilterComponent
+                        filterText={filterText}
+                        onFilter={handleFilterChange}
+                    />
+                {/* </div> */}
             </div>
             <Table
                 style={{ marginTop: 16 }}
                 columns={columns}
-                dataSource={data}
+                dataSource={filteredItems}
                 pagination={false}
             />
         </>

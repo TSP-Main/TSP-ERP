@@ -1,30 +1,70 @@
-import React, { useState, useEffect } from "react";
-import { Table, Row, Col, DatePicker, Button } from "antd";
+import React, { useState, useEffect, useMemo } from "react";
+import { Table, Row, Col, DatePicker, Select } from "antd";
 import moment from "moment";
 import { useDispatch, useSelector } from "react-redux";
 import { absentEmployees } from "./attended/reducer";
+import { allEmployee } from "../employee/redux/reducers";
+import FilterComponent from "../components/FilterComponent";
+const { RangePicker } = DatePicker;
 
-const Absent = () => {
+const Reports = () => {
     const dispatch = useDispatch();
     const { absent } = useSelector((state) => state.scheduleEmployee);
-    console.log("absent", absent);
-    // Default to today's date
-    const [selectedDate, setSelectedDate] = useState(moment());
+    const { employeedata } = useSelector((state) => state.employee);
+    const [employee, setEmployee] = useState(null); // State to store selected employee ID
+    const [dateRange, setDateRange] = useState([moment(), moment()]); // Default to today's date range
+    const [filterText, setFilterText] = useState("");
 
-    // Fetch attended schedule for a specific date
-    const fetchAttendedSchedule = (date) => {
+    // Handle filter changes
+    const handleFilterChange = (value) => {
+        setFilterText(value);
+    };
+
+    // Clear the filter text
+    const handleClearFilter = () => {
+        setFilterText("");
+    };
+
+    // Memoized filtered items
+
+    // Fetch attended schedule for a specific date range and employee
+    const fetchAttendedSchedule = (startDate, endDate, employeeId = null) => {
         const code = localStorage.getItem("company_code");
         const payload = {
-            start_date: date.format("YYYY-MM-DD"),
-            end_date: date.format("YYYY-MM-DD"),
+            start_date: startDate.format("YYYY-MM-DD"),
+            end_date: endDate.format("YYYY-MM-DD"),
+            employee_id: employeeId, // Include employee ID in the payload
         };
-        console.log("Payload:", payload);
         dispatch(absentEmployees({ code, payload })).unwrap();
     };
 
+    const fetchEmployees = () => {
+        const code = localStorage.getItem("company_code");
+        dispatch(allEmployee({ code }));
+    };
+
     useEffect(() => {
-        fetchAttendedSchedule(moment()); // Fetch data for today by default
+        fetchEmployees();
     }, []);
+
+    // Default fetch for today's date range
+    useEffect(() => {
+        fetchAttendedSchedule(dateRange[0], dateRange[1]);
+    }, []);
+
+    // Handle RangePicker Change
+    const handleDateRangeChange = (dates) => {
+        setDateRange(dates);
+        if (dates && dates.length === 2) {
+            fetchAttendedSchedule(dates[0], dates[1], employee); // Fetch on date range change
+        }
+    };
+
+    // Handle Employee Selection
+    const handleEmployeeChange = (value) => {
+        setEmployee(value);
+        fetchAttendedSchedule(dateRange[0], dateRange[1], value); // Fetch on employee selection
+    };
 
     // Columns for the table
     const columns = [
@@ -32,80 +72,91 @@ const Absent = () => {
             title: "Name",
             key: "name",
             render: (record) => record.name || "-",
+            
+        },
+        {
+            title: "Check-In Time",
+            dataIndex: "time_in",
+            key: "check-in",
+        },
+        {
+            title: "Check-Out Time",
+            dataIndex: "time_out",
+            key: "check-out",
+        },
+        {
+            title: "Total Working Hours",
+            dataIndex: "working_hours",
+            key: "working-hours",
         },
         {
             title: "Assigned Schedule",
-            // dataIndex: ["employee_schedule", "schedule", "start_time"],
             key: "Assigned_Schedule",
-            render: (record) => record.Assigned_Schedule || "",
+            render: (record) => record.Assigned_Schedule || "-",
         },
-        // {
-        //     title: "Check-In Time",
-        //     dataIndex: "time_in",
-        //     key: "check-in",
-        // },
-        // {
-        //     title: "Check-Out Time",
-        //     dataIndex: "time_out",
-        //     key: "check-out",
-        // },
-        // {
-        //     title: "Total Working Hours",
-        //     dataIndex: "working_hours",
-        //     key: "working-hours",
-        // },
     ];
 
     // Prepare data for the table
     const data =
         absent?.absent?.map((schedule, index) => ({
             key: index,
-            name: schedule?.employee?.user?.name,
+            name: schedule?.employee?.user?.name || "N/A",
+            time_in: schedule.time_in || "-",
+            time_out: schedule.time_out || "-",
+            working_hours: schedule.working_hours || "-",
             Assigned_Schedule: `${
                 schedule?.employee_schedule?.schedule?.start_time || "-"
-            } - ${schedule?.employee_schedule?.schedule?.end_time || "-"}`, // Correctly concatenate with separator
-            // time_in: schedule.time_in || "-",
-            // time_out: schedule.time_out || "-",
-            // working_hours: schedule.working_hours || "-",
+            } - ${schedule?.employee_schedule?.schedule?.end_time || "-"}`,
         })) || [];
-
-    // Disable dates from tomorrow onwa
-    // Handle date change
-    const handleDateChange = (date) => {
-        setSelectedDate(date);
-        fetchAttendedSchedule(date);
-    };
+    const filteredItems = useMemo(() => {
+        return data.filter((item) =>
+            JSON.stringify(item)
+                .toLowerCase()
+                .includes(filterText.toLowerCase())
+        );
+    }, [data, filterText]);
 
     return (
         <>
             <div>
-                <Row gutter={12}>
-                    <Col span={5}>
-                        <DatePicker
-                            picker="day"
-                            value={selectedDate}
-                            onChange={handleDateChange}
-                            placeholder="Select Date"
+                <Row gutter={16}>
+                    <Col span={6}>
+                        <RangePicker
+                            value={dateRange}
+                            onChange={handleDateRangeChange} // Trigger fetch on range change
+                            placeholder={["Start Date", "End Date"]}
                         />
                     </Col>
-                    <Col span={2}>
-                        <Button
-                            type="primary"
-                            onClick={() => fetchAttendedSchedule(selectedDate)}
+                    <Col span={4}>
+                        <Select
+                            style={{ width: "100%" }}
+                            placeholder="Select Employee"
+                            onChange={handleEmployeeChange} // Trigger fetch on employee selection
                         >
-                            Submit
-                        </Button>
+                            {employeedata?.map((data) => (
+                                <Select.Option key={data.id} value={data.id}>
+                                    {data.user.name}
+                                </Select.Option>
+                            ))}
+                        </Select>
+                    </Col>
+                    <Col span={6}>
+                        <FilterComponent
+                            filterText={filterText}
+                            onFilter={handleFilterChange}
+                            onClear={handleClearFilter}
+                        />
                     </Col>
                 </Row>
             </div>
             <Table
                 style={{ marginTop: 16 }}
                 columns={columns}
-                dataSource={data}
-                pagination={false} // Show all data without pagination
+                dataSource={filteredItems}
+                pagination={false}
             />
         </>
     );
 };
 
-export default Absent;
+export default Reports;

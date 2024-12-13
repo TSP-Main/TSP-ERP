@@ -60,11 +60,23 @@ const InvitedManagers = () => {
             title: "Name",
             dataIndex: ["user", "name"],
             key: "name",
+             defaultSortOrder: "ascend", // Sets the default sorting order
+            sorter: (a, b) => {
+                const nameA = a.user?.name?.toLowerCase() || ""; // Handle undefined or null values
+                const nameB = b.user?.name?.toLowerCase() || ""; // Handle undefined or null values
+                return nameA.localeCompare(nameB); // Use localeCompare for string sorting
+            },
         },
         {
             title: "Email",
             dataIndex: ["user", "email"],
             key: "email",
+             defaultSortOrder: "ascend", // Sets the default sorting order
+            sorter: (a, b) => {
+                const nameA = a.user?.email?.toLowerCase() || ""; // Handle undefined or null values
+                const nameB = b.user?.email?.toLowerCase() || ""; // Handle undefined or null values
+                return nameA.localeCompare(nameB); // Use localeCompare for string sorting
+            },
         },
         {
             title: "Actions",
@@ -89,13 +101,7 @@ const InvitedManagers = () => {
 
     return (
         <>
-        <h4 style={{textAlign:"center"}}>Managers</h4>
-            <Table
-                dataSource={invitedmanagerdata}
-                columns={columns}
-                rowKey={(record) => record?.user?.id || record?.user_id} // Ensure unique key
-                pagination={false}
-            />
+           
         </>
     );
 };

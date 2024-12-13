@@ -57,11 +57,13 @@ export const allEmployee = createAsyncThunk(
               const params = id ? { manager_id: id } : {};
             const response = await axios.get(apiRoutes.employee.active(code),{
                 params});
-            console.log("employee", response.data.data.data);
-            if(response?.data?.data.length==0){
+            console.log("employee", response);
+            if(response?.data?.length==0){
+                console.log("employee 0");
                 return [];
             }
             else{
+                console.log("employee 1");
                 return response.data.data.data;
             }
           
@@ -96,7 +98,11 @@ export const inActiveEmployee = createAsyncThunk(
             
             const response = await axios.get(apiRoutes.employee.inactive(code));
             console.log("employee", response.data.data.data);
-            return response.data.data.data;
+            if(response?.data?.data.length==0)
+            {
+                return []
+            }
+            return response?.data?.data?.data;
         } catch (error) {
             console.log("redux error: " + error);
             return rejectWithValue(
