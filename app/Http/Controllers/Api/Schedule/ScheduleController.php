@@ -90,19 +90,29 @@ class ScheduleController extends BaseController
     public function assignSchedule(AssignSchedueRequest $request)
     {
         try {
-            $ipAddress = $request->ip(); // UK-based server IP is 51.15.112.35 (if you want to use), pakistan 119.73.100.157
+            $ipAddress = $request->ip();
             $timezone = getUserTimezone($request);
 
             $schedules = [];
 
             // Extract only valid schedule data
             $data = array_filter($request->all(), function ($item) {
-                return is_array($item) && isset($item['employee_id'], $item['schedule_id'], $item['start_date'], $item['end_date']);
+                return is_array($item) && isset($item['schedule_id'], $item['start_date'], $item['end_date']) &&
+                    (isset($item['employee_id']) || isset($item['manager_id'])); // At least one must be set
             });
 
             foreach ($data as $scheduleData) {
+                // Determine whether the schedule is for an employee or a manager
+                $employeeId = $scheduleData['employee_id'] ?? null;
+                $managerId = $scheduleData['manager_id'] ?? null;
+
+                if ($employeeId && $managerId) {
+                    return $this->sendError('A schedule cannot be assigned to both an employee and a manager.');
+                }
+
                 $schedules[] = EmployeeSchedule::create([
-                    'employee_id' => (int) $scheduleData['employee_id'],
+                    'employee_id' => $employeeId ? (int) $employeeId : null,
+                    'manager_id' => $managerId ? (int) $managerId : null,
                     'schedule_id' => (int) $scheduleData['schedule_id'],
                     'start_date' => Carbon::parse($scheduleData['start_date'])->toDateTimeString(),
                     'end_date' => Carbon::parse($scheduleData['end_date'])->toDateTimeString(),
@@ -116,14 +126,28 @@ class ScheduleController extends BaseController
         }
     }
 
-    public function checkIn($employeeId, Request $request)
+
+    public function checkIn($personId, Request $request)
     {
         $ipAddress = $request->ip();
         $timezone = getUserTimezone($request);
+
         try {
             $today = Carbon::today($timezone);
 
-            $employeeSchedule = EmployeeSchedule::where('employee_id', $employeeId)
+            // Determine if the person is an employee or a manager
+            $personType = $request->get('type'); // Pass `type` as either `employee` or `manager`
+
+            if ($personType === StatusEnum::EMPLOYEE) {
+                $scheduleQuery = EmployeeSchedule::where('employee_id', $personId);
+            } elseif ($personType === StatusEnum::MANAGER) {
+                $scheduleQuery = EmployeeSchedule::where('manager_id', $personId);
+            } else {
+                return response()->json(['message' => 'Invalid person type'], 400);
+            }
+
+            // Check for active schedules
+            $personSchedule = $scheduleQuery
                 ->whereDate('start_date', '<=', $today)
                 ->where(function ($query) use ($today) {
                     $query->whereNull('end_date')
@@ -132,27 +156,42 @@ class ScheduleController extends BaseController
                 ->with('schedule')
                 ->first();
 
-            if (!$employeeSchedule) {
+            if (!$personSchedule) {
                 return response()->json(['message' => 'No active schedule found for today'], 404);
             }
 
-            // Check if employee already has an active check-in (not checked out)
-            $existingAttendance = Attendance::where('employee_id', $employeeId)
-                ->whereDate('date', $today->toDateString())
-                ->whereNull('time_out')
-                ->first();
+            // Check if the person already has an active check-in (not checked out)
+            $attendanceQuery = Attendance::whereDate('date', $today->toDateString())
+                ->whereNull('time_out');
 
-            if ($existingAttendance) {
-                return response()->json(['message' => 'Employee must check out before checking in again'], 400);
+            if ($personType === 'employee') {
+                $attendanceQuery->where('employee_id', $personId);
+            } elseif ($personType === 'manager') {
+                $attendanceQuery->where('manager_id', $personId);
             }
 
-            $attendance = Attendance::create([
-                'employee_id' => $employeeId,
-                'employee_schedule_id' => $employeeSchedule->id,
+            $existingAttendance = $attendanceQuery->first();
+
+            if ($existingAttendance) {
+                return response()->json(['message' => 'Person must check out before checking in again'], 400);
+            }
+
+            // Record attendance
+            $attendanceData = [
                 'date' => $today->toDateString(),
-                'time_in' => Carbon::now($timezone)->format('H:i:s'), //->toTimeString()
+                'time_in' => Carbon::now($timezone)->format('H:i:s'),
                 'status' => StatusEnum::PRESENT,
-            ]);
+            ];
+
+            if ($personType === 'employee') {
+                $attendanceData['employee_id'] = $personId;
+                $attendanceData['employee_schedule_id'] = $personSchedule->id;
+            } elseif ($personType === 'manager') {
+                $attendanceData['manager_id'] = $personId;
+                $attendanceData['employee_schedule_id'] = $personSchedule->id; // Relates to the shared schedule
+            }
+
+            $attendance = Attendance::create($attendanceData);
 
             return response()->json(['message' => 'Checked in successfully', 'attendance' => $attendance]);
         } catch (Exception $e) {
@@ -160,15 +199,28 @@ class ScheduleController extends BaseController
         }
     }
 
-    public function checkOut($employeeId, Request $request)
+
+    public function checkOut($personId, Request $request)
     {
         $ipAddress = $request->ip();
         $timezone = getUserTimezone($request);
+
         try {
-            $attendance = Attendance::where('employee_id', $employeeId)
-                ->whereDate('date', Carbon::today('UTC')->toDateString())
-                ->whereNull('time_out')
-                ->first();
+            // Determine if the person is an employee or a manager
+            $personType = $request->get('type'); // Pass `type` as either `employee` or `manager`
+
+            $attendanceQuery = Attendance::whereDate('date', Carbon::today('UTC')->toDateString())
+                ->whereNull('time_out');
+
+            if ($personType === StatusEnum::EMPLOYEE) {
+                $attendanceQuery->where('employee_id', $personId);
+            } elseif ($personType === StatusEnum::MANAGER) {
+                $attendanceQuery->where('manager_id', $personId);
+            } else {
+                return response()->json(['message' => 'Invalid person type'], 400);
+            }
+
+            $attendance = $attendanceQuery->first();
 
             if (!$attendance) {
                 return response()->json(['message' => 'Attendance record not found or already checked out'], 404);
@@ -218,20 +270,31 @@ class ScheduleController extends BaseController
 
     public function getWorkingHours(GetWorkingHoursRequest $request)
     {
-
         $ipAddress = $request->ip();
         $timezone = getUserTimezone($request);
+
         try {
+            // Parse the provided date or use today's date
             $date = $request->date ? Carbon::parse($request->date) : Carbon::today($timezone);
 
-            $attendances = Attendance::where('employee_id', $request->employee_id)
-                ->whereDate('date', $date->toDateString())
-                ->get();
+            $role = $request->role;
+
+            if ($role === StatusEnum::EMPLOYEE) {
+                $attendances = Attendance::where('employee_id', $request->person_id)
+                    ->whereDate('date', $date->toDateString())
+                    ->get();
+            } elseif ($role === StatusEnum::MANAGER) {
+                $attendances = Attendance::where('manager_id', $request->person_id)
+                    ->whereDate('date', $date->toDateString())
+                    ->get();
+            } else {
+                return response()->json(['message' => 'Invalid role specified'], 400);
+            }
 
             if ($attendances->isEmpty()) {
                 return response()->json([
                     'message' => 'No attendance records found for this date.',
-                    'total_working_hours' => 0
+                    'total_working_hours' => 0,
                 ], 404);
             }
 
@@ -263,10 +326,11 @@ class ScheduleController extends BaseController
         } catch (Exception $e) {
             return $this->sendError([
                 'message' => 'An error occurred while calculating working hours.',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
+
 
     public function getCompanyassignedSchedule($companyId)
     {
