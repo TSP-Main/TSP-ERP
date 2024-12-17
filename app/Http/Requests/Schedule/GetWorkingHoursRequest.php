@@ -22,7 +22,8 @@ class GetWorkingHoursRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'employee_id' => 'required|exists:employees,id',
+            'role' => 'required|string|in:employee,manager',
+            'person_id' => 'required|integer',
             'date' => 'required|date_format:Y-m-d'
         ];
     }
