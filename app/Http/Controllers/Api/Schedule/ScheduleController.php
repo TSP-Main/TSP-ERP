@@ -332,40 +332,54 @@ class ScheduleController extends BaseController
     }
 
 
-    public function getCompanyassignedSchedule($companyId)
+    public function getCompanyAssignedSchedule($companyId, Request $request)
     {
         try {
-            // Fetch schedules for the company with employees and end date filter
+            $role = $request->role;
+
+            // Validate role
+            if (!in_array($role, [StatusEnum::EMPLOYEE, StatusEnum::MANAGER])) {
+                return $this->sendError('Invalid role specified. Use "employee" or "manager".', 400);
+            }
+
+            // Fetch schedules for the company based on the role
             $schedules = Schedule::where('company_id', $companyId)
-                ->whereHas('employeeSchedules', function ($query) {
-                    $query->whereDate('end_date', '>=', now()->toDateString());
+                ->whereHas('employeeSchedules', function ($query) use ($role) {
+                    $query->whereDate('end_date', '>=', now()->toDateString())
+                        ->whereHas($role, function ($subQuery) {
+                            $subQuery->whereNotNull('id'); // Ensure the role exists in the relationship
+                        });
                 })
-                ->with(['employeeSchedules.employee.user']) // Load related employees
+                ->with([
+                    'employeeSchedules' => function ($query) use ($role) {
+                        $query->with([$role . '.user']);
+                    }
+                ])
                 ->get();
 
             if ($schedules->isEmpty()) {
                 return $this->sendResponse([], 'No schedules found for this company.');
             }
 
-            // Format the response
-            $data = $schedules->map(function ($schedule) {
+            $data = $schedules->map(function ($schedule) use ($role) {
                 return [
                     'schedule_id' => $schedule->id,
                     'start_time' => $schedule->start_time,
                     'end_time' => $schedule->end_time,
-                    'employees' => $schedule->employeeSchedules->map(function ($employeeSchedule) {
+                    $role . 's' => $schedule->employeeSchedules->map(function ($employeeSchedule) use ($role) {
+                        $person = $employeeSchedule->$role; // Dynamic relationship (employee or manager)
                         return [
-                            'employee_id' => $employeeSchedule->employee->id,
-                            'employee_name' => $employeeSchedule->employee->user->name ?? '',
-                            'employee_email' => $employeeSchedule->employee->user->email ?? '',
-                            'start_date' => $employeeSchedule->start_date,
-                            'end_date' => $employeeSchedule->end_date,
+                            $role . '_id' => $person->id ?? '',
+                            $role . '_name' => $person->user->name ?? '',
+                            $role . '_email' => $person->user->email ?? '',
+                            'start_date' => $employeeSchedule->start_date ?? '',
+                            'end_date' => $employeeSchedule->end_date ?? '',
                         ];
                     }),
                 ];
             });
 
-            return $this->sendResponse($data, 'All schedules successfully displayed.');
+            return $this->sendResponse($data, ucfirst($role) . ' schedules successfully displayed.');
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
