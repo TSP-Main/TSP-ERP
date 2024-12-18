@@ -3,6 +3,7 @@
 namespace App\Models\Employee;
 
 use App\Models\Company\CompanyModel;
+use App\Models\Company\EmployeeSchedule;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -25,5 +26,10 @@ class Manager extends Model
     public function company()
     {
         return $this->belongsTo(CompanyModel::class, 'company_code', 'code');
+    }
+
+    public function managerSchedules()
+    {
+        return $this->hasMany(EmployeeSchedule::class);
     }
 }

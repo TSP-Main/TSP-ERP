@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Employee\AssignSchedueRequest;
 use App\Http\Requests\Schedule\AttendanceReportRequest;
 use App\Http\Requests\Schedule\CheckInCheckOutTimeRequest;
+use App\Http\Requests\Schedule\CheckInStatusRequest;
 use App\Http\Requests\Schedule\CreateScheduleRequest;
 use App\Http\Requests\Schedule\EmployeeAvailabilityRequest;
 use App\Http\Requests\Schedule\GetWorkingHoursRequest;
@@ -336,8 +337,6 @@ class ScheduleController extends BaseController
     {
         try {
             $role = $request->role;
-
-            // Validate role
             if (!in_array($role, [StatusEnum::EMPLOYEE, StatusEnum::MANAGER])) {
                 return $this->sendError('Invalid role specified. Use "employee" or "manager".', 400);
             }
@@ -413,10 +412,11 @@ class ScheduleController extends BaseController
     }
 
 
-    public function getEmployeeAssignedSchedule($employeeId)
+    public function getEmployeeAssignedSchedule(Request $request, $employeeId)
     {
         try {
-            $assignedSchedules = EmployeeSchedule::where('employee_id', $employeeId)->with('employee.manager', 'schedule')->get();
+            $role = $request->role;
+            $assignedSchedules = EmployeeSchedule::where($role . '_id', $employeeId)->with(['manager', 'employee.manager', 'schedule'])->get();
 
             if ($assignedSchedules->isEmpty()) {
                 return $this->sendResponse('Schedule not found');
@@ -576,6 +576,7 @@ class ScheduleController extends BaseController
         try {
             $startDate = $request->input('start_date');
             $endDate = $request->input('end_date');
+            $role = $request->role;
 
             if ($startDate && $endDate) {
                 // Validate dates are not in the future
@@ -590,13 +591,13 @@ class ScheduleController extends BaseController
             }
 
             // Fetch attended schedules
-            $attendedSchedules = Attendance::where('employee_id', $id)
+            $attendedSchedules = Attendance::where($role . '_id', $id)
                 ->whereBetween('date', [$startDate, $endDate])
                 ->where('status', StatusEnum::PRESENT)
                 ->get();
 
             // Fetch missed schedules
-            $missedSchedules = Attendance::where('employee_id', $id)
+            $missedSchedules = Attendance::where($role . '_id', $id)
                 ->whereBetween('date', [$startDate, $endDate])
                 ->where('status', StatusEnum::ABSENT)
                 ->get();
@@ -613,13 +614,19 @@ class ScheduleController extends BaseController
         }
     }
 
-    public function getCheckInStatus(Request $request)
+    public function getCheckInStatus(CheckInStatusRequest $request)
     {
         try {
             $ipAddress = $request->ip();
             $timezone = getUserTimezone($request);
 
-            $attendance = Attendance::where('employee_id', $request->employee_id)
+            $entity = $request->manager_id ? StatusEnum::MANAGER : StatusEnum::EMPLOYEE;
+            $entityId = $request->input($entity . '_id');
+            if (!$entityId) {
+                return response()->json(['message' => 'Invalid request. Either employee_id or manager_id is required.'], 400);
+            }
+
+            $attendance = Attendance::where($entity . '_id', $entityId)
                 ->whereNull('time_out')
                 ->first();
 
@@ -645,14 +652,19 @@ class ScheduleController extends BaseController
         try {
             $paginate = $request->per_page ?? 2;
 
+            $role = $request->role ?? StatusEnum::EMPLOYEE;
+            if (!in_array($role, [StatusEnum::MANAGER, StatusEnum::EMPLOYEE])) {
+                return $this->sendError('Invalid role specified. Use "employee" or "manager".', 400);
+            }
+
             $query = Attendance::whereBetween('date', [$request->start_date, $request->end_date])
-                ->whereHas('employee', function ($query) use ($companyCode) {
+                ->whereHas($role, function ($query) use ($companyCode) {
                     $query->where('company_code', $companyCode);
                 })
-                ->with(['employeeSchedule.schedule', 'employee.user']);
+                ->with([$role . 'Schedule.schedule', $role . '.user']);
 
-            if ($request->filled('employee_id')) {
-                $query->where('employee_id', $request->employee_id);
+            if ($request->filled($role . '_id')) {
+                $query->where($role . '_id', $request->input($role . '_id'));
             }
 
             $report = $query->paginate($paginate);
@@ -668,6 +680,7 @@ class ScheduleController extends BaseController
             });
 
             $data = [
+                'role' => $role,
                 'current_page' => $report->currentPage(),
                 'per_page' => $report->perPage(),
                 'total_records' => $report->total(),
