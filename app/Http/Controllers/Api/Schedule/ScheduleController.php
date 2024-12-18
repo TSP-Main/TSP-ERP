@@ -17,6 +17,7 @@ use App\Models\Company\EmployeeSchedule;
 use App\Models\Company\Schedule;
 use App\Models\Employee\Attendance;
 use App\Models\Employee\Employee;
+use App\Models\Employee\Manager;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -480,25 +481,29 @@ class ScheduleController extends BaseController
     public function submitAvailability(EmployeeAvailabilityRequest $request)
     {
         try {
-            $employee = Employee::where('id', $request->employee_id)->first();
-            if (!$employee) {
-                return $this->sendError('Employee not found', 404);
+            $entityType = $request->manager_id ? StatusEnum::MANAGER : StatusEnum::EMPLOYEE;
+            $entityId = $request->input($entityType . '_id');
+            $modelClass = $entityType === StatusEnum::MANAGER ? Manager::class : Employee::class;
+
+            $entity = $modelClass::where('id', $entityId)->first();
+            if (!$entity) {
+                return $this->sendError(ucfirst($entityType) . ' not found', 404);
             }
 
             // Retrieve existing data from the cache or initialize an empty array
-            $availability = Cache::get('employee_availability', []);
+            $availability = Cache::get($entityType . '_availability', []);
             $availability[] = [
-                'employee_id' => $request->employee_id,
-                'company_code' => $employee->company_code, // Fetch company code from the employee record
+                $entityType . '_id' => $entityId,
+                'company_code' => $entity->company_code, // Fetch company code from the employee record
                 'date' => $request->date,
                 'start_time' => $request->start_time,
                 'end_time' => $request->end_time,
             ];
 
             // Store the updated availability back in the cache
-            Cache::put('employee_availability', $availability, now()->addWeeks(1));
+            Cache::put($entityType . '_availability', $availability, now()->addWeeks(1));
 
-            return $this->sendResponse(['message' => 'Availability submitted successfully'], 200);
+            return $this->sendResponse(['message' => ucfirst($entityType) . ' availability submitted successfully'], 200);
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), $e->getCode() ?: 500);
         }
@@ -507,35 +512,54 @@ class ScheduleController extends BaseController
     public function getAvailabilityDashboard($companyCode)
     {
         try {
-            $availability = Cache::get('employee_availability', []);
-
-            if (empty($availability)) {
-                return response()->json(['message' => 'No availability schedules found'], 200);
-            }
+            $employeeAvailability = Cache::get('employee_availability', []);
+            $managerAvailability = Cache::get('manager_availability', []);
 
             // Filter the availability by company code
-            $filteredAvailability = collect($availability)->filter(function ($item) use ($companyCode) {
+            $filteredEmployeeAvailability = collect($employeeAvailability)->filter(function ($item) use ($companyCode) {
                 return $item['company_code'] === $companyCode;
             });
 
-            if ($filteredAvailability->isEmpty()) {
+            $filteredManagerAvailability = collect($managerAvailability)->filter(function ($item) use ($companyCode) {
+                return $item['company_code'] === $companyCode;
+            });
+
+            if ($filteredEmployeeAvailability->isEmpty() && $filteredManagerAvailability->isEmpty()) {
                 return response()->json(['message' => 'No availability schedules found for the specified company code'], 200);
             }
 
             // Enhance the data for dashboard display (e.g., include employee names)
-            $data = $filteredAvailability->map(function ($item) {
+            $employeeData = $filteredEmployeeAvailability->map(function ($item) {
                 $employee = Employee::with('user')->find($item['employee_id']);
 
                 return [
-                    'employee_id' => $item['employee_id'],
+                    'type' => 'employee',
+                    'id' => $item['employee_id'],
                     'company_code' => $item['company_code'],
-                    'employee_name' => $employee->user->name ?? '',
-                    'employee_email' => $employee->user->email ?? '',
+                    'name' => $employee->user->name ?? '',
+                    'email' => $employee->user->email ?? '',
                     'date' => $item['date'],
                     'start_time' => $item['start_time'],
                     'end_time' => $item['end_time'],
                 ];
             });
+
+            $managerData = $filteredManagerAvailability->map(function ($item) {
+                $manager = Manager::with('user')->find($item['manager_id']);
+
+                return [
+                    'type' => 'manager',
+                    'id' => $item['manager_id'],
+                    'company_code' => $item['company_code'],
+                    'name' => $manager->user->name ?? '',
+                    'email' => $manager->user->email ?? '',
+                    'date' => $item['date'],
+                    'start_time' => $item['start_time'],
+                    'end_time' => $item['end_time'],
+                ];
+            });
+
+            $data = $employeeData->merge($managerData)->values();
 
             return $this->sendResponse($data, 'Employee Availability displayed', 200);
         } catch (Exception $e) {
