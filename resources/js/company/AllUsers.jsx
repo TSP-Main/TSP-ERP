@@ -4,12 +4,10 @@ import { Table, Spin, Alert } from "antd";
 import { activeUsersData, allUsers } from "./redux/reducer";
 import Loading from "../Loading";
 import FilterComponent from "../components/FilterComponent";
-
+ 
 const AllUsers = () => {
     const dispatch = useDispatch();
-    const { error, loading, allUser } = useSelector(
-        (state) => state.company
-    );
+    const { error, loading, allUser } = useSelector((state) => state.company);
     const [filterText, setFilterText] = useState("");
     const handleFilterChange = (value) => {
         setFilterText(value);
@@ -23,13 +21,12 @@ const AllUsers = () => {
         );
     }, [allUser, filterText]);
     useEffect(() => {
-        const fetch=()=>{
- const res = dispatch(allUsers());
- console.log("allUsers", res);
-        }
+        const fetch = () => {
+            const res = dispatch(allUsers());
+            console.log("allUsers", res);
+        };
         console.log("OnBoard");
-      fetch()
-
+        fetch();
     }, []);
 
     // Define table columns
@@ -55,7 +52,7 @@ const AllUsers = () => {
                 const nameB = b.email?.toLowerCase() || ""; // Handle undefined or null values
                 return nameA.localeCompare(nameB); // Use localeCompare for string sorting
             },
-        }
+        },
     ];
 
     if (loading) return <Loading />;
