@@ -4,7 +4,7 @@ namespace App\Http\Requests\Schedule;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class AttendanceReportRequest extends FormRequest
+class CheckInStatusRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,11 +22,8 @@ class AttendanceReportRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'role' => 'nullable|string|in:employee,manager',
-            'employee_id' => 'nullable|exists:employees,id',
-            'manager_id' => 'nullable|exists:managers,id',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
+            'employee_id' => 'nullable|exists:attendance,employee_id',
+            'manager_id' => 'nullable|exists:attendance,manager_id'
         ];
     }
 }
