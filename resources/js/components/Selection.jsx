@@ -26,11 +26,11 @@ const Selection = ({onSelect}) => {
                 onClick={() => handleClick("Manager")}
                 style={{
                     backgroundColor:
-                        selected === "Manager" ? "#333333" : "transparent", // Highlight selected button
-                    color: selected === "Manager" ? "#fff" : "#000", // White text for selected
+                        selected === "Manager" ? "#5dc5bd" : "transparent", // Highlight selected button
+                    color: selected === "Manager" ? "#fff" : "#5dc5bd", // White text for selected
                     borderRadius: "20px",
                     fontWeight: "bold",
-                    border:"none",
+                    border: "none",
                 }}
             >
                 Manager
@@ -39,8 +39,8 @@ const Selection = ({onSelect}) => {
                 onClick={() => handleClick("Employee")}
                 style={{
                     backgroundColor:
-                        selected === "Employee" ? "#333333" : "transparent", // Highlight selected button
-                    color: selected === "Employee" ? "#fff" : "#000", // White text for selected
+                        selected === "Employee" ? "#5dc5bd" : "transparent", // Highlight selected button
+                    color: selected === "Employee" ? "#fff" : "#5dc5bd", // White text for selected
                     border: "none",
                     borderRadius: "20px",
                     fontWeight: "bold",

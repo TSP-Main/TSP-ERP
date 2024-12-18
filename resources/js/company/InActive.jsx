@@ -1,16 +1,27 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Table, Spin, Alert, Button, notification } from "antd";
 import { inactiveUsersData, approveUserAction } from "./redux/reducer";
 import Loading from "../Loading";
+import FilterComponent from "../components/FilterComponent";
 
 const InActive = () => {
+  
     const dispatch = useDispatch();
     const [loadingMap, setLoadingMap] = useState({}); // To track loading for each row
     const { error, loading, inactivedata } = useSelector(
         (state) => state.company
     );
-
+         const [filterText, setFilterText] = useState("");
+        const handleFilterChange = (value) => {
+            setFilterText(value);
+        };
+const filteredItemsM = useMemo(() => {
+    if (inactivedata == null) return [];
+    return inactivedata.filter((item) =>
+        JSON.stringify(item).toLowerCase().includes(filterText.toLowerCase())
+    );
+}, [inactivedata, filterText]);
     const handleApprove = async (id) => {
         setLoadingMap((prev) => ({ ...prev, [id]: true })); // Set loading for this row
         try {
@@ -115,10 +126,23 @@ const InActive = () => {
     return (
         <div>
             <h1>New SignUps</h1>
+            <FilterComponent
+                style={{
+                    // marginBottom: "16px",
+                    display: "flex",
+                    flexDirection: "row-reverse",
+                    justifyContent: "flex-end",
+                    alignItems: "flex-start",
+                }}
+                filterText={filterText}
+                onFilter={handleFilterChange}
+                // onClear={handleClearFilter}
+            />
             <Table
+                style={{marginTop: "16px"}}
                 size="small"
                 columns={columns}
-                dataSource={inactivedata}
+                dataSource={filteredItemsM}
                 rowKey={(record) => record.user_id} // Use 'user_id' as unique key
                 pagination={true}
             />

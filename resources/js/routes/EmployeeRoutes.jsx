@@ -1,11 +1,12 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import DefaultLayout from "../defaultLayout/DefaultLayout.jsx";
-import Attendance from "../attendance/index.jsx";
 import { Outlet } from "react-router-dom";
 import Missed from '../reports/missed/index.jsx'
 import Attended from '../reports/attended/index.jsx'
 import Availibility from "../attendance/Availibility.jsx";
+import Attendance from "../attendance/index.jsx";
+
 const EmployeeRoutes = () => {
     return (
         <Routes>

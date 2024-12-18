@@ -124,13 +124,12 @@ const Employee = () => {
             <Button
                 text="Send Invite"
                 onClick={showModal}
-                style={{ backgroundColor: "Black", color: "white" }}
+                style={{ backgroundColor: "#5dc5bd", color: "white" }}
             />
             {/* <Flex style={{
                 justifyContent: "space-between",
             }}> */}
 
-           
             {/* </Flex> */}
 
             <Employe />

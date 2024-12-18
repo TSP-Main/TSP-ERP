@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useMemo } from "react";
 import {
     Table,
     Spin,
@@ -9,6 +9,7 @@ import {
     Input,
     notification,
 } from "antd";
+import "./table.css";
 import { useDispatch, useSelector } from "react-redux";
 import {
     showSchedule,
@@ -18,6 +19,7 @@ import {
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import Loading from "../../Loading";
+import FilterComponent from "../../components/FilterComponent";
 
 const ScheduleTable = () => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -26,6 +28,7 @@ const ScheduleTable = () => {
     const [scheduleToDelete, setScheduleToDelete] = useState(null);
     const [editForm] = Form.useForm(); // Ant Design form instance
     const dispatch = useDispatch();
+     const [filterText, setFilterText] = useState("");
     const { error, loading, scheduledata } = useSelector(
         (state) => state.schedule
     );
@@ -48,6 +51,15 @@ const fetchSchedules = async () => {
     // Ensure scheduledata is an array
     const dataSource = Array.isArray(scheduledata) ? scheduledata : [];
 
+        const handleFilterChange = (value) => {
+            setFilterText(value);
+        };
+const filteredItemsM = useMemo(() => {
+    if (dataSource == null) return [];
+    return dataSource.filter((item) =>
+        JSON.stringify(item).toLowerCase().includes(filterText.toLowerCase())
+    );
+}, [dataSource, filterText]);
     // Show Edit Modal
     const showEditModal = (record) => {
         setScheduleToEdit(record); // Set the schedule to edit
@@ -168,9 +180,23 @@ const fetchSchedules = async () => {
 
     return (
         <>
+            <FilterComponent
+                style={{
+                    // marginBottom: "16px",
+                    display: "flex",
+                    flexDirection: "row-reverse",
+                    justifyContent: "flex-end",
+                    alignItems: "flex-start",
+                }}
+                filterText={filterText}
+                onFilter={handleFilterChange}
+                // onClear={handleClearFilter}
+            />
             <Table
+                className="schedule-table"
+                style={{ marginTop: "16px" }}
                 columns={columns}
-                dataSource={dataSource}
+                dataSource={filteredItemsM}
                 pagination={false}
                 rowKey="id"
             />

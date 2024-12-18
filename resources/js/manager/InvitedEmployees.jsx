@@ -1,12 +1,14 @@
 import { notification, Table, Tooltip, Button, Modal } from "antd";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useMemo } from "react";
 import { useDispatch } from "react-redux";
 import { getInvitedUsers } from "./redux/reducer";
 import { MdCancelPresentation } from "react-icons/md";
 import { cancelInvite } from "../employee/redux/reducers";
+import FilterComponent from "../components/FilterComponent";
 
 const Index = () => {
     const dispatch = useDispatch();
+        const [filterText, setFilterText] = useState("");
     const [inviteddata, setInvitedData] = useState([]);
 
     const fetchEmployees = async () => {
@@ -111,13 +113,34 @@ const Index = () => {
             ),
         },
     ];
-
+ const handleFilterChange = (value) => {
+     setFilterText(value);
+ };
+ const filteredItems = useMemo(() => {
+     if (inviteddata == null) return [];
+     return inviteddata.filter((item) =>
+         JSON.stringify(item).toLowerCase().includes(filterText.toLowerCase())
+     );
+ }, [inviteddata, filterText]);
     return (
         <>
             <h1>Invited Employees</h1>
+            <FilterComponent
+                style={{
+                    // marginBottom: "16px",
+                    display: "flex",
+                    flexDirection: "row-reverse",
+                    justifyContent: "flex-end",
+                    alignItems: "flex-start",
+                }}
+                filterText={filterText}
+                onFilter={handleFilterChange}
+                // onClear={handleClearFilter}
+            />
             <Table
+            style={{marginTop:"16px"}}
                 columns={columns}
-                dataSource={inviteddata}
+                dataSource={filteredItems}
                 rowKey={(record) => record.user_id}
             />
         </>

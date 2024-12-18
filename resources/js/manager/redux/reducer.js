@@ -122,7 +122,7 @@ export const gettActiveManagers = createAsyncThunk(
             );
             console.log("response manager", response.data.data.data);
 
-            return response.data.data.data;
+            return response?.data?.data?.data;
         } catch (error) {
             return rejectWithValue(
                 error.message || "failed to fetch Cancelled Invited Managers"
@@ -137,7 +137,7 @@ export const gettInActiveManagers = createAsyncThunk(
             const response = await axios.get(
                 apiRoutes.manager.getInActiveManagers(code)
             );
-            console.log("response", response.data.data);
+            console.log("response managers", response.data.data);
 
             return response.data.data;
         } catch (error) {

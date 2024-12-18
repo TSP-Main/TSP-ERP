@@ -1,7 +1,7 @@
 {
     "private": true,
     "type": "module",
-    "proxy": "https://rota.tspsolution.com/",
+    "proxy": "http://127.0.0.1:8000/",
     "scripts": {
         "dev": "vite",
         "build": "vite build"
@@ -19,6 +19,7 @@
     },
     "dependencies": {
         "@chakra-ui/react": "^3.0.1",
+        
         "@emotion/react": "^11.13.5",
         "@emotion/styled": "^11.13.5",
         "@mui/material": "^6.1.10",

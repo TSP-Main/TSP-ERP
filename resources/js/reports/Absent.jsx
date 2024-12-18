@@ -2,77 +2,76 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Table, Row, Col, DatePicker, Select } from "antd";
 import moment from "moment";
 import { useDispatch, useSelector } from "react-redux";
-import { absentEmployees } from "./attended/reducer";
+import {  absentEmployees} from "./attended/reducer";
 import { allEmployee } from "../employee/redux/reducers";
 import FilterComponent from "../components/FilterComponent";
+
 const { RangePicker } = DatePicker;
 
 const Reports = () => {
     const dispatch = useDispatch();
     const { absent } = useSelector((state) => state.scheduleEmployee);
     const { employeedata } = useSelector((state) => state.employee);
-    const [employee, setEmployee] = useState(null); // State to store selected employee ID
-    const [dateRange, setDateRange] = useState([moment(), moment()]); // Default to today's date range
+
+    const [employee, setEmployee] = useState(null); // Selected employee
+    const [dateRange, setDateRange] = useState([moment(), moment()]); // Default date range
+    const [role, setRole] = useState("employee"); // Default to "employee"
     const [filterText, setFilterText] = useState("");
 
-    // Handle filter changes
-    const handleFilterChange = (value) => {
-        setFilterText(value);
-    };
-
-    // Clear the filter text
-    const handleClearFilter = () => {
-        setFilterText("");
-    };
-
-    // Memoized filtered items
-
-    // Fetch attended schedule for a specific date range and employee
-    const fetchAttendedSchedule = (startDate, endDate, employeeId = null) => {
+    // Fetch attended schedule
+    const fetchAttendedSchedule = (
+        startDate,
+        endDate,
+        role = "employee",
+        employeeId = null
+    ) => {
         const code = localStorage.getItem("company_code");
         const payload = {
             start_date: startDate.format("YYYY-MM-DD"),
             end_date: endDate.format("YYYY-MM-DD"),
-            employee_id: employeeId, // Include employee ID in the payload
+            role, // Include role in the payload
+            employee_id: employeeId, // Optional employee filter
         };
         dispatch(absentEmployees({ code, payload })).unwrap();
     };
 
+    // Fetch employees list
     const fetchEmployees = () => {
         const code = localStorage.getItem("company_code");
         dispatch(allEmployee({ code }));
     };
 
+    // Initial fetch on component mount
     useEffect(() => {
         fetchEmployees();
+        fetchAttendedSchedule(dateRange[0], dateRange[1], role);
     }, []);
 
-    // Default fetch for today's date range
-    useEffect(() => {
-        fetchAttendedSchedule(dateRange[0], dateRange[1]);
-    }, []);
-
-    // Handle RangePicker Change
+    // Handle Date Range Change
     const handleDateRangeChange = (dates) => {
         setDateRange(dates);
         if (dates && dates.length === 2) {
-            fetchAttendedSchedule(dates[0], dates[1], employee); // Fetch on date range change
+            fetchAttendedSchedule(dates[0], dates[1], role, employee);
         }
     };
 
-    // Handle Employee Selection
-    const handleEmployeeChange = (value) => {
-        setEmployee(value);
-        fetchAttendedSchedule(dateRange[0], dateRange[1], value); // Fetch on employee selection
+    // Handle Role Change
+    const handleRoleChange = (value) => {
+        setRole(value);
+        fetchAttendedSchedule(dateRange[0], dateRange[1], value, employee);
     };
 
-    // Columns for the table
+    // Handle Filter Change
+    const handleFilterChange = (value) => {
+        setFilterText(value);
+    };
+
+    // Table Columns
     const columns = [
         {
             title: "Name",
             key: "name",
             render: (record) => record.name || "-",
-            
         },
         {
             title: "Check-In Time",
@@ -100,7 +99,10 @@ const Reports = () => {
     const data =
         absent?.absent?.map((schedule, index) => ({
             key: index,
-            name: schedule?.employee?.user?.name || "N/A",
+            name:
+                role === "manager"
+                    ? schedule?.manager?.user?.name || "N/A"
+                    : schedule?.employee?.user?.name || "N/A", // Conditional logic based on role
             time_in: schedule.time_in || "-",
             time_out: schedule.time_out || "-",
             working_hours: schedule.working_hours || "-",
@@ -108,6 +110,8 @@ const Reports = () => {
                 schedule?.employee_schedule?.schedule?.start_time || "-"
             } - ${schedule?.employee_schedule?.schedule?.end_time || "-"}`,
         })) || [];
+
+    // Filtered Items using memoization
     const filteredItems = useMemo(() => {
         return data.filter((item) =>
             JSON.stringify(item)
@@ -118,36 +122,43 @@ const Reports = () => {
 
     return (
         <>
-            <div>
-                <Row gutter={16}>
-                    <Col span={6}>
-                        <RangePicker
-                            value={dateRange}
-                            onChange={handleDateRangeChange} // Trigger fetch on range change
-                            placeholder={["Start Date", "End Date"]}
-                        />
-                    </Col>
-                    <Col span={4}>
-                        <Select
-                            style={{ width: "100%" }}
-                            placeholder="Select Employee"
-                            onChange={handleEmployeeChange} // Trigger fetch on employee selection
-                        >
-                            {employeedata?.map((data) => (
-                                <Select.Option key={data.id} value={data.id}>
-                                    {data.user.name}
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                }}
+            >
+                <div>
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <RangePicker
+                                value={dateRange}
+                                onChange={handleDateRangeChange}
+                                placeholder={["Start Date", "End Date"]}
+                            />
+                        </Col>
+                        <Col span={8}>
+                            <Select
+                                value={role}
+                                style={{ width: "100%" }}
+                                placeholder="Filter By Role"
+                                onChange={handleRoleChange} // Trigger fetch on role change
+                            >
+                                <Select.Option value="employee">
+                                    Employee
                                 </Select.Option>
-                            ))}
-                        </Select>
-                    </Col>
-                    <Col span={6}>
-                        <FilterComponent
-                            filterText={filterText}
-                            onFilter={handleFilterChange}
-                            // onClear={handleClearFilter}
-                        />
-                    </Col>
-                </Row>
+                                <Select.Option value="manager">
+                                    Manager
+                                </Select.Option>
+                            </Select>
+                        </Col>
+                    </Row>
+                </div>
+                <FilterComponent
+                    filterText={filterText}
+                    onFilter={handleFilterChange}
+                />
             </div>
             <Table
                 style={{ marginTop: 16 }}

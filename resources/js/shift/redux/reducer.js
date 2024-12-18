@@ -10,11 +10,13 @@ const initialState = {
     assignedSchedules: []
 };
 
-export const getAssignedSchedules = createAsyncThunk('employee/getAssignedSchedules', async (companyId, { rejectWithValue }) => {
+export const getAssignedSchedules = createAsyncThunk('employee/getAssignedSchedules', async ({companyId,role}, { rejectWithValue }) => {
     try {
-       const res = await axios.get(apiRoutes.schedule.assignedSchedules(companyId))
+       const res = await axios.get(apiRoutes.schedule.assignedSchedules(companyId),{params:{
+        role: role
+       }})
        
-    //    console.log("res of assignedSchedules:", res);
+       console.log("res of assignedSchedules:", res.data.data);
        return res.data.data
     } catch (error) {
         return rejectWithValue(
@@ -42,8 +44,9 @@ export const showSchedule = createAsyncThunk(
     "schedule/show",
     async (id, { rejectWithValue }) => {  // Accept `id` as parameter
         try {
-            console.log("inside showSchedule");
+            console.log("inside showSchedule ");
             const response = await axios.get(apiRoutes.schedule.show(id));
+            console.log("qkwke", response.data.data)
             return response.data.data;
         } catch (error) {
             // Handle error and use rejectWithValue for Redux error state
@@ -87,13 +90,13 @@ export const getChangeRequest = createAsyncThunk(
     "schedule/getChangeRequest",
     async ({code,id}, { rejectWithValue }) => {
         try {
-            console.log("inside chnage request api");
+            console.log("inside chnage request api",code);
             const response = await axios.get(apiRoutes.schedule.change(code),{
                 params:{
                     manager_id:id
                 }
             });
-            console.log(response.data.data);
+            console.log("change request",response.data.data);
             return response.data.data;
         } catch (error) {
             console.log("redux error: " + error);

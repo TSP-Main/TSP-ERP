@@ -134,6 +134,7 @@ const SideNav = () => {
                             <div className="Footer-hidden">
                                 <Footer
                                     style={{
+                                        marginTop: "auto",
                                         justifyContent: "center",
                                         alignItems: "center",
                                         backgroundColor: "#F5F5F58A",
@@ -163,9 +164,11 @@ const SideNav = () => {
             )}
 
             {isSmallScreen && (
-                <div style={{
-                    backgroundColor: "#F5F5F58A",
-                }}>
+                <div
+                    style={{
+                        backgroundColor: "#F5F5F58A",
+                    }}
+                >
                     <Drawer
                         placement="left"
                         closable={false}
@@ -208,12 +211,39 @@ const SideNav = () => {
                             items={RoleBasedMenu()}
                             onClick={handleDrawerClose}
                         />
+                        <Footer
+                            style={{
+                                marginTop: "auto",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                backgroundColor: "#F5F5F58A",
+                                color: "black",
+                                padding: "10px",
+                                textAlign: "center",
+                                display: collapsed ? "none" : "block",
+                                // overflow: "auto",
+                            }}
+                        >
+                            © 2024{" "}
+                            <span
+                                style={{
+                                    fontWeight: "bold",
+                                    color: "#00a8a8;",
+                                }}
+                            >
+                                <a href="https://techsolutionspro.co.uk/">
+                                    Tech Solutions Pro
+                                </a>
+                            </span>{" "}
+                            All Rights Reserved
+                        </Footer>
                     </Drawer>
                 </div>
             )}
 
             <Layout
                 style={{
+                    minHeight: "100vh",
                     marginLeft: isSmallScreen ? 0 : collapsed ? 80 : 200,
                 }}
             >
@@ -263,36 +293,7 @@ const SideNav = () => {
                             alignItems: "center",
                         }}
                     >
-                        {/* <Input
-                            style={{
-                                maxWidth: "375px",
-                                maxHeight: "58px",
-                                borderRadius: "29px",
-                                backgroundColor: "#D9D9D9",
-                            }}
-                            placeholder="Search"
-                            prefix={<SearchOutlined />}
-                        /> */}
-                        {/* <div
-                            style={{
-                                width: "35px",
-                                height: "35px",
-                                backgroundColor: "#D9D9D9",
-                                borderRadius: "50%",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                cursor: "pointer",
-                            }}
-                        >
-                            <MenuOutlined />
-                        </div> */}
-                        {/* <Button
-                            loading={loading}
-                            onClick={() => handleLogout()}
-                        >
-                            Log out
-                        </Button> */}
+                        <p>{localStorage.getItem("name")}</p>
                         <Dropdown
                             overlay={profilemenu}
                             trigger={["click"]}

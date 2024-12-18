@@ -15,13 +15,16 @@ const ChangeShift = () => {
        const code = localStorage.getItem("company_code");
        const role = localStorage.getItem("role");
        const id = localStorage.getItem("manager_id");
-
+        
        if (role === "company") {
+        console.log("code in try", code);
            // Fetch data for "company" role
-           dispatch(getChangeRequest(code));
+           dispatch(getChangeRequest({code}));
+
        } else {
            try {
                // Fetch shift change requests
+               console.log("code in try", code);
                const response_shift = await dispatch(getChangeRequest({code,id}));
                const filteredData = response_shift.payload;
                
@@ -45,23 +48,23 @@ const ChangeShift = () => {
     const columns = [
         {
             title: "Employee Name",
-            dataIndex: "employee_name",
-            key: "employee_name",
+            dataIndex: "name",
+            key: "name",
             defaultSortOrder: "ascend", // Sets the default sorting order
             sorter: (a, b) => {
-                const nameA = a.employee_name?.toLowerCase() || ""; // Handle undefined or null values
-                const nameB = b.employee_name?.toLowerCase() || ""; // Handle undefined or null values
+                const nameA = a.name?.toLowerCase() || ""; // Handle undefined or null values
+                const nameB = b.name?.toLowerCase() || ""; // Handle undefined or null values
                 return nameA.localeCompare(nameB); // Use localeCompare for string sorting
             },
         },
         {
             title: "Employee Email",
-            dataIndex: "employee_email",
+            dataIndex: "email",
             key: "employee_email",
             defaultSortOrder: "ascend", // Sets the default sorting order
             sorter: (a, b) => {
-                const nameA = a.employee_email?.toLowerCase() || ""; // Handle undefined or null values
-                const nameB = b.employee_email?.toLowerCase() || ""; // Handle undefined or null values
+                const nameA = a.email?.toLowerCase() || ""; // Handle undefined or null values
+                const nameB = b.email?.toLowerCase() || ""; // Handle undefined or null values
                 return nameA.localeCompare(nameB); // Use localeCompare for string sorting
             },
         },

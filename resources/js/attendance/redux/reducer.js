@@ -11,11 +11,12 @@ const initialState = {
 
 export const assignedShechule = createAsyncThunk(
     "employee/assignedShechule",
-    async (id, { rejectWithValue }) => {
+    async ({ id, role }, { rejectWithValue }) => {
         try {
             console.log("inside showassignedSchedule");
             const response = await axios.get(
-                apiRoutes.employee.showAssignedSchedule(id)
+                apiRoutes.employee.showAssignedSchedule(id),
+                { params: { role: role } }
             );
 
             const data = response.data.data;
@@ -45,7 +46,7 @@ export const assignSchedule = createAsyncThunk(
                 schedulePayload
             );
             // console.log("res: ", response);
-            
+
             return response.data;
         } catch (error) {
             return rejectWithValue(
@@ -58,10 +59,13 @@ export const assignSchedule = createAsyncThunk(
 export const postEmployeeAvailability = createAsyncThunk(
     "employee/postEmployeeAvailability",
     async (availabilityPayload, { rejectWithValue }) => {
-        try{
-          const response=await axios.post(apiRoutes.employee.postAvail,availabilityPayload); 
-          return response; 
-        }catch(error){
+        try {
+            const response = await axios.post(
+                apiRoutes.employee.postAvail,
+                availabilityPayload
+            );
+            return response;
+        } catch (error) {
             console.log(
                 "================================",
                 error.response?.data?.message
@@ -74,12 +78,14 @@ export const postEmployeeAvailability = createAsyncThunk(
 );
 export const checkIn = createAsyncThunk(
     "employee/checkIn",
-    async (id, { rejectWithValue }) => {
+    async ({ id, role }, { rejectWithValue }) => {
         try {
             console.log("Check In employee", id);
 
             // POST request with `id` in the URL and `time_in` in the request body
-            const response = await axios.post(apiRoutes.employee.checkIn(id));
+            const response = await axios.post(apiRoutes.employee.checkIn(id), {
+                type: role,
+            });
 
             console.log("response data employee checkIn", response.data);
             return response.data.data; // Adjusted to access the correct data
@@ -90,38 +96,50 @@ export const checkIn = createAsyncThunk(
             );
         }
     }
-);
-export const isCheckIn=createAsyncThunk(
+)
+export const isCheckIn = createAsyncThunk(
     "employee/ischeckin",
     async ( id, { rejectWithValue }) => {
         try {
-            console.log("Check Out employee", id);
+            console.log("Check In employee", id);
 
-            // Assuming apiRoutes.employee.checkOut(id) returns the correct endpoint
-            const response = await axios.get(apiRoutes.employee.ischeckin,{
-                params:{
-                    employee_id:id,
-                }
+            const role = localStorage.getItem("role"); // Retrieve role from localStorage
+
+            // Conditionally set params based on role
+            const params =
+                role === "employee" ? { employee_id: id } : { manager_id: id };
+            console.log("params", params);
+            console.log("Request params:", params);
+
+            // Call the API with dynamic params
+            const response = await axios.get(apiRoutes.employee.ischeckin, {
+                params, // Pass the dynamically built params
             });
 
-            console.log("response data employee checkOut", response.data);
-            return response.data; // Ensure this is the correct structure based on your API response
+            console.log("Response data for check-in:", response.data);
+
+            return response.data; // Return API response
         } catch (error) {
-            console.error("Error during checkout:", error);
+            console.error("Error during check-in:", error);
+
+            // Return error message using rejectWithValue
             return rejectWithValue(
-                error.response?.data?.errors || "Failed to check out"
+                error.response?.data?.errors || "Failed to check in"
             );
         }
     }
-)
+);
+
 export const checkOut = createAsyncThunk(
     "employee/checkout",
-    async ( id, { rejectWithValue }) => {
+    async ({ id, role }, { rejectWithValue }) => {
         try {
             console.log("Check Out employee", id);
 
             // Assuming apiRoutes.employee.checkOut(id) returns the correct endpoint
-            const response = await axios.post(apiRoutes.employee.checkOut(id));
+            const response = await axios.post(apiRoutes.employee.checkOut(id), {
+                type: role,
+            });
 
             console.log("response data employee checkOut", response.data);
             return response.data.data; // Ensure this is the correct structure based on your API response
@@ -151,7 +169,7 @@ const assigendScheduleSlice = createSlice({
             .addCase(assignedShechule.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload || action.error.message;
-            })
+            });
     },
 });
 

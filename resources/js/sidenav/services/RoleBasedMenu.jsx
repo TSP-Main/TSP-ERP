@@ -169,6 +169,11 @@ const RoleBasedMenu = () => {
     } else if (userRole === "manager") {
         items.push(
             getItem(
+                <Link to="/attendance">Attendance</Link>,
+                "/attendance", // Key matching the URL path
+                <MdCoPresent />
+            ),
+            getItem(
                 <Link to="/assign-shift">ROTA</Link>,
                 "/assign-shift", // Key matching the URL path
                 <MdOutlineTimer />
@@ -213,7 +218,25 @@ const RoleBasedMenu = () => {
                     "/invite-cancel-employee", // Key matching the URL path
                     <MdOutlineCancelScheduleSend />
                 ),
-            ])
+            ]),
+            getItem("Report", "reports", <TbReport />, [
+                getItem(
+                    <Link to="/attended">Attended</Link>,
+                    "/attended", // Key matching the URL path
+                    <MdOutlineCoPresent />
+                ),
+
+                getItem(
+                    <Link to="/missed">Missed</Link>,
+                    "/missed", // Key matching the URL path
+                    <GrDocumentMissing />
+                ),
+            ]),
+            getItem(
+                <Link to="/availibility">Availibility</Link>,
+                "/availibility", // Key matching the URL path
+                <MdEventAvailable />
+            )
         );
     }
 

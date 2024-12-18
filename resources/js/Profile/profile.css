@@ -1,55 +1,85 @@
-.profile-dash{
+/* Profile Dashboard */
+.profile-dash {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    /* display: "flex",
-              flex-direction: "row",
-              justifyContent: "space-between",
-              alignItems: "center", */
+    padding: 20px;
+    gap: 20px;
+    text-align: center;
 }
-.book-icon{
-    width: 50px;
-    height: 50px;
-}
-.card-text{
-    margin: 0;
-     font-size: 14px;
-      color: #7E7E7E 
-}
-.card-total{
-     margin: 0;
-    font-size: 24px;
-     font-weight: bold
-}
-.star-card{
-    text-align: left;
-   
-}
-.starr-card{
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-}
-@media screen and (max-width: 426px) {
-    .profile-dash{
-        flex-direction: column;
-    /* justify-content: space-between; */
-    }
-    .book-icon{
-        width: 25px;
-        height: 25px;
-    }
-    .card-total{
-        font-size: 15px;
-    }
-    .star-card{
-        line-height: 20px;
-         /* flex-direction: row; */
-        justify-content: space-around; 
-    }
-    .starr-card{
-        flex-direction: column;
-    }
 
+/* Welcome Section */
+.welcome-section h2 {
+    font-size: 24px;
+    margin: 0;
+    color: #333;
+}
+
+.welcome-section h3 {
+    font-size: 28px;
+    font-weight: bold;
+    margin: 5px 0;
+    color: #555;
+}
+
+/* Stat Card Container */
+.stat-card-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+/* Individual Stat Card */
+.stat-card {
+    background: #ffffff;
+    border: 1px solid #eaeaea;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    width: 200px;
+    transition: transform 0.2s ease-in-out;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Stat Card Icon */
+.stat-icon {
+    width: 40px;
+    height: 40px;
+    margin-right: 15px;
+}
+
+/* Stat Card Details */
+.stat-details {
+    text-align: left;
+}
+
+.stat-text {
+    margin: 0;
+    font-size: 14px;
+    color: #777;
+}
+
+.stat-total {
+    margin: 0;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 450px) {
+    .stat-card-container {
+        flex-direction: row;
+        align-items: center;
+    }
+    .welcome-section{
+        display: none !important;
+    }
 }

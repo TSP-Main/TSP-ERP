@@ -9,6 +9,10 @@ import InviteCanceledEmployee from "../manager/InviteCanceledEmployee.jsx";
 import AssignShift from "../assign_shift/index.jsx";
 import ChangeShift from "../shift/ChangeShift.jsx";
 import CheckedIn from "../employee/CheckedIn.jsx";
+import Missed from '../reports/missed/index.jsx'
+import Attended from '../reports/attended/index.jsx'
+import Availibility from "../attendance/Availibility.jsx";
+import Attendance from "../attendance/index.jsx";
 const ManagerRoutes = () => {
     return (
         <Routes>
@@ -32,6 +36,10 @@ const ManagerRoutes = () => {
                 />
                 <Route path="assign-shift" element={<AssignShift />} />
                 <Route path="change-shift" element={<ChangeShift />} />
+                <Route path="attendance" element={<Attendance />} />
+                <Route path="missed" element={<Missed />} />
+                <Route path="attended" element={<Attended />} />
+                <Route path="availibility" element={<Availibility />} />
             </Route>
         </Routes>
     );

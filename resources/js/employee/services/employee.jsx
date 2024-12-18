@@ -45,17 +45,19 @@ function Employee() {
     const [selectedRole, setSelectedRole] = useState("");
     const [managerTeam, setManagerTeam] = useState([]);
     const [selectedValue, setSelectedValue] = useState("Employee");
-    const [filterText, setFilterText] = useState("");
-    const handleSelectedValue = (value) => {
-        setSelectedValue(value);
-        console.log("Selected Value:", value); // You can perform other actions with the selected value
-    };
+  
 
     const dispatch = useDispatch();
     console.log("activeManagersdata", employeedata);
     // Fetch employees whenever the selected role changes
 
     // Handle filter changes
+      const [filterText, setFilterText] = useState("");
+        const handleSelectedValue = (value) => {
+            setSelectedValue(value);
+            console.log("Selected Value:", value); // You can perform other actions with the selected value
+        };
+
     const handleFilterChange = (value) => {
         setFilterText(value);
     };

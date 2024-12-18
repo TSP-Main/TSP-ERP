@@ -18,7 +18,6 @@ const getDatesRange = () => {
     return dates;
 };
 
-
 const Missed = () => {
     const dispatch = useDispatch();
     const { missed } = useSelector((state) => state.scheduleEmployee);
@@ -29,12 +28,22 @@ const Missed = () => {
     const fetchMissedSchedule = () => {
         const startDate = moment().subtract(6, "days"); // 6 days before today
         const endDate = moment(); // Today's date
-        const id = localStorage.getItem("employee_id");
-        const payload = {
-            start_date: startDate.format("YYYY-MM-DD"),
-            end_date: endDate.format("YYYY-MM-DD"),
-        };
-        dispatch(missedSchedule({ id, payload }));
+        const role = localStorage.getItem("role");
+        if (role === "employee") {
+            const id = localStorage.getItem("employee_id");
+            const payload = {
+                start_date: startDate.format("YYYY-MM-DD"),
+                end_date: endDate.format("YYYY-MM-DD"),
+            };
+            dispatch(missedSchedule({ id, payload }));
+        } else {
+            const id = localStorage.getItem("manager_id");
+            const payload = {
+                start_date: startDate.format("YYYY-MM-DD"),
+                end_date: endDate.format("YYYY-MM-DD"),
+            };
+            dispatch(missedSchedule({ id, payload }));
+        }
     };
 
     useEffect(() => {
@@ -66,6 +75,7 @@ const Missed = () => {
     ];
 
     // Map data for the table
+    // Map data for the table - Only include dates with missed schedules
     const data = getDatesRange()
         .map((dateObj) => {
             // Find all schedules for the given date
@@ -73,25 +83,21 @@ const Missed = () => {
                 (schedule) => schedule.date === dateObj.date
             );
 
-            // If there are no records, return empty fields
+            // If there are no records, exclude this date
             if (!matchedSchedules || matchedSchedules.length === 0) {
-                return {
-                    ...dateObj,
-                    time_in: "",
-                    time_out: "",
-                    working_hours: "",
-                };
+                return null; // Skip this date
             }
 
-            // If there are records, map them into separate rows
+            // Map missed schedules into separate rows
             return matchedSchedules.map((schedule, index) => ({
                 key: `${dateObj.date}-${index}`, // Ensure unique key for each row
                 date: dateObj.date,
-                time_in: schedule.time_in,
-                time_out: schedule.time_out,
-                working_hours: schedule.working_hours,
+                time_in: schedule.time_in || "",
+                time_out: schedule.time_out || "",
+                working_hours: schedule.working_hours || "",
             }));
         })
+        .filter(Boolean) // Remove null values (dates without missed schedules)
         .flat(); // Flatten the array if there are multiple records for a date
 
     // Disable dates from tomorrow onwards

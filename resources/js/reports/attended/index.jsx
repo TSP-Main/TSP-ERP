@@ -25,17 +25,29 @@ const Attended = () => {
     const [endDate, setEndDate] = useState(null);
 
     // Function to fetch attended schedules
-    const fetchAttendedSchedule = () => {
+    const fetchAttendedSchedule =async () => {
         const startDate = moment().subtract(6, "days"); // 6 days before today
-        const endDate = moment(); // Today's date
-        const id = localStorage.getItem("employee_id");
-        const payload = {
-            start_date: startDate.format("YYYY-MM-DD"),
-            end_date: endDate.format("YYYY-MM-DD"),
-        };
-        console.log("payload", payload);
-       dispatch(attendedSchedule({ id, payload })).unwrap();
-      
+        const endDate = moment(); // Today's datez
+        const role = localStorage.getItem("role");
+        if (role === "employee") {
+            const id = localStorage.getItem("employee_id");
+            const payload = {
+                role: role,
+                start_date: startDate.format("YYYY-MM-DD"),
+                end_date: endDate.format("YYYY-MM-DD"),
+            };
+            await dispatch(attendedSchedule({ id, payload })).unwrap();
+        } else {
+            const id = localStorage.getItem("manager_id");
+            const payload = {
+                role: role,
+                start_date: startDate.format("YYYY-MM-DD"),
+                end_date: endDate.format("YYYY-MM-DD"),
+            };
+           const response= await dispatch(attendedSchedule({ id, payload })).unwrap();
+           console.log("response",response);
+
+        }
     };
 
     useEffect(() => {
@@ -76,12 +88,7 @@ const Attended = () => {
 
             // If there are no records, return empty fields
             if (!matchedSchedules || matchedSchedules.length === 0) {
-                return {
-                    ...dateObj,
-                    time_in: "",
-                    time_out: "",
-                    working_hours: "",
-                };
+                return null;
             }
 
             // If there are records, map them into separate rows
@@ -93,14 +100,15 @@ const Attended = () => {
                 working_hours: schedule.working_hours,
             }));
         })
+        .filter(Boolean)
         .flat(); // Flatten the array if there are multiple records for a date
 
     // Disable dates from tomorrow onwards
     const disabledDate = (current) => {
-        console.log("start date",startDate)
+        console.log("start date", startDate);
         return current && current > moment().endOf("day");
     };
-    
+
     // Handle start date change
     const handleStartDateChange = (date) => {
         setStartDate(date);
@@ -116,17 +124,31 @@ const Attended = () => {
 
     // Submit the filter (optional)
     const handleSubmit = () => {
-        const sDate= startDate?.format("YYYY-MM-DD");
-        const eDate= endDate?.format("YYYY-MM-DD");
-
-         const id = localStorage.getItem("employee_id");
-         const payload = {
-             start_date: sDate,
-             end_date: eDate,
-         };
-         console.log("payload", payload);
-        dispatch(attendedSchedule({ id, payload })).unwrap();
-         console.log("empploye data",employeedata.attended_schedules)
+        const sDate = startDate?.format("YYYY-MM-DD");
+        const eDate = endDate?.format("YYYY-MM-DD");
+        const role = localStorage.getItem("role");
+        if (role == "employee") {
+            const id = localStorage.getItem("employee_id");
+            const payload = {
+                role: role,
+                start_date: sDate,
+                end_date: eDate,
+            };
+            console.log("payload", payload);
+            dispatch(attendedSchedule({ id, payload })).unwrap();
+            // console.log("empploye data", employeedata.attended_schedules);
+        }else{
+            const id = localStorage.getItem("manager_id");
+            const payload = {
+                role: role,
+                start_date: sDate,
+                end_date: eDate,
+            };
+            console.log("payload", payload);
+            dispatch(attendedSchedule({ id, payload })).unwrap();
+            // console.log("empploye data", employeedata.attended_schedules);
+        }
+        
     };
 
     return (

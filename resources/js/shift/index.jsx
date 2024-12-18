@@ -28,7 +28,7 @@ const hideModal = () => {
                     text="Send Invite"
                     onClick={showModal}
                     style={{
-                        backgroundColor: "black",
+                        backgroundColor: "#5dc5bd ",
                         color: "white",
                         marginBottom: "20px",
                     }}
@@ -36,7 +36,7 @@ const hideModal = () => {
                     Create Shift
                 </Button>
             </div>
-            <Tablee/>
+            <Tablee />
             {/* <TimePicker.RangePicker /> */}
             <ShiftModal
                 isVisible={isModalVisible}
@@ -44,7 +44,6 @@ const hideModal = () => {
                 // loading={loading}
                 onCancel={hideModal}
             />
-           
         </>
     );
 };

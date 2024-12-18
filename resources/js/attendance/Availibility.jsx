@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Table, TimePicker, Button,notification } from "antd";
+import { Table, TimePicker, Button, notification } from "antd";
 import moment from "moment";
 import axios from "axios";
 import { postEmployeeAvailability } from "./redux/reducer";
@@ -35,36 +35,52 @@ const Availibility = () => {
     };
 
     const handleSave = async (day) => {
-        const employeeId = localStorage.getItem("employee_id");
-        if (!employeeId) {
-            alert("Employee ID not found in localStorage.");
-            return;
+        // if (!employeeId) {
+        //     alert("Employee ID not found in localStorage.");
+        //     return;
+        // }
+        const role = localStorage.getItem("role");
+        let payload = {};
+        if (role == "employee") {
+            const employeeId = localStorage.getItem("employee_id");
+
+            payload = {
+                employee_id: employeeId,
+                date: day.date,
+                start_time: day.startTime
+                    ? day.startTime.format("HH:mm")
+                    : null,
+                end_time: day.endTime ? day.endTime.format("HH:mm") : null,
+            };
+        } else {
+            const employeeId = localStorage.getItem("manager_id");
+            payload = {
+                manager_id: employeeId,
+                date: day.date,
+                start_time: day.startTime
+                    ? day.startTime.format("HH:mm")
+                    : null,
+                end_time: day.endTime ? day.endTime.format("HH:mm") : null,
+            };
         }
 
-        const payload = {
-            employee_id: employeeId,
-            date: day.date,
-            start_time: day.startTime ? day.startTime.format("HH:mm") : null,
-            end_time: day.endTime ? day.endTime.format("HH:mm") : null,
-        };
         console.log("payload", payload);
-       try {
-           const response = await dispatch(
-               postEmployeeAvailability(payload)
-           ).unwrap(); // Use `.unwrap()` for cleaner error handling
-           notification.success({
-               description:
-                   response?.message || "Schedule created successfully",
-               duration: 3,
-           });
-          
-       } catch (error) {
-           console.log(error);
-           notification.error({
-               description: error || "Something went wrong. Please try again.",
-               duration: 3,
-           });
-       }
+        try {
+            const response = await dispatch(
+                postEmployeeAvailability(payload)
+            ).unwrap(); // Use `.unwrap()` for cleaner error handling
+            notification.success({
+                description:
+                    response?.message || "Schedule created successfully",
+                duration: 3,
+            });
+        } catch (error) {
+            console.log(error);
+            notification.error({
+                description: error || "Something went wrong. Please try again.",
+                duration: 3,
+            });
+        }
     };
 
     const columns = [

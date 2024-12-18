@@ -1,0 +1,6 @@
+.schedule-table .ant-table-thead > tr > th {
+    background-color:#039DC3;; /* Black background */
+    color: #e8ecef !important; /* Light text color */
+    font-weight: bold;
+    text-align: center;
+}

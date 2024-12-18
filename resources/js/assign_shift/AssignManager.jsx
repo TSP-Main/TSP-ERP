@@ -14,11 +14,9 @@ function RowHeaderTable() {
     const [dataSource, setDataSource] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedShiftsState, setSelectedShiftsState] = useState({});
-    const [selectedValue, setSelectedValue] = useState(
-        localStorage.getItem("selectedValue")
-    );
+    const [selectedValue, setSelectedValue] = useState("Employee");
     const dispatch = useDispatch();
-    const { activeManagersdata } = useSelector((state) => state.manager);
+
     const { employeedata, loading: employeeLoading } = useSelector(
         (state) => state.employee
     );
@@ -27,13 +25,9 @@ function RowHeaderTable() {
         (state) => state.schedule
     );
     const { assignedSchedules } = useSelector((state) => state.schedule);
+    
     console.log("employee dsta,", employeedata);
     console.log("jnenfe", assignedSchedules);
-    useEffect(() => {
-        // Save selectedValue to localStorage when it changes
-        localStorage.setItem("selectedValue", selectedValue);
-    }, [selectedValue]);
-
     const getDatesForWeek = () => {
         const currentDate = new Date();
         const next7Days = [];
@@ -68,20 +62,16 @@ function RowHeaderTable() {
 
     // Fetch employee data
     useEffect(() => {
-        setLoading(true);
         const code = localStorage.getItem("company_code");
         const role = localStorage.getItem("role");
         const id = localStorage.getItem("manager_id");
 
         if (role === "manager") {
             dispatch(allEmployee({ code, id }));
-        } else if (selectedValue === "Manager") {
-            dispatch(gettActiveManagers(code));
         } else {
             dispatch(allEmployee({ code }));
         }
-        setLoading(false);
-    }, [dispatch, selectedValue]);
+    }, [dispatch]);
 
     // Fetch schedule data once (on component mount)
     useEffect(() => {
@@ -93,155 +83,78 @@ function RowHeaderTable() {
 
     // Format data for the table once employee data is available
     useEffect(() => {
-        if (selectedValue === "Manager") {
-            if (activeManagersdata && activeManagersdata.length > 0) {
-                const formattedData = activeManagersdata.map((employee) => ({
-                    key: employee.id,
-                    rowHeader: employee?.user?.name,
-                    ...reorderedDays.reduce((acc, day, index) => {
-                        acc[`col${index + 1}`] = null;
-                        return acc;
-                    }, {}),
-                }));
-                setDataSource(formattedData);
-                setLoading(false);
-            }
-        } else {
-            if (employeedata && employeedata.length > 0) {
-                const formattedData = employeedata.map((employee) => ({
-                    key: employee.id,
-                    rowHeader: employee?.user?.name,
-                    ...reorderedDays.reduce((acc, day, index) => {
-                        acc[`col${index + 1}`] = null;
-                        return acc;
-                    }, {}),
-                }));
-                setDataSource(formattedData);
-                setLoading(false);
-            }
+        if (employeedata && employeedata.length > 0) {
+            const formattedData = employeedata.map((employee) => ({
+                key: employee.id,
+                rowHeader: employee?.user?.name,
+                ...reorderedDays.reduce((acc, day, index) => {
+                    acc[`col${index + 1}`] = null;
+                    return acc;
+                }, {}),
+            }));
+            setDataSource(formattedData);
+            setLoading(false);
         }
-    }, [employeedata, activeManagersdata, selectedValue]);
+    }, [employeedata]);
 
     // Populate selectedShiftsState once assignedSchedules is fetched
     useEffect(() => {
-        if (selectedValue === "Manager") {
-            if (assignedSchedules && assignedSchedules.length > 0) {
-                console.log("wnenmfenmrfmnrf");
-                const shiftsState = {};
-                console.log("Assigned", assignedSchedules);
-                assignedSchedules.forEach((schedule) => {
-                    if (schedule.managers) {
-                        schedule.managers.forEach((manager) => {
-                            const employeeId = manager.manager_id;
-                            const shiftId = schedule.schedule_id;
+        if (assignedSchedules && assignedSchedules.length > 0) {
+            console.log("wnenmfenmrfmnrf");
+            const shiftsState = {};
+            console.log("Assigned", assignedSchedules);
+            assignedSchedules.forEach((schedule) => {
+                schedule.employees.forEach((employee) => {
+                    const employeeId = employee.employee_id;
+                    const shiftId = schedule.schedule_id;
 
-                            // Parse start_date and end_date as Date objects
-                            const startDate = new Date(manager.start_date);
-                            const endDate = new Date(manager.end_date);
+                    // Parse start_date and end_date as Date objects
+                    const startDate = new Date(employee.start_date);
+                    const endDate = new Date(employee.end_date);
 
-                            if (!shiftsState[employeeId]) {
-                                shiftsState[employeeId] = {};
+                    if (!shiftsState[employeeId]) {
+                        shiftsState[employeeId] = {};
+                    }
+
+                    // Iterate through the range of dates
+                    let currentDate = new Date(startDate); // Create a copy of the start date
+                    while (currentDate <= endDate) {
+                        // Find the index of the date in reorderedDays
+                        const columnIndex = reorderedDays.findIndex(
+                            (day) =>
+                                day.date.toDateString() ===
+                                currentDate.toDateString()
+                        );
+
+                        if (columnIndex !== -1) {
+                            const columnKey = `col${columnIndex + 1}`;
+
+                            // If columnKey doesn't exist, initialize as an array
+                            if (!shiftsState[employeeId][columnKey]) {
+                                shiftsState[employeeId][columnKey] = [];
                             }
 
-                            // Iterate through the range of dates
-                            let currentDate = new Date(startDate); // Create a copy of the start date
-                            while (currentDate <= endDate) {
-                                // Find the index of the date in reorderedDays
-                                const columnIndex = reorderedDays.findIndex(
-                                    (day) =>
-                                        day.date.toDateString() ===
-                                        currentDate.toDateString()
+                            // Add the shiftId to the column
+                            if (
+                                !shiftsState[employeeId][columnKey].includes(
+                                    shiftId
+                                )
+                            ) {
+                                shiftsState[employeeId][columnKey].push(
+                                    shiftId
                                 );
-
-                                if (columnIndex !== -1) {
-                                    const columnKey = `col${columnIndex + 1}`;
-
-                                    // If columnKey doesn't exist, initialize as an array
-                                    if (!shiftsState[employeeId][columnKey]) {
-                                        shiftsState[employeeId][columnKey] = [];
-                                    }
-
-                                    // Add the shiftId to the column
-                                    if (
-                                        !shiftsState[employeeId][
-                                            columnKey
-                                        ].includes(shiftId)
-                                    ) {
-                                        shiftsState[employeeId][columnKey].push(
-                                            shiftId
-                                        );
-                                    }
-                                }
-
-                                // Increment the current date by 1 day
-                                currentDate.setDate(currentDate.getDate() + 1);
                             }
-                        });
+                        }
+
+                        // Increment the current date by 1 day
+                        currentDate.setDate(currentDate.getDate() + 1);
                     }
                 });
+            });
 
-                setSelectedShiftsState(shiftsState);
-            }
-        } else {
-            if (assignedSchedules && assignedSchedules.length > 0) {
-                console.log("wnenmfenmrfmnrf");
-                const shiftsState = {};
-                console.log("Assigned", assignedSchedules);
-                assignedSchedules.forEach((schedule) => {
-                    if (schedule.employees) {
-                        schedule.employees.forEach((employee) => {
-                            const employeeId = employee.employee_id;
-                            const shiftId = schedule.schedule_id;
-
-                            // Parse start_date and end_date as Date objects
-                            const startDate = new Date(employee.start_date);
-                            const endDate = new Date(employee.end_date);
-
-                            if (!shiftsState[employeeId]) {
-                                shiftsState[employeeId] = {};
-                            }
-
-                            // Iterate through the range of dates
-                            let currentDate = new Date(startDate); // Create a copy of the start date
-                            while (currentDate <= endDate) {
-                                // Find the index of the date in reorderedDays
-                                const columnIndex = reorderedDays.findIndex(
-                                    (day) =>
-                                        day.date.toDateString() ===
-                                        currentDate.toDateString()
-                                );
-
-                                if (columnIndex !== -1) {
-                                    const columnKey = `col${columnIndex + 1}`;
-
-                                    // If columnKey doesn't exist, initialize as an array
-                                    if (!shiftsState[employeeId][columnKey]) {
-                                        shiftsState[employeeId][columnKey] = [];
-                                    }
-
-                                    // Add the shiftId to the column
-                                    if (
-                                        !shiftsState[employeeId][
-                                            columnKey
-                                        ].includes(shiftId)
-                                    ) {
-                                        shiftsState[employeeId][columnKey].push(
-                                            shiftId
-                                        );
-                                    }
-                                }
-
-                                // Increment the current date by 1 day
-                                currentDate.setDate(currentDate.getDate() + 1);
-                            }
-                        });
-                    }
-                });
-
-                setSelectedShiftsState(shiftsState);
-            }
+            setSelectedShiftsState(shiftsState);
         }
-    }, [assignedSchedules, selectedValue]);
+    }, [assignedSchedules]);
 
     console.log("shift state", selectedShiftsState);
 
@@ -280,21 +193,12 @@ function RowHeaderTable() {
                     ?.toISOString()
                     .split("T")[0];
 
-                if (selectedValue === "Manager") {
-                    payload.push({
-                        manager_id: parseInt(employeeId),
-                        schedule_id: parseInt(scheduleId),
-                        start_date: startDate,
-                        end_date: endDate,
-                    });
-                } else {
-                    payload.push({
-                        employee_id: parseInt(employeeId),
-                        schedule_id: parseInt(scheduleId),
-                        start_date: startDate,
-                        end_date: endDate,
-                    });
-                }
+                payload.push({
+                    employee_id: parseInt(employeeId),
+                    schedule_id: parseInt(scheduleId),
+                    start_date: startDate,
+                    end_date: endDate,
+                });
             });
         });
         try {
@@ -434,11 +338,11 @@ function RowHeaderTable() {
 
     useEffect(() => {
         const companyId = localStorage.getItem("company_id");
+        const role = "employee";
         if (companyId) {
-            const role = selectedValue === "Manager" ? "manager" : "employee";
             dispatch(getAssignedSchedules({ companyId, role }));
         }
-    }, [dispatch, selectedValue]);
+    }, [dispatch]);
 
     // if (scheduleLoading || loading) {
     //     return <Spin />;
@@ -455,29 +359,27 @@ function RowHeaderTable() {
     // console.log("shift state: ", selectedShiftsState);
 
     const handleSelectedValue = (value) => {
-        console.log("selected value: ", value);
         setSelectedValue(value);
-        localStorage.setItem("selectedValue", value); // Persist selection
-        setLoading(true); // Show loading while fetching new data
+        setLoading(true); // Set loading while fetching data
     };
 
     return (
         <>
             <h1>Assign Shift</h1>
             <Selection onSelect={handleSelectedValue} />
-
-            <Table
-                key={JSON.stringify(dataSource)}
-                size="small"
-                columns={columns}
-                dataSource={dataSource}
-                pagination={false}
-                bordered
-                scroll={{ x: "max-content", y: 500 }}
-                rowKey="key"
-            />
-
-            {/* {selectedValue === "Manager" && <AssignManager />} */}
+            {selectedValue === "Employee" && (
+                <Table
+                    key={JSON.stringify(dataSource)}
+                    size="small"
+                    columns={columns}
+                    dataSource={dataSource}
+                    pagination={false}
+                    bordered
+                    scroll={{ x: "max-content", y: 500 }}
+                    rowKey="key"
+                />
+            )}
+            {selectedValue === "Manager" && <AssignManager />}
 
             <div
                 style={{

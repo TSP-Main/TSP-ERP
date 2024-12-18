@@ -11,7 +11,13 @@ import {
 import React, { useState, useEffect } from "react";
 import moment from "moment";
 import { useDispatch, useSelector } from "react-redux";
-import { assignedShechule, checkIn, checkOut, isCheckIn, postEmployeeAvailability } from "./redux/reducer";
+import {
+    assignedShechule,
+    checkIn,
+    checkOut,
+    isCheckIn,
+    postEmployeeAvailability,
+} from "./redux/reducer";
 import Cookies from "js-cookie";
 import { get } from "react-hook-form";
 
@@ -19,6 +25,7 @@ const Index = () => {
     console.log("attendance");
     const dispatch = useDispatch();
     const { dataa, loading } = useSelector((state) => state.assignedShechule);
+    console.log("assignedShechule", assignedShechule);
     const [data, setData] = useState([]);
     const [statusCheckIn, setStatusCheckIn] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -40,39 +47,50 @@ const Index = () => {
     };
 
     // Handle form submission
-    const handleFormSubmit =async (values) => {
-        const id = localStorage.getItem("employee_id");
-        const formattedData = {
-            employee_id: id,
-            date: values.date.format("YYYY-MM-DD"),
-            start_time: values.start_time.format("HH:mm"),
-            end_time: values.end_time.format("HH:mm"),
-        };
+    const handleFormSubmit = async (values) => {
+        const role = localStorage.getItem("role");
+        const formattedData = {};
+        if (role == "manager") {
+            const id = localStorage.getItem("manager_id");
+            formattedData = {
+                manager_id: id,
+                date: values.date.format("YYYY-MM-DD"),
+                start_time: values.start_time.format("HH:mm"),
+                end_time: values.end_time.format("HH:mm"),
+            };
+        } else {
+            const id = localStorage.getItem("employee_id");
+            formattedData = {
+                employee_id: id,
+                date: values.date.format("YYYY-MM-DD"),
+                start_time: values.start_time.format("HH:mm"),
+                end_time: values.end_time.format("HH:mm"),
+            };
+        }
 
         console.log("Submitted Data:", formattedData);
-         try {
-             const response = await dispatch(
-                 postEmployeeAvailability(formattedData)
-             ).unwrap(); // Use `.unwrap()` for cleaner error handling
-             notification.success({
-                 description:
-                     response?.message || "Schedule created successfully",
-                 duration: 3,
-             });
-             handleCloseModal(); // Close modal on success
-         } catch (error) {
-            console.log(error)
-             notification.error({
-                 description:
-                     error || "Something went wrong. Please try again.",
-                 duration: 3,
-             });
-         }
+        try {
+            const response = await dispatch(
+                postEmployeeAvailability(formattedData)
+            ).unwrap(); // Use `.unwrap()` for cleaner error handling
+            notification.success({
+                description:
+                    response?.message || "Schedule created successfully",
+                duration: 3,
+            });
+            handleCloseModal(); // Close modal on success
+        } catch (error) {
+            console.log(error);
+            notification.error({
+                description: error || "Something went wrong. Please try again.",
+                duration: 3,
+            });
+        }
 
         // Perform API call here
         // Example: await dispatch(changeSchedule(formattedData));
 
-       // Close the modal after submission
+        // Close the modal after submission
     };
     // Generate dates starting from yesterday towards the next 7 days
     const generateDates = () => {
@@ -100,14 +118,19 @@ const Index = () => {
     }
 
     const handleCheckIn = async () => {
-        const id = localStorage.getItem("employee_id");
         // const time_in = getCurrentTime();
-
-       
+        const role = localStorage.getItem("role");
         try {
-            await dispatch(checkIn(id));
+            if (role === "employee") {
+                const id = localStorage.getItem("employee_id");
+                await dispatch(checkIn({ id, role }));
+            } else {
+                const id = localStorage.getItem("manager_id");
+                await dispatch(checkIn({ id, role }));
+            }
+
             setStatusCheckIn(true);
-           
+
             // console.log("Successfully Checked In:", payload);
         } catch (error) {
             console.error("Error during Check In:", error);
@@ -115,17 +138,21 @@ const Index = () => {
     };
 
     const handleCheckOut = async () => {
-        const id = localStorage.getItem("employee_id");
         // const time_out = getCurrentTime();
 
-       
         //  console.log("payload check out", payload);
-
-
+        const role = localStorage.getItem("role");
         try {
-            await dispatch(checkOut(id));
+            if (role === "employee") {
+                const id = localStorage.getItem("employee_id");
+                await dispatch(checkOut({ id, role }));
+            } else {
+                const id = localStorage.getItem("manager_id");
+                await dispatch(checkOut({ id, role }));
+            }
+            // await dispatch(checkOut(id));
             setStatusCheckIn(false);
-           
+
             // console.log("Successfully Checked Out:", payload);
         } catch (error) {
             console.error("Error during Check Out:", error);
@@ -142,9 +169,17 @@ const Index = () => {
     useEffect(() => {
         const fetchAssignedSchedule = async () => {
             try {
-                const id = localStorage.getItem("employee_id");
-                if (id) {
-                    await dispatch(assignedShechule(id));
+                const role = localStorage.getItem("role");
+
+                if (role == "employee") {
+                    const id = localStorage.getItem("employee_id");
+                    await dispatch(assignedShechule({ id, role }));
+                } else {
+                    const id = localStorage.getItem("manager_id");
+                    const response = await dispatch(
+                        assignedShechule({ id, role })
+                    );
+                    console.log("response assigned ", response);
                 }
             } catch (error) {
                 console.error("Error fetching assigned schedule:", error);
@@ -153,81 +188,102 @@ const Index = () => {
 
         fetchAssignedSchedule();
     }, [dispatch]);
-    const getCheckInStatus=async()=>{
-        try{
-            console.log("Getting check in status")
-            const response=await dispatch(isCheckIn(localStorage.getItem('employee_id')))
-            console.log("checkout response",response)
-            if(response?.payload?.status=="present"){
-               setStatusCheckIn(true)
-            } 
-            else if(response?.status=="absent"){
-                setStatusCheckIn(false)
+    const getCheckInStatus = async () => {
+        try {
+            console.log("Getting check in status");
+            const role = localStorage.getItem("role");
+            if (role == "manager") {
+                const id = localStorage.getItem("manager_id");
+                console.log("manager id", id);
+                const response = await dispatch(
+                    isCheckIn(id)
+                );
+                 console.log("checkout response", response);
+                 if (response?.payload?.status == "present") {
+                     setStatusCheckIn(true);
+                 } else if (response?.status == "absent") {
+                     setStatusCheckIn(false);
+                 }
+            } else {
+                const id=localStorage.getItem("employee_id")
+                const response = await dispatch(
+                    isCheckIn(id)
+                );
+                 console.log("checkout response", response);
+                 if (response?.payload?.status == "present") {
+                     setStatusCheckIn(true);
+                 } else if (response?.status == "absent") {
+                     setStatusCheckIn(false);
+                 }
             }
-        }catch(error){
-                console.log("err0r ejjenc",error)
+
+           
+        } catch (error) {
+            console.log("err0r ejjenc", error);
         }
-    }
-    useEffect(()=>{
-        console.log("getCheckInStatus")
-        getCheckInStatus()
-    },[])
-   useEffect(() => {
-       if (Array.isArray(dataa) && dataa.length > 0) {
-           const generatedDates = generateDates();
+    };
+    useEffect(() => {
+        console.log("getCheckInStatus");
+        getCheckInStatus();
+    }, []);
+    useEffect(() => {
+        if (Array.isArray(dataa) && dataa.length > 0) {
+            const generatedDates = generateDates();
 
-           const updatedDates = generatedDates.map((dateItem) => {
-               let updatedItem = { ...dateItem };
+            const updatedDates = generatedDates.map((dateItem) => {
+                let updatedItem = { ...dateItem };
 
-               dataa.forEach((schedule) => {
-                   const scheduleStartDate = moment(schedule.start_date);
-                   const scheduleEndDate = moment(schedule.end_date);
+                dataa.forEach((schedule) => {
+                    const scheduleStartDate = moment(schedule.start_date);
+                    const scheduleEndDate = moment(schedule.end_date);
 
-                   if (
-                       scheduleStartDate.isSameOrBefore(dateItem.date, "day") &&
-                       scheduleEndDate.isSameOrAfter(dateItem.date, "day")
-                   ) {
-                       const scheduleExists = updatedItem.schedules.some(
-                           (existingSchedule) =>
-                               existingSchedule.schedule_id ===
-                               schedule.schedule_id
-                       );
+                    if (
+                        scheduleStartDate.isSameOrBefore(
+                            dateItem.date,
+                            "day"
+                        ) &&
+                        scheduleEndDate.isSameOrAfter(dateItem.date, "day")
+                    ) {
+                        const scheduleExists = updatedItem.schedules.some(
+                            (existingSchedule) =>
+                                existingSchedule.schedule_id ===
+                                schedule.schedule_id
+                        );
 
-                       if (!scheduleExists) {
-                           updatedItem.schedules.push({
-                               schedule_id: schedule.schedule_id,
-                               start_time: moment(
-                                   schedule.schedule.start_time,
-                                   "HH:mm:ss"
-                               ).format("hh:mm A"),
-                               end_time: moment(
-                                   schedule.schedule.end_time,
-                                   "HH:mm:ss"
-                               ).format("hh:mm A"),
-                               name: schedule.schedule.name,
-                           });
-                       }
-                   }
-               });
+                        if (!scheduleExists) {
+                            updatedItem.schedules.push({
+                                schedule_id: schedule.schedule_id,
+                                start_time: moment(
+                                    schedule.schedule.start_time,
+                                    "HH:mm:ss"
+                                ).format("hh:mm A"),
+                                end_time: moment(
+                                    schedule.schedule.end_time,
+                                    "HH:mm:ss"
+                                ).format("hh:mm A"),
+                                name: schedule.schedule.name,
+                            });
+                        }
+                    }
+                });
 
-               return updatedItem;
-           });
+                return updatedItem;
+            });
 
-           // Filter out days without schedules
-           const filteredDates = updatedDates.filter(
-               (dateItem) => dateItem.schedules.length > 0
-           );
+            // Filter out days without schedules
+            const filteredDates = updatedDates.filter(
+                (dateItem) => dateItem.schedules.length > 0
+            );
 
-           setData(filteredDates);
-       } else {
-           setData(
-               generateDates().filter(
-                   (dateItem) => dateItem.schedules.length > 0
-               )
-           );
-       }
-   }, [dataa]);
-
+            setData(filteredDates);
+        } else {
+            setData(
+                generateDates().filter(
+                    (dateItem) => dateItem.schedules.length > 0
+                )
+            );
+        }
+    }, [dataa]);
 
     // Auto Check Out Effect
     useEffect(() => {

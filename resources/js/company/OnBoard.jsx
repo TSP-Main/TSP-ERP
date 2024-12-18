@@ -1,8 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useEffect,useState,useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Table, Spin, Alert } from "antd";
 import { activeUsersData } from "./redux/reducer";
 import Loading from "../Loading";
+import FilterComponent from "../components/FilterComponent";
 
 
 const OnBoard = () => {
@@ -10,7 +11,16 @@ const OnBoard = () => {
     const { error, loading, onboarddata } = useSelector(
         (state) => state.company
     );
-
+  const [filterText, setFilterText] = useState("");
+        const handleFilterChange = (value) => {
+            setFilterText(value);
+        };
+const filteredItemsM = useMemo(() => {
+    if (onboarddata == null) return [];
+    return onboarddata.filter((item) =>
+        JSON.stringify(item).toLowerCase().includes(filterText.toLowerCase())
+    );
+}, [onboarddata, filterText]);
     useEffect(() => {
         console.log('OnBoard')
         dispatch(activeUsersData());
@@ -62,10 +72,23 @@ const OnBoard = () => {
     return (
         <div>
             <h1>On Board</h1>
+            <FilterComponent
+                style={{
+                    // marginBottom: "16px",
+                    display: "flex",
+                    flexDirection: "row-reverse",
+                    justifyContent: "flex-end",
+                    alignItems: "flex-start",
+                }}
+                filterText={filterText}
+                onFilter={handleFilterChange}
+                // onClear={handleClearFilter}
+            />
             <Table
+                style={{ marginTop: "16px" }}
                 pagination={false}
                 columns={columns}
-                dataSource={onboarddata}
+                dataSource={filteredItemsM}
                 rowKey={(record) => record.company.code} // Use 'company.code' as unique key
                 // pagination={{ pageSize: 10 }}
             />

@@ -256,7 +256,7 @@ const handleFilterChange = (value) => {
                 <Button
                     type="primary"
                     onClick={showModal}
-                    style={{ backgroundColor: "Black", color: "white" }}
+                    style={{ backgroundColor: "#fff", color: "white" }}
                 >
                     Send Invite
                 </Button>
