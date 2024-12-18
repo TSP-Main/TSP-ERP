@@ -33,9 +33,4 @@ class Attendance extends Model
     {
         return $this->belongsTo(Manager::class);
     }
-
-    public function managerSchedule()
-    {
-        return $this->belongsTo(EmployeeSchedule::class);
-    }
 }
