@@ -7,8 +7,24 @@ const initialState = {
     loading: false,
     inactivedata: null,
     onboarddata: null,
+    allUser:null
 };
-
+export const allUsers=createAsyncThunk(
+    "user/allUsers",
+    async(rejectWithValue)=>{
+        try {
+            console.log("inside inactive api");
+            const response = await axios.get(apiRoutes.all);
+            console.log("inactive", response.data.data);
+            return response.data.data.data;
+        } catch (error) {
+            console.log("redux error: " + error);
+            return rejectWithValue(
+                error.response?.errors || "Failed to fetch data"
+            );
+        }
+    }
+)
 export const inactiveUsersData = createAsyncThunk(
     "user/inactiveUsersData",
     async (rejectWithValue ) => {
@@ -89,7 +105,21 @@ const companySlice = createSlice({
             .addCase(inactiveUsersData.rejected, (state, action) => {
                 state.loading = false;
                 state.error = true;
+            })
+            .addCase(allUsers.pending, (state, action) => {
+                state.loading = true;
+                state.error = false;
+            })
+            .addCase(allUsers.fulfilled, (state, action) => {
+                state.allUser = action.payload;
+                state.loading = false;
+                state.error = false;
+            })
+            .addCase(allUsers.rejected, (state, action) => {
+                state.loading = false;
+                state.error = true;
             });
+            
     },
 });
 
