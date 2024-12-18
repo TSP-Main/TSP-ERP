@@ -66,7 +66,12 @@ const RoleBasedMenu = () => {
                     "/inactive", // Key matching the URL path
                     <IoMdNotificationsOutline />
                 ),
-            ])
+            ]),
+            getItem(
+                <Link to="/all-users">All Users</Link>,
+                "/all-users", // Key matching the URL path
+                <FiUsers />
+            )
         );
     } else if (userRole === "company") {
         items.push(

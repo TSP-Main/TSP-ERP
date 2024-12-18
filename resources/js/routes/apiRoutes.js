@@ -5,6 +5,7 @@ const apiRoutes = {
     login: "/login",
     logout: "/logout",
     userdetails: "/user/details",
+    all:"/get-all-users",
     company: {
         inactive: "/company/in-active-companies",
         onboard: "/company/active-companies",
