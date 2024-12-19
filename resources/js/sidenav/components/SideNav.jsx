@@ -14,7 +14,7 @@ import RoleBasedMenu from "../services/RoleBasedMenu"; // Import RoleBasedMenu c
 import useResponsive from "../../hooks/useResponsive";
 import logo from "../../assests/tms_logo.png";
 import placeholder from "../../assests/placeholder-image.jpg";
-import "../styles/SideNav.css";
+// import "../styles/SideNav.css";
 import apiRoutes from "../../routes/apiRoutes";
 import axios from "../../services/axiosService";
 import { useLocation } from "react-router-dom";
@@ -66,7 +66,7 @@ const SideNav = () => {
     );
 
     return (
-        <Layout style={{ minHeight: "100vh", backgroundColor: "#F5F5F58A" }}>
+        <Layout style={{ minHeight: "100vh", backgroundColor: "#F5F5F58A", }}>
             {!isSmallScreen && (
                 <div>
                     <Sider
@@ -81,8 +81,8 @@ const SideNav = () => {
                             flexDirection: "column", // Use flexbox to structure the sidebar
                             justifyContent: "space-between", // Space between items to push footer to the bottom
                             alignItems: "center",
-                            overflowY: "auto",
-                            overflowX: "hidden",
+                            overflow: "auto",
+                            // overflowX: "hidden",
                         }}
                         // width={290}
                         // collapsedWidth={80}
@@ -96,6 +96,7 @@ const SideNav = () => {
                                 display: "flex",
                                 flexDirection: "column",
                                 justifyContent: "space-between",
+                                height: "100%",
                                 backgroundColor: "#F5F5F58A",
                             }}
                         >
