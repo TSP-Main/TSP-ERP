@@ -43,8 +43,8 @@ const Profile = () => {
     return (
         <div className="profile-dash">
             <div className="welcome-section">
-                <h2>Welcome Back</h2>
-                <h3>{name}!</h3>
+                <h2 style={{ fontWeight:"normal"}}>Welcome Back</h2>
+                <h2>{name}!</h2>
             </div>
 
             <div className="stat-card-container">
